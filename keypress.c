@@ -113,13 +113,13 @@ main(int argc, char **argv)
 		if (c == 24) { /* Ctrl+x: clear the screen */
 			clear(); refresh(); printw(KP_HEADER, VERSION);
 		} else if (c >= 0 && c <= 32) {
-			printw(" │ \\x%02x │ \\%03o │ %03d │ %*s │\n", c, c, c, 4, keysym[c]);
+			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, keysym[c]);
 		} else if (isprint(c)) {
-			printw(" │ \\x%02x │ \\%03o │ %03d │ %*c │\n", c, c, c, 4, c);
+			printw(" │ \\x%02x │ \\%03o │ %3d │ %*c │\n", c, c, c, 4, c);
 		} else {
 			const char *s = (c == 127 ? "DEL"
 				: (c == 160 ? "NBSP" : (c == 173 ? "SHY" : "")));
-			printw(" │ \\x%02x │ \\%03o │ %03d │ %*s │\n", c, c, c, 4, s);
+			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
 		}
 	}
 
