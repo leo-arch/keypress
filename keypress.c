@@ -33,6 +33,8 @@
 #include <locale.h>
 #include <ctype.h>
 
+#define VERSION "0.1"
+
 #define KP_HEADER \
 "(C-c: quit, C-x: clear)\n" \
 "┌──────┬──────┬─────┬──────┐\n"  \
@@ -42,7 +44,7 @@
 static void
 print_help(void)
 {
-	puts("Usage: keypress [--help]\n");
+	puts("Usage: keypress [-h,--help|-v,--version]\n");
 	puts("Generate a byte-by-byte representation of keyboard inputs, whether for\n"
 		"individual keys or key combinations. This representation includes the\n"
 		"following formats: hexadecimal, octal, decimal, and the corresponding\n"
@@ -70,9 +72,15 @@ print_help(void)
 int
 main(int argc, char **argv)
 {
-	if (argc >= 2 && *argv[1] == '-' && strcmp(argv[1], "--help") == 0) {
-		print_help();
-		return EXIT_SUCCESS;
+	if (argc >= 2 && *argv[1] == '-') {
+		if ((argv[1][1] == 'h' && !argv[1][2]) || strcmp(argv[1], "--help") == 0) {
+			print_help();
+			return EXIT_SUCCESS;
+		}
+		else if ((argv[1][1] == 'v' && !argv[1][2]) || strcmp(argv[1], "--version") == 0) {
+			printf("%s\n", VERSION);
+			return EXIT_SUCCESS;
+		}
 	}
 
 	/* Tell the C libraries to use user's locale settings. */
