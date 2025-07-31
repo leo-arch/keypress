@@ -16,7 +16,8 @@ Also, **keypress** is platform agonostic: it works on the TTY, X11, Wayland, and
 Awful, useful.
 
 > [!TIP]
-> Did you know that `printf "\xc3\x9f\n"` will print an `ß` (the german _Eszett_)?
+> Did you know that `printf "\xc3\x9f\n"` will print an `ß` (the german _Eszett_)?\
+> Try with `printf "\xf0\x9f\x98\x80\n"`. Nice!
 
 ---
 
