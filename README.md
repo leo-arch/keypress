@@ -18,7 +18,7 @@ Awful, useful.
 > [!TIP]
 > Copy any text you like (yes, emojis are included) to the primary clipboard, and then paste it into the **keypress** interface to get the corresponding raw codes.
 > 
-> Did you know that `printf "\xc3\x9f\n"` will print an `ß` (the german _Eszett_)?\
+> Did you know, for example, that `printf "\xc3\x9f\n"` will print an `ß` (the german _Eszett_)?\
 > Try with `printf "\xf0\x9f\x98\x80\n"`. Nice!
 
 ---
