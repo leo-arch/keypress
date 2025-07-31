@@ -36,10 +36,9 @@
 #define VERSION "0.1"
 
 #define KP_HEADER \
-" Keypress %s\n"                  \
-" (C-c: quit, C-x: clear)\n"       \
-" ┌──────┬──────┬─────┬──────┐\n"  \
-" │ Hex  │ Oct  │ Dec │ Sym  │\n"  \
+" Keypress %s  (C-c: quit, C-x: clear)\n"  \
+" ┌──────┬──────┬─────┬──────┐\n"          \
+" │ Hex  │ Oct  │ Dec │ Sym  │\n"          \
 " ├──────┼──────┼─────┼──────┤\n"
 
 static void
