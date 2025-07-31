@@ -3,6 +3,8 @@
 A raw keyboard input reader
 ---
 
+Why? Have you ever developed a terminal program dealing with keyboard input? That is why.
+
 ### 1. Description
 
 **Keypress** generates a byte-by-byte representation of keyboard inputs, whether for individual keys or key combinations. This representation includes the following formats: hexadecimal, octal, decimal, and the corresponding symbols.
