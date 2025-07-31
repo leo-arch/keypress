@@ -36,7 +36,8 @@
 #define VERSION "0.1"
 
 #define KP_HEADER \
-" (C-c: quit, C-x: clear)\n" \
+" Keypress %s\n"                  \
+" (C-c: quit, C-x: clear)\n"       \
 " ┌──────┬──────┬─────┬──────┐\n"  \
 " │ Hex  │ Oct  │ Dec │ Sym  │\n"  \
 " ├──────┼──────┼─────┼──────┤\n"
@@ -99,7 +100,7 @@ main(int argc, char **argv)
 	keypad(w, FALSE); /* FALSE: CSI codes, TRUE: curses codes for keys */
 	scrollok(w, 1);	  /* Enable screen scroll */
 
-	printw(KP_HEADER);
+	printw(KP_HEADER, VERSION);
 
 	const char *const keysym[] = {
 		"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
@@ -111,7 +112,7 @@ main(int argc, char **argv)
 	int c = 0;
 	while ((c = getch()) != 3) { /* Ctrl+c: quit */
 		if (c == 24) { /* Ctrl+x: clear the screen */
-			clear(); refresh(); printw(KP_HEADER);
+			clear(); refresh(); printw(KP_HEADER, VERSION);
 		} else if (c >= 0 && c <= 32) {
 			printw(" │ \\x%02x │ \\%03o │ %03d │ %*s │\n", c, c, c, 4, keysym[c]);
 		} else if (isprint(c)) {
