@@ -1,7 +1,5 @@
 # keypress
 
----
-
 A raw keyboard input reader
 ---
 
@@ -19,10 +17,10 @@ Please note that these key combinations are reserved for controlling the program
 
 ```
  ┌──────┬──────┬─────┬──────┐
- │ Hex  │ Oct  │ Dec │ Sym  │
+ │ Hex   │ Oct  │ Dec  │ Sym  │
  ├──────┼──────┼─────┼──────┤
- │ \\x18 │ \\030 │  24 │  CAN │ (Ctrl+x)
- │ \\x03 │ \\003 │   3 │  ETX │ (Ctrl+c)
+ │ \x18 │ \030  │  24 │  CAN  │ (Ctrl+x)
+ │ \x03 │ \003  │   3 │  ETX  │ (Ctrl+c)
  └──────┴──────┴─────┴──────┘
 ```
 
