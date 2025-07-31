@@ -11,6 +11,10 @@
 
 Why? Have you ever developed a terminal program dealing with keyboard input? That is why.
 
+Also, **keypress** is platform agonostic: it works on the TTY, X11, Wayland, and virtually any terminal emulator out there.
+
+Awful, useful.
+
 ---
 
 ### 2. Installation
