@@ -112,11 +112,11 @@ main(int argc, char **argv)
 	while ((c = getch()) != 3) { /* Ctrl+c: quit */
 		if (c == 24) { /* Ctrl+x: clear the screen */
 			clear(); refresh(); printw(KP_HEADER, VERSION);
-		} else if (c >= 0 && c <= 32) {
+		} else if (c >= 0 && c <= 32) { /* Control characters */
 			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, keysym[c]);
-		} else if (isprint(c)) {
+		} else if (isprint(c)) { /* ASCII printable characters */
 			printw(" │ \\x%02x │ \\%03o │ %3d │ %*c │\n", c, c, c, 4, c);
-		} else {
+		} else { /* Extended ASCII, Unicode */
 			const char *s = (c == 127 ? "DEL"
 				: (c == 160 ? "NBSP" : (c == 173 ? "SHY" : "")));
 			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
