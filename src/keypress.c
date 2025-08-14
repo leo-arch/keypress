@@ -35,7 +35,7 @@
 #include "translate_key.h"
 
 #define PROG_NAME "keypress"
-#define VERSION "0.1"
+#define VERSION "0.2"
 
 #define KP_HEADER \
 " Keypress %s  (C-c: quit, C-x: clear)\n"  \
