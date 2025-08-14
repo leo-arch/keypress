@@ -1,7 +1,7 @@
 /* translate_key.c */
 
 /*
- * Copyright (C) 2025, L. Abramovich <leo.clifm@outlook.com>
+ * Copyright (C) 2025, Leo Abramovich <leo.clifm@outlook.com>
  * All rights reserved.
 
 * The MIT License (MIT)

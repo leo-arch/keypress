@@ -11,7 +11,7 @@ DATADIR ?= $(PREFIX)/share
 INSTALL ?= install
 RM ?= rm
 
-SRC = *.c
+SRC = src/*.c
 
 CFLAGS ?= -O3 -fstack-protector-strong
 CFLAGS += -Wall -Wextra -pedantic

@@ -1,8 +1,7 @@
+/* keypress.c */
+
 /*
- * This file is part of keypress
- *
- * Copyright
- * (C) 2025 Leo Abramovich <leo.clifm@outlook.com>
+ * Copyright (C) 2025, Leo Abramovich <leo.clifm@outlook.com>
  * All rights reserved.
 
 * The MIT License (MIT)
