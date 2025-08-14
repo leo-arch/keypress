@@ -447,7 +447,7 @@ struct keys_t keys[] = {
 	{"\x1b[3;2~", "Shift+Del"}, {"\x1b[1;2H", "Shift+Home"},
 	{"\x1b[1;2F", "Shift+End"},
 
-	{"\x1b", "Esc"},
+	{"\x1b", "Escape"},
 
 //	{"\\C-i", "Tab"}, {"\x1b\\C-i", "Alt+Tab"},
 	{"\x1b[Z", "Shift+Tab"},
@@ -466,11 +466,11 @@ struct keys_t keys[] = {
 	{"\x1b[20^", "Ctrl+F9"}, {"\x1b[21^", "Ctrl+F10"},
 	{"\x1b[23^", "Ctrl+F11"}, {"\x1b[24^", "Ctrl+F12"},
 
-	{"\x1b[23~", "Shift+F1"}, {"\x1b[24~", "Shift+F2"},
-	{"\x1b[25~", "Shift+F3"}, {"\x1b[26~", "Shift+F4"},
-	{"\x1b[28~", "Shift+F5"}, {"\x1b[29~", "Shift+F6"},
-	{"\x1b[31~", "Shift+F7"}, {"\x1b[32~", "Shift+F8"},
-	{"\x1b[33~", "Shift+F9"}, {"\x1b[34~", "Shift+F10"},
+	{"\x1b[23~", "F11"}, {"\x1b[24~", "F12"},
+	{"\x1b[25~", "F13"}, {"\x1b[26~", "F14"},
+	{"\x1b[28~", "F15"}, {"\x1b[29~", "F16"},
+	{"\x1b[31~", "F17"}, {"\x1b[32~", "F18"},
+	{"\x1b[33~", "F19"}, {"\x1b[34~", "F20"},
 	{"\x1b[23$", "Shift+F11"}, {"\x1b[24$", "Shift+F12"},
 
 	{"\x1b\x1b[11~", "Alt+F1"}, {"\x1b\x1b[12~", "Alt+F2"},
@@ -480,11 +480,11 @@ struct keys_t keys[] = {
 	{"\x1b\x1b[20~", "Alt+F9"}, {"\x1b\x1b[21~", "Alt+F10"},
 	{"\x1b\x1b[23~", "Alt+F11"}, {"\x1b\x1b[24~", "Alt+F12"},
 
-	{"\x1b[23^", "Ctrl+Shift+F1"}, {"\x1b[24^", "Ctrl+Shift+F2"},
-	{"\x1b[25^", "Ctrl+Shift+F3"}, {"\x1b[26^", "Ctrl+Shift+F4"},
-	{"\x1b[28^", "Ctrl+Shift+F5"}, {"\x1b[29^", "Ctrl+Shift+F6"},
-	{"\x1b[31^", "Ctrl+Shift+F7"}, {"\x1b[32^", "Ctrl+Shift+F8"},
-	{"\x1b[33^", "Ctrl+Shift+F9"}, {"\x1b[34^", "Ctrl+Shift+F10"},
+	{"\x1b[23^", "Ctrl+F11"}, {"\x1b[24^", "Ctrl+F12"},
+	{"\x1b[25^", "Ctrl+F13"}, {"\x1b[26^", "Ctrl+F14"},
+	{"\x1b[28^", "Ctrl+F15"}, {"\x1b[29^", "Ctrl+F16"},
+	{"\x1b[31^", "Ctrl+F17"}, {"\x1b[32^", "Ctrl+F18"},
+	{"\x1b[33^", "Ctrl+F19"}, {"\x1b[34^", "Ctrl+F20"},
 	{"\x1b[23@", "Ctrl+Shift+F11"}, {"\x1b[24@", "Ctrl+Shift+F12"},
 
 	{"\x1b[a", "Shift+Up"}, {"\x1b[b", "Shift+Down"},
@@ -546,8 +546,13 @@ struct keys_t keys[] = {
 
 	{"\x1b[1~", "Home"}, {"\x1b[4~", "End"},
 
-	{"\x1b[4h", "Ins"}, {"\x1b[L", "Ctrl+Ins"}, /* st */
-	{"\x1b[M", "Ctrl+Del"},
+//	{"\x1b[4h", "Ins"}, {"\x1b[L", "Ctrl+Ins"}, /* st */
+//	{"\x1b[M", "Ctrl+Del"},
+
+	/* Let's test the Meta key */
+	{"\x1b[6;9~", "Meta+PgDn"}, {"\x1b[1;11F", "Alt+Meta+End"},
+	{"\x1b[1;13P", "Ctrl+Meta+F1"}, {"\x1b[3;15~", "Ctrl+Alt+Meta+Del"},
+	{"\x1b[19;10~", "Meta+Shift+F8"},
 
 	/* sun-color uses \e[224z-\e[235z for F1-F12 keys. */
 	/* cons25 uses \e[M-\e[X for F1-F12 keys. */
@@ -555,28 +560,42 @@ struct keys_t keys[] = {
 	{NULL, NULL},
 };
 
-#define GREEN "\x1b[32m"
-#define RED   "\x1b[1;31m"
-#define RESET "\x1b[0m"
-
 int
 key_test(void)
 {
+	size_t errors = 0;
+
 	for (size_t i = 0; keys[i].key; i++) {
-		size_t count;
-		for (count = 0; keys[i].key[count] == '\x1b'; count++)
-			printf("\\e");
-		printf("%s (%s): ",  keys[i].key + count, keys[i].translation);
-		char *s = malloc((strlen(keys[i].key) + 1) * sizeof(char));
+		const size_t key_len = strlen(keys[i].key);
+		char *s = malloc((key_len + 1) * sizeof(char));
+		if (!s)
+			exit(ENOMEM);
+
 		strcpy(s, keys[i].key);
+		s[key_len] = '\0';
+
 		char *ret = translate_key(s);
-		if (ret)
-			printf("%s%s%s\n", GREEN, ret, RESET);
-		else
-			printf("%sNo key found!%s\n", RED, RESET);
+		if (!ret || strcmp(ret, keys[i].translation) != 0) {
+			errors++;
+			size_t count;
+			for (count = 0; keys[i].key[count] == '\x1b'; count++)
+				printf("\\e");
+			printf("%s (%s): ",  keys[i].key + count, keys[i].translation);
+
+			if (!ret)
+				printf("No key found!\n");
+			else
+				printf("%s\n", ret);
+		};
+
 		free(ret);
 		free(s);
 	}
+
+	if (errors == 0)
+		printf("All tests passed!\n");
+	else
+		printf("%zu errors\n", errors);
 
 	return 0;
 }

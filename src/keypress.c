@@ -79,6 +79,9 @@ print_help(void)
 static int
 run_args(char **argv)
 {
+	if (!argv || !argv[0] || !argv[1])
+		return EXIT_FAILURE;
+
 	if ((argv[1][1] == 'h' && !argv[1][2]) || strcmp(argv[1], "--help") == 0) {
 		print_help();
 		return EXIT_SUCCESS;
