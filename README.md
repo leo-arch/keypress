@@ -24,7 +24,7 @@ Awful, useful.
 By using the `-t` option, **keypress** can also translate keyboard escape sequences into the corresponding symbolic/text representation. For example:
 
 ```sh
-keypress -t $(printf "\x1b[1;7D")
+keypress -t "\x1b[1;7D"
 ```
 
 This command will output `Ctrl+Alt+Left`.

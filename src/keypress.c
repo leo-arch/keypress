@@ -31,6 +31,7 @@
 #include <curses.h>
 #include <locale.h>
 #include <ctype.h>
+#include <errno.h> // ENOMEM
 
 #include "translate_key.h"
 
@@ -76,44 +77,86 @@ print_help(void)
 		" └──────┴──────┴─────┴──────┘");
 }
 
+/* Transform escape string representations ("\\e", "\\x1b", and "\\003")
+ * in the string INPUT into the corresponding escape byte. The converted
+ * string is copied into the OUTPUT buffer. */
+static void
+transform_esc_seq(const char *input, char *output)
+{
+	const char *ptr = input;
+	char *out_ptr = output;
+
+	while (*ptr) {
+		if (strncmp(ptr, "\\e", 2) == 0) {
+			*out_ptr++ = '\x1b';
+			ptr += 2;
+		} else if (strncmp(ptr, "\\x1b", 4) == 0) {
+			*out_ptr++ = '\x1b';
+			ptr += 4;
+		} else if (strncmp(ptr, "\\003", 4) == 0) {
+			*out_ptr++ = '\x1b';
+			ptr += 4;
+		} else {
+			/* Not an escape string: copy the character as is. */
+			*out_ptr++ = *ptr++;
+		}
+	}
+
+	*out_ptr = '\0';
+}
+
+static int
+run_translate_key(const char *arg)
+{
+	if (!arg) {
+		fprintf(stderr, "Missing parameter: An escape sequence is expected\n");
+		fprintf(stderr, "E.g.: %s -t \"\\x1b[1;11D\"\n", PROG_NAME);
+		return EXIT_FAILURE;
+	}
+
+#ifdef TK_TEST
+	if (strcmp(arg, "test") == 0)
+		return key_test();
+#endif
+
+	char *str = malloc((strlen(arg) + 1) * sizeof(char));
+	if (!str)
+		return ENOMEM;
+
+	transform_esc_seq(arg, str);
+
+	char *keysym = translate_key(str);
+	free(str);
+
+	if (keysym) {
+		printf("%s\n", keysym);
+		free(keysym);
+		return EXIT_SUCCESS;
+	}
+
+	printf("No key found!\n");
+	return EXIT_FAILURE;
+}
+
 static int
 run_args(char **argv)
 {
 	if (!argv || !argv[0] || !argv[1])
 		return EXIT_FAILURE;
 
-	if ((argv[1][1] == 'h' && !argv[1][2]) || strcmp(argv[1], "--help") == 0) {
-		print_help();
-		return EXIT_SUCCESS;
+	if ((argv[1][1] == 'h' && !argv[1][2])
+	|| strcmp(argv[1], "--help") == 0) {
+		print_help(); return EXIT_SUCCESS;
 	}
 
-	if ((argv[1][1] == 'v' && !argv[1][2]) || strcmp(argv[1], "--version") == 0) {
-		printf("%s\n", VERSION);
-		return EXIT_SUCCESS;
+	if ((argv[1][1] == 'v' && !argv[1][2])
+	|| strcmp(argv[1], "--version") == 0) {
+		printf("%s\n", VERSION); return EXIT_SUCCESS;
 	}
 
-	if (argv[1][1] == 't') {
-		if (!argv[2]) {
-			fprintf(stderr, "Missing parameter: An escape sequence is expected\n");
-			fprintf(stderr, "E.g.: %s -t $(printf \"\\x1b[1;11D\")\n", argv[0]);
-			return EXIT_FAILURE;
-		}
-
-#ifdef TK_TEST
-		if (strcmp(argv[2], "test") == 0)
-			return key_test();
-#endif
-
-		char *keysym = translate_key(argv[2]);
-		if (keysym) {
-			printf("%s\n", keysym);
-			free(keysym);
-			return EXIT_SUCCESS;
-		}
-
-		printf("No key found!\n");
-		return EXIT_FAILURE;
-	}
+	if ((argv[1][1] == 't' && !argv[1][2])
+	|| strcmp(argv[1], "--translate") == 0)
+		return run_translate_key(argv[2]);
 
 	return EXIT_FAILURE;
 }
