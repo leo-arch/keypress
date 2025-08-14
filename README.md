@@ -36,7 +36,7 @@ will print `Ctrl+Alt+Left`.
 > ...
 > #include "translate_key.c"
 > ...
-> char *str = some_get_str_func();
+> char str[] = "\x1b[1;7D";
 > char *keysym = translate_key(str);
 >
 > if (keysym) {
