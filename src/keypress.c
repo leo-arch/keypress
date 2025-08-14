@@ -36,7 +36,7 @@
 #include "translate_key.h"
 
 #define PROG_NAME "keypress"
-#define VERSION "0.2"
+#define VERSION "0.2.1"
 
 #define KP_HEADER \
 " Keypress %s  (C-c: quit, C-x: clear)\n"  \
@@ -51,7 +51,7 @@ print_help(void)
 	printf("%s runs in two modes:\n\n", PROG_NAME);
 	printf("If running with -t, translate the escape sequence SEQ into the\n"
 		"corresponding symbolic representation. For example:\n\n"
-		"  %s -t $(printf \"\\x1b[1;11D\")\n\n"
+		"  %s -t \"\\x1b[1;11D\"\n\n"
 		"will output 'Alt+Meta+Left'.\n\n", PROG_NAME);
 	printf("Otherwise, %s generates a byte-by-byte representation of keyboard\n"
 		"inputs, whether for individual keys or key combinations. This\n"
