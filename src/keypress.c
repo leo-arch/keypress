@@ -87,7 +87,10 @@ transform_esc_seq(const char *input, char *output)
 	char *out_ptr = output;
 
 	while (*ptr) {
-		if (strncmp(ptr, "\\e", 2) == 0) {
+		if (*ptr != '\\') {
+			/* Not an escape string: copy the character as is. */
+			*out_ptr++ = *ptr++;
+		} else if (ptr[1] == 'e') { /* "\\e" */
 			*out_ptr++ = '\x1b';
 			ptr += 2;
 		} else if (strncmp(ptr, "\\x1b", 4) == 0) {
@@ -96,9 +99,6 @@ transform_esc_seq(const char *input, char *output)
 		} else if (strncmp(ptr, "\\003", 4) == 0) {
 			*out_ptr++ = '\x1b';
 			ptr += 4;
-		} else {
-			/* Not an escape string: copy the character as is. */
-			*out_ptr++ = *ptr++;
 		}
 	}
 
