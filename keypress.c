@@ -33,6 +33,9 @@
 #include <locale.h>
 #include <ctype.h>
 
+#include "translate_key.h"
+
+#define PROG_NAME "keypress"
 #define VERSION "0.1"
 
 #define KP_HEADER \
@@ -44,11 +47,16 @@
 static void
 print_help(void)
 {
-	puts("Usage: keypress [-h,--help|-v,--version]\n");
-	puts("Generate a byte-by-byte representation of keyboard inputs, whether for\n"
-		"individual keys or key combinations. This representation includes the\n"
-		"following formats: hexadecimal, octal, decimal, and the corresponding\n"
-		"symbols.");
+	puts("Usage: keypress [-h,--help|-v,--version|-t SEQ]\n");
+	printf("%s runs in two modes:\n\n", PROG_NAME);
+	printf("If running with -t, translate the escape sequence SEQ into the\n"
+		"corresponding symbolic representation. For example:\n\n"
+		"  %s -t $(printf \"\\x1b[1;11D\")\n\n"
+		"will output 'Alt+Meta+Left'.\n\n", PROG_NAME);
+	printf("Otherwise, %s generates a byte-by-byte representation of keyboard\n"
+		"inputs, whether for individual keys or key combinations. This\n"
+		"representation includes the following formats: hexadecimal, octal,\n"
+		"decimal, and the corresponding symbols.\n", PROG_NAME);
 	puts("\nMulti-byte sequences —such as extended ASCII, Unicode, or key\n"
 		"combinations involving function keys and arrow keys— will produce\n"
 		"multiple lines of output, with each line representing a single byte in\n"
@@ -67,22 +75,52 @@ print_help(void)
 		" │ \\x18 │ \\030 │  24 │  CAN │ (Ctrl+x)\n"
 		" │ \\x03 │ \\003 │   3 │  ETX │ (Ctrl+c)\n"
 		" └──────┴──────┴─────┴──────┘");
-	return;
+}
+
+static int
+run_args(char **argv)
+{
+	if ((argv[1][1] == 'h' && !argv[1][2]) || strcmp(argv[1], "--help") == 0) {
+		print_help();
+		return EXIT_SUCCESS;
+	}
+
+	if ((argv[1][1] == 'v' && !argv[1][2]) || strcmp(argv[1], "--version") == 0) {
+		printf("%s\n", VERSION);
+		return EXIT_SUCCESS;
+	}
+
+	if (argv[1][1] == 't') {
+		if (!argv[2]) {
+			fprintf(stderr, "Missing parameter: An escape sequence is expected\n");
+			fprintf(stderr, "E.g.: %s -t $(printf \"\\x1b[1;11D\")\n", argv[0]);
+			return EXIT_FAILURE;
+		}
+
+#ifdef TK_TEST
+		if (strcmp(argv[2], "test") == 0)
+			return key_test();
+#endif
+
+		char *keysym = translate_key(argv[2]);
+		if (keysym) {
+			printf("%s\n", keysym);
+			free(keysym);
+			return EXIT_SUCCESS;
+		}
+
+		printf("No key found!\n");
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_FAILURE;
 }
 
 int
 main(int argc, char **argv)
 {
-	if (argc >= 2 && *argv[1] == '-') {
-		if ((argv[1][1] == 'h' && !argv[1][2]) || strcmp(argv[1], "--help") == 0) {
-			print_help();
-			return EXIT_SUCCESS;
-		}
-		else if ((argv[1][1] == 'v' && !argv[1][2]) || strcmp(argv[1], "--version") == 0) {
-			printf("%s\n", VERSION);
-			return EXIT_SUCCESS;
-		}
-	}
+	if (argc >= 2 && *argv[1] == '-')
+		return run_args(argv);
 
 	/* Tell the C libraries to use user's locale settings. */
 	setlocale(LC_ALL, "");
