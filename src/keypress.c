@@ -93,12 +93,12 @@ transform_esc_seq(const char *input, char *output)
 		} else if (ptr[1] == 'e') { /* "\\e" */
 			*out_ptr++ = '\x1b';
 			ptr += 2;
-		} else if (strncmp(ptr, "\\x1b", 4) == 0) {
+		} else if (strncmp(ptr, "\\x1b", 4) == 0
+		|| strncmp(ptr, "\\003", 4) == 0) {
 			*out_ptr++ = '\x1b';
 			ptr += 4;
-		} else if (strncmp(ptr, "\\003", 4) == 0) {
-			*out_ptr++ = '\x1b';
-			ptr += 4;
+		} else {
+			*out_ptr++ = *ptr++;
 		}
 	}
 
