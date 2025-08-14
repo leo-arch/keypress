@@ -7,11 +7,11 @@
 
 ### 1. Description
 
-**Keypress** generates a byte-by-byte representation of keyboard inputs, whether for individual keys or key combinations. This representation includes the following formats: hexadecimal, octal, decimal, and the corresponding symbols.
+**Keypress** generates a byte-by-byte representation of keyboard inputs, whether for individual keys or key combinations. This representation includes the following formats: **hexadecimal**, **octal**, **decimal**, and the corresponding **symbols**.
 
 Why? Have you ever developed a terminal program dealing with keyboard input? That is why.
 
-Also, **keypress** is platform agonostic: it works on the TTY, X11, Wayland, and virtually any terminal emulator out there.
+Also, **keypress** is platform agonostic: it works on the TTY, X11, Wayland, and virtually any terminal emulator.
 
 Awful, useful.
 
@@ -21,17 +21,17 @@ Awful, useful.
 > Did you know, for example, that `printf "\xc3\x9f\n"` will print an `ß` (the german _Eszett_)?\
 > Try with `printf "\xf0\x9f\x98\x80\n"`. Nice!
 
-By using the `-t` option, **keypress** works the other way around: instead of generating raw keyboard escape sequences for key presses, it translates a given keyboard escape sequence into the corresponding symbolic/text representation of those key presses. For example,
+By using the `-t` option, **keypress** can also translate keyboard escape sequences into the corresponding symbolic/text representation. For example:
 
 ```sh
 keypress -t $(printf "\x1b[1;7D")
 ```
 
-will print `Ctrl+Alt+Left`.
+This command will output `Ctrl+Alt+Left`.
 
 > [!NOTE]
-> For devs: the translation module can be used as an independent library by just including the `translate_key.h` header in your project and then using the `translate_key` function.
-> E.g.:
+> For developers: The translation module can be used as an independent library. Simply include the `translate_key.h` header in your project and use the `translate_key` function.
+> Here's a quick example:
 > ```c
 > ...
 > #include "translate_key.h"
@@ -50,6 +50,8 @@ will print `Ctrl+Alt+Left`.
 
 ### 2. Installation
 
+To install **keypress**, follow these steps:
+
 ```sh
 git clone https://github.com/leo-arch/keypress
 cd keypress
@@ -60,6 +62,8 @@ sudo make install
 ---
 
 ### 3. Uninstallation
+
+To uninstall **keypress**, use the following command:
 
 ```sh
 sudo make uninstall
