@@ -30,7 +30,7 @@ keypress -t "\x1b[1;7D"
 This command will output `Ctrl+Alt+Left`.
 
 > [!NOTE]
-> For developers: The translation module can be used as an independent library. Simply include the `translate_key.h` header in your project and use the `translate_key` function.
+> For developers: The translation module can be used as an independent library. Simply include the `translate_key.h` header in your project (together with the corresponding source file) and use the `translate_key` function.
 > Here's a quick example:
 > ```c
 > ...
