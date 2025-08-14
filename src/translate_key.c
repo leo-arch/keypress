@@ -41,73 +41,6 @@ static const char *mod_table[256] = {
 	[10] = "Alt+Meta", [14] = "Ctrl+Alt+Meta", [15] = "Ctrl+Alt+Shift+Meta" 
 };
 
-/* Extended table including additional modifier keys, such as Super, Hyper,
- * and AltGr. Needs testing. */
-/*
-static const char *mod_table[256] = {
-	// Single Modifiers
-	[1]   = "Shift",   [2]   = "Alt",     [4]   = "Ctrl", 
-	[8]   = "Meta",    [16]  = "Super",   [32]  = "Hyper", 
-	[64]  = "AltGr",
-
-	// Two-Modifier Combinations
-	[3]   = "Alt+Shift",      [5]   = "Ctrl+Shift", 
-	[9]   = "Meta+Shift",     [6]   = "Ctrl+Alt", 
-	[10]  = "Alt+Meta",       [12]  = "Ctrl+Meta", 
-	[17]  = "Super+Shift",    [18]  = "Super+Alt", 
-	[20]  = "Super+Ctrl",     [24]  = "Super+Meta", 
-	[33]  = "Hyper+Shift",    [34]  = "Hyper+Alt",      
-	[36]  = "Hyper+Ctrl",     [40]  = "Hyper+Meta",     
-	[48]  = "Hyper+Super",    [65]  = "AltGr+Shift", 
-	[66]  = "AltGr+Alt",      [68]  = "AltGr+Ctrl", 
-	[72]  = "AltGr+Meta",     [80]  = "AltGr+Super", 
-	[96]  = "AltGr+Hyper",
-
-	// Three-Modifier Combinations
-	[7]   = "Ctrl+Alt+Shift", 
-	[11]  = "Meta+Alt+Shift", 
-	[13]  = "Meta+Ctrl+Shift", 
-	[14]  = "Ctrl+Alt+Meta", 
-	[19]  = "Super+Alt+Shift", 
-	[21]  = "Super+Ctrl+Shift", 
-	[25]  = "Super+Meta+Shift", 
-	[22]  = "Super+Ctrl+Alt", 
-	[26]  = "Super+Ctrl+Meta", 
-	[30]  = "Super+Alt+Meta", 
-	[35]  = "Hyper+Alt+Shift", 
-	[37]  = "Hyper+Ctrl+Shift", 
-	[41]  = "Hyper+Meta+Shift", 
-	[38]  = "Hyper+Ctrl+Alt", 
-	[42]  = "Hyper+Ctrl+Meta", 
-	[46]  = "Hyper+Alt+Meta", 
-	[67]  = "AltGr+Alt+Shift", 
-	[69]  = "AltGr+Ctrl+Shift", 
-	[73]  = "AltGr+Meta+Shift", 
-	[70]  = "AltGr+Ctrl+Alt", 
-	[74]  = "AltGr+Ctrl+Meta", 
-	[78]  = "AltGr+Alt+Meta",
-
-	// Four-Modifier Combinations
-	[15]  = "Ctrl+Alt+Shift+Meta", 
-	[23]  = "Super+Ctrl+Alt+Shift", 
-	[27]  = "Super+Ctrl+Meta+Shift", 
-	[29]  = "Super+Alt+Meta+Shift", 
-	[39]  = "Hyper+Ctrl+Alt+Shift", 
-	[43]  = "Hyper+Ctrl+Meta+Shift", 
-	[45]  = "Hyper+Alt+Meta+Shift", 
-	[71]  = "AltGr+Ctrl+Alt+Shift", 
-	[75]  = "AltGr+Ctrl+Meta+Shift",
-	[77]  = "AltGr+Alt+Meta+Shift",
-
-	// Five-Modifier Combinations
-	[31]  = "Super+Ctrl+Alt+Meta+Shift", 
-	[47]  = "Hyper+Ctrl+Alt+Meta+Shift",
-	[79]  = "AltGr+Ctrl+Alt+Meta+Shift",
-
-	// Maximum Combination
-	[127] = "AltGr+Hyper+Super+Ctrl+Alt+Meta+Shift"
-}; */
-
 static const char *key_table[256] = {
 	[1] = "Home", [2] = "Ins", [3] = "Del", [4] = "End",
 	[5] = "PgUp", [6] = "PgDn", [7] = "Home", [8] = "End",
@@ -135,10 +68,10 @@ static const char *key_table[256] = {
 #define IS_FUNC_CHAR(c) (((c) >= 'F' && (c) <= 'H') \
 	|| ((c) >= 'P' && (c) <= 'S'))
 
-// Rxvt
 #define IS_RXVT_KEYPAD_CHAR(c) (((c) >= 'j' && (c) <= 'y') || (c) == 'M')
 #define IS_RXVT_END_CHAR(c)    ((c) == '^' || (c) == '@' || (c) == '$')
 
+/* Max output string length */
 #define MAX_BUF 256
 
 static void
@@ -571,8 +504,7 @@ key_test(void)
 		if (!s)
 			exit(ENOMEM);
 
-		strcpy(s, keys[i].key);
-		s[key_len] = '\0';
+		memcpy(s, keys[i].key, key_len + 1);
 
 		char *ret = translate_key(s);
 		if (!ret || strcmp(ret, keys[i].translation) != 0) {
@@ -583,7 +515,7 @@ key_test(void)
 			printf("%s (%s): ",  keys[i].key + count, keys[i].translation);
 
 			if (!ret)
-				printf("No key found!\n");
+				printf("Unknown escape sequence\n");
 			else
 				printf("%s\n", ret);
 		};
@@ -593,7 +525,7 @@ key_test(void)
 	}
 
 	if (errors == 0)
-		printf("All tests passed!\n");
+		printf("All tests passed\n");
 	else
 		printf("%zu errors\n", errors);
 

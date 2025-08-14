@@ -134,7 +134,7 @@ run_translate_key(const char *arg)
 		return EXIT_SUCCESS;
 	}
 
-	printf("No key found!\n");
+	fprintf(stderr, "%s: '%s': Unknown escape sequence\n", PROG_NAME, arg);
 	return EXIT_FAILURE;
 }
 
