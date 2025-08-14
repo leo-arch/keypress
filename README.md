@@ -21,7 +21,7 @@ Awful, useful.
 > Did you know, for example, that `printf "\xc3\x9f\n"` will print an `ß` (the german _Eszett_)?\
 > Try with `printf "\xf0\x9f\x98\x80\n"`. Nice!
 
-By using the `-t` option, **keypress** works the other way around: it translates a given keyboard escape sequence into the corresponding symbolic representation. For example,
+By using the `-t` option, **keypress** works the other way around: instead of generating raw keyboard escape sequences for key presses, it translates a given keyboard escape sequence into the corresponding symbolic/text representation of those key presses. For example,
 
 ```sh
 keypress -t $(printf "\x1b[1;7D")
