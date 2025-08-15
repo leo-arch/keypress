@@ -382,11 +382,12 @@ struct keys_t keys[] = {
 
 	{"\x1b", "Escape"},
 
-//	{"\\C-i", "Tab"}, {"\x1b\\C-i", "Alt+Tab"},
+	{"\x09", "Ctrl+I"}, /* Tab */
+	{"\x1b\x09", "Ctrl+Alt+I"}, /* Alt+Tab */
 	{"\x1b[Z", "Shift+Tab"},
 
-	/* Note: xterm sends \x7f for Ctrl+Backspace and \C-h for Backspace
-	{"\x7f", "Backspace"}, {"\x1b\x7f", "Alt+Backspace"}, */
+	/* Note: xterm sends \x7f for Ctrl+Backspace and \C-h for Backspace */
+	{"\x7f", "Del"}, {"\x1b\x7f", "Alt+Backspace"},
 
 	/* rxvt-specific */
 	{"\x1b[11~", "F1"}, {"\x1b[12~", "F2"},

@@ -31,7 +31,8 @@
 #include <curses.h>
 #include <locale.h>
 #include <ctype.h>
-#include <errno.h> // ENOMEM
+#include <errno.h> /* ENOMEM */
+#include <limits.h> /* CHAR_MIN, CHAR_MAX */
 
 #include "translate_key.h"
 
@@ -77,9 +78,9 @@ print_help(void)
 		" └──────┴──────┴─────┴──────┘");
 }
 
-/* Transform escape string representations ("\\e", "\\x1b", and "\\003")
- * in the string INPUT into the corresponding escape byte. The converted
- * string is copied into the OUTPUT buffer. */
+/* Transform escape strings ("\\e", hex, and octal) in the string INPUT
+ * into the corresponding integer byte. The converted string is copied
+ * into the OUTPUT buffer. */
 static void
 transform_esc_seq(const char *input, char *output)
 {
@@ -93,10 +94,16 @@ transform_esc_seq(const char *input, char *output)
 		} else if (ptr[1] == 'e') { /* "\\e" */
 			*out_ptr++ = '\x1b';
 			ptr += 2;
-		} else if (strncmp(ptr, "\\x1b", 4) == 0
-		|| strncmp(ptr, "\\003", 4) == 0) {
-			*out_ptr++ = '\x1b';
-			ptr += 4;
+		} else if (ptr[1] == 'x' /* Hex */
+		|| (ptr[1] >= '0' && ptr[1] <= '9')) { /* Octal */
+			const int hex = ptr[1] == 'x';
+			const long n = strtol(ptr + (hex ? 2 : 1), NULL, hex ? 16 : 8);
+			if (n < CHAR_MIN || n > CHAR_MAX) {
+				ptr++;
+			} else {
+				*out_ptr++ = (char)n;
+				ptr += 4;
+			}
 		} else {
 			*out_ptr++ = *ptr++;
 		}
