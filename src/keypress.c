@@ -25,6 +25,8 @@
 * THE SOFTWARE.
 */
 
+#define _XOPEN_SOURCE 700
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -33,6 +35,8 @@
 #include <ctype.h>
 #include <errno.h> /* ENOMEM */
 #include <limits.h> /* CHAR_MIN, CHAR_MAX */
+
+#include <wchar.h> /* wcswidth() */
 
 #include "translate_key.h"
 
@@ -44,6 +48,51 @@
 " ┌──────┬──────┬─────┬──────┐\n"          \
 " │ Hex  │ Oct  │ Dec │ Sym  │\n"          \
 " ├──────┼──────┼─────┼──────┤\n"
+
+#define BOTTOM_NO_CLR " ├──────────────────────────┤\n"
+#define BOTTOM_CLR    " └──────────────────────────┘\n"
+#define BOTTOM_NO_CLR_SINGLE " ├──────┼──────┼─────┼──────┤\n"
+#define BOTTOM_CLR_SINGLE    " └──────┴──────┴─────┴──────┘\n"
+
+#define END_CHAR(c) (((c) >= 'A' && (c) <= 'D') || ((c) >= 'a' && (c) <= 'd') \
+	|| ((c) >= 'P' && (c) <= 'S') || (c) == 'F' || (c) == 'H' || (c) == '~'   \
+	|| (c) == '@' || (c) == '^' || (c) == '$')
+#define EXIT_KEY 3
+#define CLR_KEY  24
+#define TABLE_WIDTH 24
+#define IS_CTRL_KEY(c) ((c) >= 0 && (c) <= 31)
+#define ESC_KEY 27
+
+#define IS_UTF8_LEAD_BYTE(c) (((c) & 0xc0) == 0xc0)
+#define IS_UTF8_CONT_BYTE(c) (((c) & 0xc0) == 0x80)
+#define IS_UTF8_CHAR(c)      (IS_UTF8_LEAD_BYTE((c)) || IS_UTF8_CONT_BYTE((c)))
+
+static int
+utf8_char_bytes(unsigned char c)
+{
+    c >>= 4;
+    c &= 7;
+
+    if (c == 4)
+		return 2;
+
+	return c - 3;
+}
+
+static size_t
+wc_xstrlen(const char *restrict str)
+{
+	wchar_t wbuf[PATH_MAX];
+	const size_t len = mbstowcs(wbuf, str, (size_t)PATH_MAX);
+	if (len == (size_t)-1) /* Invalid multi-byte sequence found */
+		return 0;
+
+	const int width = wcswidth(wbuf, len);
+	if (width != -1)
+		return (size_t)width;
+
+	return 0; /* A non-printable wide char was found */
+}
 
 static void
 print_help(void)
@@ -168,6 +217,20 @@ run_args(char **argv)
 	return EXIT_FAILURE;
 }
 
+static void
+print_footer(char *buf, const int is_utf8, const int no_clear)
+{
+	char *str = translate_key(buf);
+
+	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
+
+	printw(" ├──────┴──────┴─────┴──────┤\n");
+	printw(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");
+	printw(no_clear == 1 ? BOTTOM_NO_CLR : BOTTOM_CLR);
+
+	free(str);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -189,6 +252,7 @@ main(int argc, char **argv)
 	nonl();           /* Disable newline/return mapping */
 	keypad(w, FALSE); /* FALSE: CSI codes, TRUE: curses codes for keys */
 	scrollok(w, 1);	  /* Enable screen scroll */
+	curs_set(0);      /* Hide cursor */
 
 	printw(KP_HEADER, VERSION);
 
@@ -199,21 +263,76 @@ main(int argc, char **argv)
 		"EM", "SUB", "ESC", "FS", "GS", "RS", "US", "SP", NULL
 	};
 
+	/* For future reference: this should be made an option. */
+	const int no_clear = 1;
+
+	char buf[32] = ""; /* 32 bytes to hold a complete escape sequence. */
+	char *ptr = buf;
+	int clr_scr = 0;
+
+	int utf8_bytes = 0; /* Number of bytes of a UTF-8 character. */
+	int utf8_count = 0; /* Number of printed bytes of a UTF-8 character. */
+
 	int c = 0;
-	while ((c = getch()) != 3) { /* Ctrl+c: quit */
-		if (c == 24) { /* Ctrl+x: clear the screen */
-			clear(); refresh(); printw(KP_HEADER, VERSION);
-		} else if (c >= 0 && c <= 32) { /* Control characters */
-			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, keysym[c]);
+	while ((c = getch()) != EXIT_KEY) { /* Ctrl+C */
+		if (c == CLR_KEY                /* Ctrl+X */
+		|| clr_scr == 1) {
+			clr_scr = 0; clear(); refresh(); printw(KP_HEADER, VERSION);
+			if (c == CLR_KEY)
+				continue; /* Ctrl+X: do not print info about this key.  */
+		}
+
+		if (IS_CTRL_KEY(c)) { /* Control characters */
+			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4,
+				keysym[c]);
 		} else if (isprint(c)) { /* ASCII printable characters */
 			printw(" │ \\x%02x │ \\%03o │ %3d │ %*c │\n", c, c, c, 4, c);
 		} else { /* Extended ASCII, Unicode */
 			const char *s = (c == 127 ? "DEL"
 				: (c == 160 ? "NBSP" : (c == 173 ? "SHY" : "")));
 			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
+			if (IS_UTF8_CHAR(c)) {
+				utf8_count++;
+				*ptr++ = c;
+				int bytes = IS_UTF8_LEAD_BYTE(c)
+					? utf8_char_bytes((unsigned char)c) : 0;
+				if (bytes > 1)
+					utf8_bytes = bytes;
+			}
 		}
+
+		if (c == ESC_KEY) {
+			*ptr++ = c;
+		} else if (IS_CTRL_KEY(c) || (buf[0] == ESC_KEY && (END_CHAR(c)
+		|| (!buf[1] && c != '[' && c != 'O')))) {
+			/* Key combination involving modifier keys (Ctrl, Alt, Meta). */
+			*ptr++ = c;
+			*ptr = '\0';
+			print_footer(buf, 0, no_clear);
+			memset(buf, '\0', sizeof(buf));
+			ptr = buf;
+			clr_scr = no_clear == 0;
+		} else if (utf8_bytes > 1 && utf8_count == utf8_bytes) {
+			/* A UTF-8 character. */
+			utf8_count = utf8_bytes = 0;
+			*ptr = '\0';
+			print_footer(buf, 1, no_clear);
+			memset(buf, '\0', sizeof(buf));
+			ptr = buf;
+			clr_scr = no_clear == 0;
+		} else if (buf[0] == ESC_KEY) {
+			/* Append byte to the buffer only provided we are in the
+			 * middle of an escape sequence. */
+			*ptr++ = c;
+		} else if (!IS_UTF8_CHAR(c)) {
+			/* Print a bottom line (ASCII characters only). */
+			printw(no_clear == 1 ? BOTTOM_NO_CLR_SINGLE : BOTTOM_CLR_SINGLE);
+			clr_scr = no_clear == 0;
+		}
+
 	}
 
+	curs_set(1); /* Unhide cursor */
 	endwin();
 	return EXIT_SUCCESS;
 }
