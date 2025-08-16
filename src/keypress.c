@@ -58,7 +58,7 @@
 
 /* Characters ending a keyboard escape sequence */
 #define END_CHAR(c) (((c) >= 'A' && (c) <= 'D') || ((c) >= 'a' && (c) <= 'd') \
-	|| ((c) >= 'P' && (c) <= 'S') || (c) == 'E' || (c) == 'F' || (c) == 'H'   \
+	|| ((c) >= 'P' && (c) <= 'S') || ((c) >= 'E' && (c) <= 'H')               \
 	|| (c) == '~' || (c) == '@' || (c) == '^' || (c) == '$')
 
 #define EXIT_KEY 0x03 /* Ctrl+C */

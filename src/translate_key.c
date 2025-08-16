@@ -58,7 +58,7 @@ static const char *key_table[256] = {
 	/* Rxvt */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
 	/* Xterm */
-	['F'] = "End", ['E'] = "KP_5", ['H'] = "Home",
+	['E'] = "KP_5", ['F'] = "End", ['G'] = "KP_5", ['H'] = "Home",
 	['P'] = "F1", ['Q'] = "F2", ['R'] = "F3", ['S'] = "F4"
 };
 
