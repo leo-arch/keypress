@@ -41,31 +41,51 @@
 #include "translate_key.h"
 
 #define PROG_NAME "keypress"
-#define VERSION "0.2.2"
+#define VERSION   "0.2.2"
 
+/* Drawing stuff */
 #define KP_HEADER \
 " Keypress %s  (C-c: quit, C-x: clear)\n"  \
 " ┌──────┬──────┬─────┬──────┐\n"          \
 " │ Hex  │ Oct  │ Dec │ Sym  │\n"          \
 " ├──────┼──────┼─────┼──────┤\n"
 
-#define BOTTOM_NO_CLR " ├──────────────────────────┤\n"
-#define BOTTOM_CLR    " └──────────────────────────┘\n"
+#define SEPARATOR_LINE       " ├──────┴──────┴─────┴──────┤\n"
+#define BOTTOM_NO_CLR        " ├──────────────────────────┤\n"
+#define BOTTOM_CLR           " └──────────────────────────┘\n"
 #define BOTTOM_NO_CLR_SINGLE " ├──────┼──────┼─────┼──────┤\n"
 #define BOTTOM_CLR_SINGLE    " └──────┴──────┴─────┴──────┘\n"
 
+/* Characters ending a keyboard escape sequence */
 #define END_CHAR(c) (((c) >= 'A' && (c) <= 'D') || ((c) >= 'a' && (c) <= 'd') \
 	|| ((c) >= 'P' && (c) <= 'S') || (c) == 'F' || (c) == 'H' || (c) == '~'   \
 	|| (c) == '@' || (c) == '^' || (c) == '$')
-#define EXIT_KEY 3
-#define CLR_KEY  24
+
+#define EXIT_KEY 0x03 /* Ctrl+C */
+#define CLR_KEY  0x18 /* Ctrl+X */
+#define ESC_KEY  0x1b /* Esc */
+#define DEL_KEY  0x7f /* Del */
+#define NBSP_KEY 0xa0 /* NBSP */
+#define SHY_KEY  0xad /* SHY */
+
 #define TABLE_WIDTH 24
-#define IS_CTRL_KEY(c) ((c) >= 0 && (c) <= 31)
-#define ESC_KEY 27
+#define IS_CTRL_KEY(c)    ((c) >= 0 && (c) <= 31)
+#define IS_OCTAL_DIGIT(c) ((c) >= '0' && (c) <= '7')
 
 #define IS_UTF8_LEAD_BYTE(c) (((c) & 0xc0) == 0xc0)
 #define IS_UTF8_CONT_BYTE(c) (((c) & 0xc0) == 0x80)
 #define IS_UTF8_CHAR(c)      (IS_UTF8_LEAD_BYTE((c)) || IS_UTF8_CONT_BYTE((c)))
+
+/* 32 bytes to hold bytes of an escape sequence or a UTF-8 character */
+#define BUF_SIZE 32
+
+/* Symbols for control characters */
+const char *const keysym[] = {
+	"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
+	"BS", "HT", "LF", "CT", "FF", "CR", "SO", "SI", "DLE",
+	"DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN",
+	"EM", "SUB", "ESC", "FS", "GS", "RS", "US", "SP", NULL
+};
 
 static int
 utf8_char_bytes(unsigned char c)
@@ -73,10 +93,7 @@ utf8_char_bytes(unsigned char c)
     c >>= 4;
     c &= 7;
 
-    if (c == 4)
-		return 2;
-
-	return c - 3;
+	return (c == 4) ? 2 : c - 3;
 }
 
 static size_t
@@ -181,10 +198,10 @@ transform_esc_seq(const char *input, char *output)
 			/* Not an escape string: copy the character as is. */
 			*out_ptr++ = *ptr++;
 		} else if (ptr[1] == 'e') { /* "\\e" */
-			*out_ptr++ = '\x1b';
+			*out_ptr++ = ESC_KEY;
 			ptr += 2;
-		} else if (ptr[1] == 'x' /* Hex */
-		|| (ptr[1] >= '0' && ptr[1] <= '9')) { /* Octal */
+		} else if (ptr[1] == 'x'     /* Hex */
+		|| IS_OCTAL_DIGIT(ptr[1])) { /* Octal */
 			const int hex = ptr[1] == 'x';
 			const long n = strtol(ptr + (hex ? 2 : 1), NULL, hex ? 16 : 8);
 			if (n < CHAR_MIN || n > CHAR_MAX) {
@@ -238,13 +255,13 @@ static void
 print_footer(char *buf, const int is_utf8, const int clear_screen)
 {
 	char *str = translate_key(buf);
-
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 
-	printw(" ├──────┴──────┴─────┴──────┤\n");
+	printw(SEPARATOR_LINE);
 	printw(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");
 	printw(clear_screen == 0 ? BOTTOM_NO_CLR : BOTTOM_CLR);
 
+	memset(buf, '\0', BUF_SIZE);
 	free(str);
 }
 
@@ -255,7 +272,7 @@ main(int argc, char **argv)
 	init_default_options(&options);
 	parse_args(argc, argv, &options);
 
-	if (options.translate != NULL)
+	if (options.translate != NULL) /* -t SEQ */
 		return run_translate_key(options.translate);
 
 	/* Tell the C libraries to use user's locale settings. */
@@ -277,15 +294,7 @@ main(int argc, char **argv)
 
 	printw(KP_HEADER, VERSION);
 
-	const char *const keysym[] = {
-		"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
-		"BS", "HT", "LF", "CT", "FF", "CR", "SO", "SI", "DLE",
-		"DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN",
-		"EM", "SUB", "ESC", "FS", "GS", "RS", "US", "SP", NULL
-	};
-
-
-	char buf[32] = ""; /* 32 bytes to hold a complete escape sequence. */
+	char buf[BUF_SIZE] = "";
 	char *ptr = buf;
 	int clr_scr = 0;
 
@@ -307,8 +316,8 @@ main(int argc, char **argv)
 		} else if (isprint(c)) { /* ASCII printable characters */
 			printw(" │ \\x%02x │ \\%03o │ %3d │ %*c │\n", c, c, c, 4, c);
 		} else { /* Extended ASCII, Unicode */
-			const char *s = (c == 127 ? "DEL"
-				: (c == 160 ? "NBSP" : (c == 173 ? "SHY" : "")));
+			const char *s = (c == DEL_KEY ? "DEL"
+				: (c == NBSP_KEY ? "NBSP" : (c == SHY_KEY ? "SHY" : "")));
 			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
 			if (IS_UTF8_CHAR(c)) {
 				utf8_count++;
@@ -328,7 +337,6 @@ main(int argc, char **argv)
 			*ptr++ = c;
 			*ptr = '\0';
 			print_footer(buf, 0, options.clear_screen);
-			memset(buf, '\0', sizeof(buf));
 			ptr = buf;
 			clr_scr = options.clear_screen == 1;
 		} else if (utf8_bytes > 1 && utf8_count == utf8_bytes) {
@@ -336,7 +344,6 @@ main(int argc, char **argv)
 			utf8_count = utf8_bytes = 0;
 			*ptr = '\0';
 			print_footer(buf, 1, options.clear_screen);
-			memset(buf, '\0', sizeof(buf));
 			ptr = buf;
 			clr_scr = options.clear_screen == 1;
 		} else if (buf[0] == ESC_KEY) {
