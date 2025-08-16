@@ -219,10 +219,15 @@ struct exceptions_t {
 	const char *name;
 };
 
+/* A list of escape sequences missed by our identifying algorithms. */
 static const struct exceptions_t exceptions[] = {
 	/* Linux console */
 	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
-	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"}, {NULL, NULL}
+	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
+
+	/* st */
+	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
+	{NULL, NULL}
 };
 
 static char *
@@ -515,6 +520,9 @@ struct keys_t keys[] = {
 
 //	{"\x1b[4h", "Ins"}, {"\x1b[L", "Ctrl+Ins"}, /* st */
 //	{"\x1b[M", "Ctrl+Del"},
+
+	/* Linux console */
+	{"\x1b[[A", "F1"}, {"\x1b[[E", "F5"},
 
 	/* Let's test the Meta key */
 	{"\x1b[6;9~", "Meta+PgDn"}, {"\x1b[1;11F", "Alt+Meta+End"},
