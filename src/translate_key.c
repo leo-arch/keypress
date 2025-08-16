@@ -59,7 +59,14 @@ static const char *key_table[256] = {
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
 	/* Xterm */
 	['E'] = "KP_5", ['F'] = "End", ['G'] = "KP_5", ['H'] = "Home",
-	['P'] = "F1", ['Q'] = "F2", ['R'] = "F3", ['S'] = "F4"
+	['P'] = "F1", ['Q'] = "F2", ['R'] = "F3", ['S'] = "F4",
+
+	/* Sun/Solaris */
+	[192] = "F11", [193] = "F12",
+	[214] = "Home", [216] = "PgUp", [218] = "KP_5", [220] = "End",
+	[222] = "PgDn",
+	[224] = "F1", [225] = "F2", [226] = "F3", [227] = "F4", [228] = "F5",
+	[229] = "F6", [230] = "F7", [231] = "F8", [232] = "F9", [233] = "F10"
 };
 
 #define IS_ARROW_CHAR(c) (((c) >= 'A' && (c) <= 'D') \
@@ -68,6 +75,9 @@ static const char *key_table[256] = {
 /* Xterm uses 'E' to identify the number 5 in the keypad. */
 #define IS_FUNC_CHAR(c) (((c) >= 'E' && (c) <= 'H') \
 	|| ((c) >= 'P' && (c) <= 'S'))
+
+#define IS_TILDE_END_CHAR(c) ((c) == '~')
+#define IS_SUN_END_CHAR(c)   ((c) == 'z')
 
 #define IS_RXVT_KEYPAD_CHAR(c) (((c) >= 'j' && (c) <= 'y') || (c) == 'M')
 #define IS_RXVT_END_CHAR(c)    ((c) == '^' || (c) == '@' || (c) == '$')
@@ -285,7 +295,8 @@ translate_key(char *str)
 		set_arrow_key(str, end, &keycode, &mod_key);
 	else if (IS_RXVT_END_CHAR(str[end]))
 		set_rxvt_end_seq(str, end, &keycode, &mod_key);
-	else if (str[end] == '~')
+	else if (IS_TILDE_END_CHAR(str[end])
+	|| (IS_SUN_END_CHAR(str[end]) && csi_seq == 1))
 		set_key_tilde(str, end, &keycode, &mod_key);
 	else if (IS_RXVT_KEYPAD_CHAR(str[end]) && csi_seq == 0 && *str == 'O')
 		return print_keypad_code(str[end]);
@@ -518,8 +529,9 @@ struct keys_t keys[] = {
 
 	{"\x1b[1~", "Home"}, {"\x1b[4~", "End"},
 
-//	{"\x1b[4h", "Ins"}, {"\x1b[L", "Ctrl+Ins"}, /* st */
-//	{"\x1b[M", "Ctrl+Del"},
+	/* st */
+	{"\x1b[4h", "Ins"}, {"\x1b[L", "Ctrl+Ins"},
+	{"\x1b[M", "Ctrl+Del"},
 
 	/* Linux console */
 	{"\x1b[[A", "F1"}, {"\x1b[[E", "F5"},
