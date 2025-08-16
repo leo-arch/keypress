@@ -214,6 +214,34 @@ print_keypad_code(const char end)
 	return buf;
 }
 
+struct exceptions_t {
+	const char *key;
+	const char *name;
+};
+
+static const struct exceptions_t exceptions[] = {
+	/* Linux console */
+	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
+	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"}, {NULL, NULL}
+};
+
+static char *
+check_exceptions(const char *str)
+{
+	for (size_t i = 0; exceptions[i].key; i++) {
+		if (strcmp(exceptions[i].key, str) == 0) {
+			const size_t len = strlen(exceptions[i].name);
+			char *p = malloc((len + 1) * sizeof(char));
+			if (!p)
+				exit(ENOMEM);
+			memcpy(p, exceptions[i].name, len + 1);
+			return p;
+		}
+	}
+
+	return NULL;
+}
+
 /* Translate the escape sequence STR into the corresponding symbolic value.
  * E.g. "\x1b[1;7D" will return "Ctrl+Alt+Left". If no symbolic value is
  * found, NULL is returned.
@@ -228,10 +256,14 @@ translate_key(char *str)
 	if (*str != '\x1b')
 		return print_non_esc_seq(str);
 
+	char *buf = check_exceptions(str);
+	if (buf)
+		return buf;
+
 	const int csi_seq = str[1] == '[';
 	str += str[1] == '[' ? 2 : 1;
 
-	char *buf = check_single_key(str, csi_seq);
+	buf = check_single_key(str, csi_seq);
 	if (buf)
 		return buf;
 
