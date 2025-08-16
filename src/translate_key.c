@@ -31,14 +31,70 @@
 #include <ctype.h> /* toupper() */
 #include <errno.h> /* ENOMEM */
 
+/* When it comes to keyboard escape sequences, we have three kind of
+ * terminating characters:
+ *
+ * 1. Defining the keycode. E.g. '\x1b[1;2D', where 'D' means the key pressed,
+ * (Left), and '2' the modifier key (Shift).
+ *
+ * 2. Defining the modifier key. E.g.: '\x1b[11^', where '^' means the
+ * modifier key (Control) and '11' the key pressed (F1).
+ *
+ * 3. Raw the sequence terminator. E.g. '\x1b[15;3~', where '~' simply
+ * ends the sequence, '15' the pressed key (F5), and '3' the modifier
+ * key (Alt). */
+
+#define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
+#define IS_LOWER_ARROW_CHAR(c) ((c) >= 'a' && (c) <= 'd')
+#define IS_UPPER_ARROW_CHAR(c) ((c) >= 'A' && (c) <= 'D')
+#define IS_ARROW_CHAR(c) (IS_LOWER_ARROW_CHAR((c)) || IS_UPPER_ARROW_CHAR((c)))
+
+#define IS_MODKEY_END_CHAR(c)  ((c) == '^' || (c) == '$' || (c) == '@')
+#define IS_GENERIC_END_CHAR(c) ((c) == '~' || (c) == 'z')
+#define IS_KEYCODE_END_CHAR(c) (  \
+	IS_ARROW_CHAR((c))         || \
+	((c) >= 'E' && (c) <= 'H') || \
+	((c) >= 'P' && (c) <= 'S') || \
+	((c) >= 'p' && (c) <= 'y') || \
+	(c) == 'n')
+
+#define ESC_KEY 0x1b
+
+/* Values for modifier keys.
+ * See https://en.wikipedia.org/wiki/ANSI_escape_code*/
+#define SHIFT_VAL 1
+#define ALT_VAL   2
+#define CTRL_VAL  4
+#define META_VAL  8
+
+/* Max output string length */
+#define MAX_BUF 256
+
+/* Return 1 if the byte C ends a keyboard escape sequence, or 0 otherwise. */
+int
+is_end_seq_char(char c)
+{
+	return (IS_KEYCODE_END_CHAR(c) || IS_MODKEY_END_CHAR(c)
+		|| IS_GENERIC_END_CHAR(c));
+}
+
 /* The Meta key is usually mapped to the Super/logo key (Mod4), for example,
  * on Wayland. Mod1 is typically Alt, while Mod2 is NumLock, and Mod5 AltGr
  * (Right Alt). Mod3 is normally left unassigned. */
 static const char *mod_table[256] = {
-	[1] = "Shift", [2] = "Alt", [4] = "Ctrl", [8] = "Meta",
-	[3] = "Alt+Shift", [5] = "Ctrl+Shift", [9] = "Meta+Shift",
-	[6] = "Ctrl+Alt", [7] = "Ctrl+Alt+Shift", [12] = "Ctrl+Meta",
-	[10] = "Alt+Meta", [14] = "Ctrl+Alt+Meta", [15] = "Ctrl+Alt+Shift+Meta" 
+	[SHIFT_VAL] = "Shift",
+	[ALT_VAL] = "Alt",
+	[CTRL_VAL] = "Ctrl",
+	[META_VAL] = "Meta",
+	[ALT_VAL + SHIFT_VAL] = "Alt+Shift",
+	[CTRL_VAL + SHIFT_VAL] = "Ctrl+Shift",
+	[META_VAL + SHIFT_VAL] = "Meta+Shift",
+	[CTRL_VAL + ALT_VAL] = "Ctrl+Alt",
+	[CTRL_VAL + ALT_VAL + SHIFT_VAL] = "Ctrl+Alt+Shift",
+	[CTRL_VAL + META_VAL] = "Ctrl+Meta",
+	[ALT_VAL + META_VAL] = "Alt+Meta",
+	[CTRL_VAL + ALT_VAL + META_VAL] = "Ctrl+Alt+Meta",
+	[CTRL_VAL + ALT_VAL + SHIFT_VAL + META_VAL] = "Ctrl+Alt+Shift+Meta"
 };
 
 static const char *key_table[256] = {
@@ -57,10 +113,13 @@ static const char *key_table[256] = {
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
 	/* Rxvt */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
+	['n'] = "Supr", ['p'] = "Ins",
+	['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3", ['t'] = "KP_4",
+	['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7", ['x'] = "KP_8",
+	['y'] = "KP_9",
 	/* Xterm */
 	['E'] = "KP_5", ['F'] = "End", ['G'] = "KP_5", ['H'] = "Home",
 	['P'] = "F1", ['Q'] = "F2", ['R'] = "F3", ['S'] = "F4",
-
 	/* Sun/Solaris */
 	[192] = "F11", [193] = "F12",
 	[214] = "Home", [216] = "PgUp", [218] = "KP_5", [220] = "End",
@@ -69,66 +128,69 @@ static const char *key_table[256] = {
 	[229] = "F6", [230] = "F7", [231] = "F8", [232] = "F9", [233] = "F10"
 };
 
-#define IS_ARROW_CHAR(c) (((c) >= 'A' && (c) <= 'D') \
-	|| ((c) >= 'a' && (c) <= 'd'))
+struct exceptions_t {
+	const char *key;
+	const char *name;
+};
 
-/* Xterm uses 'E' to identify the number 5 in the keypad. */
-#define IS_FUNC_CHAR(c) (((c) >= 'E' && (c) <= 'H') \
-	|| ((c) >= 'P' && (c) <= 'S'))
+/* A list of escape sequences missed by our identifying algorithms. */
+static const struct exceptions_t exceptions[] = {
+	/* Linux console */
+	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
+	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
 
-#define IS_TILDE_END_CHAR(c) ((c) == '~')
-#define IS_SUN_END_CHAR(c)   ((c) == 'z')
+	/* st */
+	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
+	{NULL, NULL}
+};
 
-#define IS_RXVT_KEYPAD_CHAR(c) (((c) >= 'j' && (c) <= 'y') || (c) == 'M')
-#define IS_RXVT_END_CHAR(c)    ((c) == '^' || (c) == '@' || (c) == '$')
-
-/* Max output string length */
-#define MAX_BUF 256
-
-static void
-set_func_key_char(char *str, const size_t end, int *keycode, int *mod_key)
+/* Return the translated key for the escape sequence STR looking in the
+ * exceptions list. If none is found, NULL is returned. */
+static char *
+check_exceptions(const char *str)
 {
-	*keycode = str[end];
-	char *s = strchr(str, ';');
-	if (s) {
-		str[end] = '\0';
-		*mod_key += (s && s[1]) ? atoi(s + 1) - 1 : 0;
+	for (size_t i = 0; exceptions[i].key; i++) {
+		if (strcmp(exceptions[i].key, str) == 0) {
+			const size_t len = strlen(exceptions[i].name);
+			char *p = malloc((len + 1) * sizeof(char));
+			if (!p)
+				exit(ENOMEM);
+			memcpy(p, exceptions[i].name, len + 1);
+			return p;
+		}
 	}
+
+	return NULL;
 }
 
+/* Rxvt uses '$', '@', and '^' to indicate the modifier key. */
 static void
-set_arrow_key(char *str, size_t end, int *keycode, int *mod_key)
+set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
 {
-	*keycode = str[end];
-	if (*str == '\x1b') {
-		*mod_key += 2;
-		str++;
-		end--;
+	if (str[end] == '$')
+		*mod_key += SHIFT_VAL;
+	else
+		*mod_key += CTRL_VAL + (str[end] == '@');
+
+	str[end] = '\0';
+
+	if (*str == ESC_KEY) { /* Rxvt */
+		*mod_key += ALT_VAL;
+		str += 2;
 	}
-	char *s = strchr(str, ';');
-	if (s) {
-		str[end] = '\0';
-		*mod_key += (s && s[1]) ? atoi(s + 1) - 1 : 0;
-	} else if (str[end] >= 'a' && str[end] <= 'd') {
-		if (*str == 'O')
-			*mod_key += 4;
-		else
-			(*mod_key)++;
-	} else if (str[end] >= 'A' && str[end] <= 'D') {
-		str[end] = '\0';
-		if (*str == 'O')
-			str++;
-		if (*str >= '0' && *str <= '9')
-			*mod_key += atoi(str) - 1;
-	}
+
+	*keycode = atoi(str);
 }
 
+/* The terminating character just tetrminates the string. Mostly '~', but
+ * also 'z' is Sun/Solaris terminals. In this case, the pressed key and
+ * the modifier key are defined as parameters in the sequence. */
 static void
-set_key_tilde(char *str, const size_t end, int *keycode, int *mod_key)
+set_end_char_is_generic(char *str, const size_t end, int *keycode, int *mod_key)
 {
 	str[end] = '\0';
-	if (*str == '\x1b') { // rxvt
-		*mod_key += 2; // Alt
+	if (*str == ESC_KEY) { /* Rxvt */
+		*mod_key += ALT_VAL;
 		*keycode = atoi(str + 2);
 	} else {
 		char *s = strchr(str, ';');
@@ -139,21 +201,50 @@ set_key_tilde(char *str, const size_t end, int *keycode, int *mod_key)
 }
 
 static void
-set_rxvt_end_seq(char *str, const size_t end, int *keycode, int *mod_key)
+set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
+	int *mod_key)
 {
-	if (str[end] == '$')
-		*mod_key += 1;
-	else
-		*mod_key += 4 + (str[end] == '@');
+	*keycode = str[end];
+	char *s = strchr(str, ';');
+	if (s) {
+		str[end] = '\0';
+		*mod_key += (s && s[1]) ? atoi(s + 1) - 1 : 0;
+	}
+}
 
-	str[end] = '\0';
-
-	if (*str == '\x1b') {
-		*mod_key += 2;
-		str += 2;
+/* The terminating character desginates the key pressed. Mostly arrow keys
+ * (e.g. \\e[D) for the Left key. */
+static void
+set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
+{
+	if (!IS_ARROW_CHAR(str[end])) {
+		set_end_char_is_keycode_no_arrow(str, end, keycode, mod_key);
+		return;
 	}
 
-	*keycode = atoi(str);
+	*keycode = str[end];
+	if (*str == ESC_KEY) { /* Rxvt */
+		*mod_key += ALT_VAL;
+		str++;
+		end--;
+	}
+
+	char *s = strchr(str, ';');
+	if (s) {
+		str[end] = '\0';
+		*mod_key += (s && s[1]) ? atoi(s + 1) - 1 : 0;
+	} else if (IS_LOWER_ARROW_CHAR(str[end])) { /* Rxvt */
+		if (*str == 'O')
+			*mod_key += CTRL_VAL;
+		else
+			(*mod_key)++;
+	} else if (IS_UPPER_ARROW_CHAR(str[end])) {
+		str[end] = '\0';
+		if (*str == 'O')
+			str++;
+		if (IS_DIGIT(*str))
+			*mod_key += atoi(str) - 1;
+	}
 }
 
 static char *
@@ -193,7 +284,7 @@ check_single_key(char *str, const int csi_seq)
 	}
 
 	if (*str == 0x08 || *str == 0x7f) {
-		snprintf(buf, MAX_BUF, "%s", "Alt+Backspace");
+		snprintf(buf, MAX_BUF, "Alt+%s", *str == 0x08 ? "Backspace" : "Del");
 		return buf;
 	}
 
@@ -210,65 +301,42 @@ check_single_key(char *str, const int csi_seq)
 }
 
 static char *
-print_keypad_code(const char end)
+write_translation(const int keycode, const int mod_key)
 {
+	const char *k = (keycode >= 0 && keycode <= 255) ? key_table[keycode] : NULL;
+	const char *m = (mod_key >= 0 && mod_key <= 255) ? mod_table[mod_key] : NULL;
+
+	if (!k)
+		return NULL;
+
 	char *buf = malloc((MAX_BUF + 1) * sizeof(char));
 	if (!buf)
 		exit(ENOMEM);
 
-	if (end == 'M')
-		snprintf(buf, MAX_BUF, "%s", "Ctrl+Shift+Enter");
+	if (m)
+		snprintf(buf, MAX_BUF, "%s+%s", m, k);
 	else
-		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+Shift+", end - '@');
+		snprintf(buf, MAX_BUF, "%s", k);
 
 	return buf;
-}
-
-struct exceptions_t {
-	const char *key;
-	const char *name;
-};
-
-/* A list of escape sequences missed by our identifying algorithms. */
-static const struct exceptions_t exceptions[] = {
-	/* Linux console */
-	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
-	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
-
-	/* st */
-	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
-	{NULL, NULL}
-};
-
-static char *
-check_exceptions(const char *str)
-{
-	for (size_t i = 0; exceptions[i].key; i++) {
-		if (strcmp(exceptions[i].key, str) == 0) {
-			const size_t len = strlen(exceptions[i].name);
-			char *p = malloc((len + 1) * sizeof(char));
-			if (!p)
-				exit(ENOMEM);
-			memcpy(p, exceptions[i].name, len + 1);
-			return p;
-		}
-	}
-
-	return NULL;
 }
 
 /* Translate the escape sequence STR into the corresponding symbolic value.
  * E.g. "\x1b[1;7D" will return "Ctrl+Alt+Left". If no symbolic value is
  * found, NULL is returned.
  * The returned value, if not NULL, is dinamically allocated and must be
- * free'd by the caller. */
+ * free'd by the caller.
+ *
+ * NOTE: This function assumes STR comes directly from the terminal, i.e. by
+ * reading terminal input in raw mode. User suplied input, therefore, will
+ * return false positives. */
 char *
 translate_key(char *str)
 {
 	if (!str || !*str)
 		return NULL;
 
-	if (*str != '\x1b')
+	if (*str != ESC_KEY)
 		return print_non_esc_seq(str);
 
 	char *buf = check_exceptions(str);
@@ -282,44 +350,24 @@ translate_key(char *str)
 	if (buf)
 		return buf;
 
-	size_t len = strlen(str);
 
 	int keycode = -1;
-	int mod_key = 1;
+	int mod_key = 0;
 
+	size_t len = strlen(str);
 	size_t end = len > 0 ? len - 1 : len;
 
-	if (IS_FUNC_CHAR(str[end]))
-		set_func_key_char(str, end, &keycode, &mod_key);
-	else if (IS_ARROW_CHAR(str[end]))
-		set_arrow_key(str, end, &keycode, &mod_key);
-	else if (IS_RXVT_END_CHAR(str[end]))
-		set_rxvt_end_seq(str, end, &keycode, &mod_key);
-	else if (IS_TILDE_END_CHAR(str[end])
-	|| (IS_SUN_END_CHAR(str[end]) && csi_seq == 1))
-		set_key_tilde(str, end, &keycode, &mod_key);
-	else if (IS_RXVT_KEYPAD_CHAR(str[end]) && csi_seq == 0 && *str == 'O')
-		return print_keypad_code(str[end]);
+	const char end_char = str[end];
+	if (IS_MODKEY_END_CHAR(end_char))
+		set_end_char_is_mod_key(str, end, &keycode, &mod_key);
+	else if (IS_KEYCODE_END_CHAR(end_char))
+		set_end_char_is_keycode(str, end, &keycode, &mod_key);
+	else if (IS_GENERIC_END_CHAR(end_char))
+		set_end_char_is_generic(str, end, &keycode, &mod_key);
 	else
 		return NULL;
 
-	mod_key--;
-	const char *k = (keycode >= 0 && keycode <= 255) ? key_table[keycode] : NULL;
-	const char *m = (mod_key >= 0 && mod_key <= 255) ? mod_table[mod_key] : NULL;
-
-	if (!k)
-		return NULL;
-
-	buf = malloc((MAX_BUF + 1) * sizeof(char));
-	if (!buf)
-		exit(ENOMEM);
-
-	if (m)
-		snprintf(buf, MAX_BUF, "%s+%s", m, k);
-	else
-		snprintf(buf, MAX_BUF, "%s", k);
-
-	return buf;
+	return write_translation(keycode, mod_key);
 }
 
 #ifdef TK_TEST
@@ -435,8 +483,7 @@ struct keys_t keys[] = {
 	{"\x1b\x09", "Ctrl+Alt+I"}, /* Alt+Tab */
 	{"\x1b[Z", "Shift+Tab"},
 
-	/* Note: xterm sends \x7f for Ctrl+Backspace and \C-h for Backspace */
-	{"\x7f", "Del"}, {"\x1b\x7f", "Alt+Backspace"},
+	{"\x7f", "Del"}, {"\x1b\x7f", "Alt+Del"},
 
 	/* rxvt-specific */
 	{"\x1b[11~", "F1"}, {"\x1b[12~", "F2"},

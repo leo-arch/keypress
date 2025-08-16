@@ -38,7 +38,7 @@
 #include <limits.h> /* CHAR_MIN, CHAR_MAX */
 #include <wchar.h> /* wcswidth() */
 
-#include "translate_key.h"
+#include "translate_key.h" /* translate_key(), is_end_seq_char() */
 
 #define PROG_NAME "keypress"
 #define VERSION   "0.2.2"
@@ -55,12 +55,6 @@
 #define BOTTOM_CLR           " └──────────────────────────┘\n"
 #define BOTTOM_NO_CLR_SINGLE " ├──────┼──────┼─────┼──────┤\n"
 #define BOTTOM_CLR_SINGLE    " └──────┴──────┴─────┴──────┘\n"
-
-/* Characters ending a keyboard escape sequence */
-#define END_CHAR(c) (((c) >= 'A' && (c) <= 'D') || ((c) >= 'a' && (c) <= 'd') \
-	|| ((c) >= 'P' && (c) <= 'S') || ((c) >= 'E' && (c) <= 'H')               \
-	|| (c) == '~' || (c) == '@' || (c) == '^' || (c) == '$'                   \
-	|| (c) == 'h' || (c) == 'L' || (c) == 'M' || (c) == 'Z' || (c) == 'z')
 
 #define EXIT_KEY 0x03 /* Ctrl+C */
 #define CLR_KEY  0x18 /* Ctrl+X */
@@ -332,7 +326,7 @@ main(int argc, char **argv)
 
 		if (c == ESC_KEY) {
 			*ptr++ = c;
-		} else if (IS_CTRL_KEY(c) || (buf[0] == ESC_KEY && (END_CHAR(c)
+		} else if (IS_CTRL_KEY(c) || (buf[0] == ESC_KEY && (is_end_seq_char(c)
 		|| (!buf[1] && c != '[' && c != 'O')))) {
 			/* Key combination involving modifier keys (Ctrl, Alt, Meta). */
 			*ptr++ = c;
