@@ -58,14 +58,15 @@ static const char *key_table[256] = {
 	/* Rxvt */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
 	/* Xterm */
-	['F'] = "End", ['G'] = "?", ['H'] = "Home",
+	['F'] = "End", ['E'] = "KP_5", ['H'] = "Home",
 	['P'] = "F1", ['Q'] = "F2", ['R'] = "F3", ['S'] = "F4"
 };
 
 #define IS_ARROW_CHAR(c) (((c) >= 'A' && (c) <= 'D') \
 	|| ((c) >= 'a' && (c) <= 'd'))
 
-#define IS_FUNC_CHAR(c) (((c) >= 'F' && (c) <= 'H') \
+/* Xterm uses 'E' to identify the number 5 in the keypad. */
+#define IS_FUNC_CHAR(c) (((c) >= 'E' && (c) <= 'H') \
 	|| ((c) >= 'P' && (c) <= 'S'))
 
 #define IS_RXVT_KEYPAD_CHAR(c) (((c) >= 'j' && (c) <= 'y') || (c) == 'M')
