@@ -29,13 +29,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h> /* getopt() */
 #include <string.h>
 #include <curses.h>
 #include <locale.h>
 #include <ctype.h>
 #include <errno.h> /* ENOMEM */
 #include <limits.h> /* CHAR_MIN, CHAR_MAX */
-
 #include <wchar.h> /* wcswidth() */
 
 #include "translate_key.h"
@@ -97,7 +97,7 @@ wc_xstrlen(const char *restrict str)
 static void
 print_help(void)
 {
-	puts("Usage: keypress [-h,--help|-v,--version|-t SEQ]\n");
+	puts("Usage: keypress [-c|-h|-t SEQ|-v]\n");
 	printf("%s runs in two modes:\n\n", PROG_NAME);
 	printf("If running with -t, translate the escape sequence SEQ into the\n"
 		"corresponding symbolic representation. For example:\n\n"
@@ -125,6 +125,36 @@ print_help(void)
 		" │ \\x18 │ \\030 │  24 │  CAN │ (Ctrl+x)\n"
 		" │ \\x03 │ \\003 │   3 │  ETX │ (Ctrl+c)\n"
 		" └──────┴──────┴─────┴──────┘");
+}
+
+struct opts_t {
+	char *translate;
+	int clear_screen;
+};
+
+#define DEFAULT_CLEAR_SCREEN 0
+#define DEFAULT_TRANSLATE NULL
+
+static void
+init_default_options(struct opts_t *options)
+{
+	options->clear_screen = DEFAULT_CLEAR_SCREEN;
+	options->translate    = DEFAULT_TRANSLATE;
+}
+
+static void
+parse_args(const int argc, char **argv, struct opts_t *options)
+{
+	int opt;
+	while ((opt = getopt(argc, argv, "cht:v")) != -1) {
+		switch (opt) {
+		case 'c': options->clear_screen = 1; break;
+		case 't': options->translate = optarg; break;
+		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);
+		case 'h': /* fallthrough */
+		default: print_help(); exit(EXIT_SUCCESS);
+		}
+	}
 }
 
 /* Transform escape strings ("\\e", hex, and octal) in the string INPUT
@@ -194,29 +224,6 @@ run_translate_key(const char *arg)
 	return EXIT_FAILURE;
 }
 
-static int
-run_args(char **argv)
-{
-	if (!argv || !argv[0] || !argv[1])
-		return EXIT_FAILURE;
-
-	if ((argv[1][1] == 'h' && !argv[1][2])
-	|| strcmp(argv[1], "--help") == 0) {
-		print_help(); return EXIT_SUCCESS;
-	}
-
-	if ((argv[1][1] == 'v' && !argv[1][2])
-	|| strcmp(argv[1], "--version") == 0) {
-		printf("%s\n", VERSION); return EXIT_SUCCESS;
-	}
-
-	if ((argv[1][1] == 't' && !argv[1][2])
-	|| strcmp(argv[1], "--translate") == 0)
-		return run_translate_key(argv[2]);
-
-	return EXIT_FAILURE;
-}
-
 static void
 print_footer(char *buf, const int is_utf8, const int no_clear)
 {
@@ -234,8 +241,14 @@ print_footer(char *buf, const int is_utf8, const int no_clear)
 int
 main(int argc, char **argv)
 {
-	if (argc >= 2 && *argv[1] == '-')
-		return run_args(argv);
+	struct opts_t options = {0};
+	init_default_options(&options);
+	parse_args(argc, argv, &options);
+
+	if (options.translate != NULL)
+		return run_translate_key(options.translate);
+
+	const int no_clear = options.clear_screen == 0;
 
 	/* Tell the C libraries to use user's locale settings. */
 	setlocale(LC_ALL, "");
@@ -263,8 +276,6 @@ main(int argc, char **argv)
 		"EM", "SUB", "ESC", "FS", "GS", "RS", "US", "SP", NULL
 	};
 
-	/* For future reference: this should be made an option. */
-	const int no_clear = 1;
 
 	char buf[32] = ""; /* 32 bytes to hold a complete escape sequence. */
 	char *ptr = buf;
