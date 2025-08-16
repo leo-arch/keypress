@@ -225,7 +225,7 @@ run_translate_key(const char *arg)
 }
 
 static void
-print_footer(char *buf, const int is_utf8, const int no_clear)
+print_footer(char *buf, const int is_utf8, const int clear_screen)
 {
 	char *str = translate_key(buf);
 
@@ -233,7 +233,7 @@ print_footer(char *buf, const int is_utf8, const int no_clear)
 
 	printw(" ├──────┴──────┴─────┴──────┤\n");
 	printw(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");
-	printw(no_clear == 1 ? BOTTOM_NO_CLR : BOTTOM_CLR);
+	printw(clear_screen == 0 ? BOTTOM_NO_CLR : BOTTOM_CLR);
 
 	free(str);
 }
@@ -247,8 +247,6 @@ main(int argc, char **argv)
 
 	if (options.translate != NULL)
 		return run_translate_key(options.translate);
-
-	const int no_clear = options.clear_screen == 0;
 
 	/* Tell the C libraries to use user's locale settings. */
 	setlocale(LC_ALL, "");
@@ -319,26 +317,26 @@ main(int argc, char **argv)
 			/* Key combination involving modifier keys (Ctrl, Alt, Meta). */
 			*ptr++ = c;
 			*ptr = '\0';
-			print_footer(buf, 0, no_clear);
+			print_footer(buf, 0, options.clear_screen);
 			memset(buf, '\0', sizeof(buf));
 			ptr = buf;
-			clr_scr = no_clear == 0;
+			clr_scr = options.clear_screen == 1;
 		} else if (utf8_bytes > 1 && utf8_count == utf8_bytes) {
 			/* A UTF-8 character. */
 			utf8_count = utf8_bytes = 0;
 			*ptr = '\0';
-			print_footer(buf, 1, no_clear);
+			print_footer(buf, 1, options.clear_screen);
 			memset(buf, '\0', sizeof(buf));
 			ptr = buf;
-			clr_scr = no_clear == 0;
+			clr_scr = options.clear_screen == 1;
 		} else if (buf[0] == ESC_KEY) {
 			/* Append byte to the buffer only provided we are in the
 			 * middle of an escape sequence. */
 			*ptr++ = c;
 		} else if (!IS_UTF8_CHAR(c)) {
 			/* Print a bottom line (ASCII characters only). */
-			printw(no_clear == 1 ? BOTTOM_NO_CLR_SINGLE : BOTTOM_CLR_SINGLE);
-			clr_scr = no_clear == 0;
+			clr_scr = options.clear_screen == 1;
+			printw(clr_scr == 0 ? BOTTOM_NO_CLR_SINGLE : BOTTOM_CLR_SINGLE);
 		}
 
 	}
