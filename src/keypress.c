@@ -53,19 +53,6 @@
 #define SET_ALT_SCREEN   fputs("\x1b[?1049h", stdout);
 #define UNSET_ALT_SCREEN fputs("\x1b[?1049l", stdout);
 
-/* Drawing stuff */
-#define KP_HEADER \
-" Keypress %s  (C-c: quit, C-x: clear)\n"  \
-" ┌──────┬──────┬─────┬──────┐\n"          \
-" │ Hex  │ Oct  │ Dec │ Sym  │\n"          \
-" ├──────┼──────┼─────┼──────┤\n"
-
-#define SEPARATOR_LINE       " ├──────┴──────┴─────┴──────┤\n"
-#define BOTTOM_NO_CLR        " ├──────────────────────────┤\n"
-#define BOTTOM_CLR           " └──────────────────────────┘\n"
-#define BOTTOM_NO_CLR_SINGLE " ├──────┼──────┼─────┼──────┤\n"
-#define BOTTOM_CLR_SINGLE    " └──────┴──────┴─────┴──────┘\n"
-
 #define EXIT_KEY 0x03 /* Ctrl+C */
 #define CLR_KEY  0x18 /* Ctrl+X */
 #define ESC_KEY  0x1b /* Esc */
@@ -263,20 +250,6 @@ run_translate_key(const char *arg)
 	return EXIT_FAILURE;
 }
 
-static void
-print_footer(char *buf, const int is_utf8, const int clear_screen)
-{
-	char *str = translate_key(buf);
-	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
-
-	printf(SEPARATOR_LINE);
-	printf(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");
-	printf(clear_screen == 0 ? BOTTOM_NO_CLR : BOTTOM_CLR);
-
-	memset(buf, '\0', BUF_SIZE);
-	free(str);
-}
-
 struct termios orig_termios;
 
 static void
@@ -343,7 +316,48 @@ init_term(void)
 	set_signals();
 	switch_to_alternate_buffer();
 	enable_raw_mode();
+}
+
+static void
+print_header(void)
+{
 	CLEAR_SCREEN;
+	printf(" Keypress %s  (C-c: quit, C-x: clear)\n"
+		" ┌──────┬──────┬─────┬──────┐\n"
+		" │ Hex  │ Oct  │ Dec │ Sym  │\n"
+		" ├──────┼──────┼─────┼──────┤\n", VERSION);
+}
+
+static void
+print_footer(char *buf, const int is_utf8, const int clear_screen)
+{
+	char *str = translate_key(buf);
+	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
+
+	printf(" ├──────┴──────┴─────┴──────┤\n");
+	printf(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");
+	if (clear_screen == 0)
+		printf(" ├──────────────────────────┤\n");
+	else
+		printf(" └──────────────────────────┘\n");
+
+	memset(buf, '\0', BUF_SIZE);
+	free(str);
+}
+
+static void
+print_row(const int c, const char *s)
+{
+	printf(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
+}
+
+static void
+print_bottom_line(const int clear_screen)
+{
+	if (clear_screen == 0)
+		printf(" ├──────┼──────┼─────┼──────┤\n");
+	else
+		printf(" └──────┴──────┴─────┴──────┘\n");
 }
 
 int
@@ -358,8 +372,6 @@ main(int argc, char **argv)
 
 	init_term();
 
-	printf(KP_HEADER, VERSION);
-
 	char buf[BUF_SIZE] = "";
 	char *ptr = buf;
 	int clr_scr = 0;
@@ -367,30 +379,33 @@ main(int argc, char **argv)
 	int utf8_bytes = 0; /* Number of bytes of a UTF-8 character. */
 	int utf8_count = 0; /* Number of printed bytes of a UTF-8 character. */
 
+	print_header();
+
 	unsigned char ch = 0;
 	while (read(STDIN_FILENO, &ch, sizeof(ch)) == sizeof(ch)) {
 		const int c = (int)ch;
 
 		/* Ctrl+X (kitty protocol) */
 		if (*buf == ESC_KEY && strcmp(buf + 1, "[120;5") == 0 && c == 'u') {
-			clr_scr = 0; CLEAR_SCREEN; printf(KP_HEADER, VERSION);
+			clr_scr = 0; print_header();
 			continue;
 		} else if (c == CLR_KEY /* Ctrl+X */
 		|| clr_scr == 1) {
-			clr_scr = 0; CLEAR_SCREEN; printf(KP_HEADER, VERSION);
+			clr_scr = 0; print_header();
 			if (c == CLR_KEY)
 				continue; /* Ctrl+X: do not print info about this key.  */
 		}
 
 		if (IS_CTRL_KEY(c)) { /* Control characters */
-			printf(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4,
-				keysym[c]);
+			print_row(c, keysym[c]);
 		} else if (isprint(c)) { /* ASCII printable characters */
-			printf(" │ \\x%02x │ \\%03o │ %3d │ %*c │\n", c, c, c, 4, c);
+			char s[2] = {(char)c, 0};
+			print_row(c, s);
 		} else { /* Extended ASCII, Unicode */
 			const char *s = (c == DEL_KEY ? "DEL"
 				: (c == NBSP_KEY ? "NBSP" : (c == SHY_KEY ? "SHY" : "")));
-			printf(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
+			print_row(c, s);
+
 			if (IS_UTF8_CHAR(c)) {
 				utf8_count++;
 				*ptr++ = c;
@@ -425,7 +440,7 @@ main(int argc, char **argv)
 		} else if (!IS_UTF8_CHAR(c)) {
 			/* Print a bottom line (ASCII characters only). */
 			clr_scr = options.clear_screen == 1;
-			printf(clr_scr == 0 ? BOTTOM_NO_CLR_SINGLE : BOTTOM_CLR_SINGLE);
+			print_bottom_line(clr_scr);
 		}
 	}
 
