@@ -49,6 +49,7 @@
 #define IS_UPPER_ARROW_CHAR(c) ((c) >= 'A' && (c) <= 'D')
 #define IS_ARROW_CHAR(c) (IS_LOWER_ARROW_CHAR((c)) || IS_UPPER_ARROW_CHAR((c)))
 
+#define IS_KITTY_END_CHAR(c)   ((c) == 'u')
 #define IS_MODKEY_END_CHAR(c)  ((c) == '^' || (c) == '$' || (c) == '@')
 #define IS_GENERIC_END_CHAR(c) ((c) == '~' || (c) == 'z')
 #define IS_KEYCODE_END_CHAR(c) (  \
@@ -75,7 +76,7 @@ int
 is_end_seq_char(char c)
 {
 	return (IS_KEYCODE_END_CHAR(c) || IS_MODKEY_END_CHAR(c)
-		|| IS_GENERIC_END_CHAR(c));
+		|| IS_GENERIC_END_CHAR(c) || IS_KITTY_END_CHAR(c));
 }
 
 /* The Meta key is usually mapped to the Super/logo key (Mod4), for example,
@@ -324,6 +325,144 @@ write_translation(const int keycode, const int mod_key)
 	return buf;
 }
 
+static const char *
+get_kitty_key_symbol(const int keycode)
+{
+	static char keysym_str[2] = {0};
+
+	/* These are directly printable */
+	if (keycode > 32 && keycode < 256 && keycode != 127
+	&& keycode != 160 && keycode != 173) {
+		keysym_str[0] = (char)toupper(keycode);
+		return keysym_str;
+	}
+
+	switch (keycode) {
+	/* Control keys */
+	case 0: return "NULL"; case 1: return "SOH"; case 2: return "STX";
+	case 3: return "ETX"; case 4: return "EOT"; case 5: return "ENQ";
+	case 6: return "ACK"; case 7: return "BELL"; case 8: return "BS";
+	case 9: return "Tab"; case 10: return "LF"; case 11: return "VT";
+	case 12: return "FF"; case 13: return "CR"; case 14: return "SO";
+	case 15: return "SI"; case 16: return "DLE"; case 17: return "DC1";
+	case 18: return "DC2"; case 19: return "DC3"; case 20: return "DC4";
+	case 21: return "NAK"; case 22: return "SYN"; case 23: return "ETB";
+	case 24: return "CAN"; case 25: return "EM"; case 26: return "SUB";
+	case 27: return "ESC"; case 28: return "FS"; case 29: return "GS";
+	case 30: return "RS"; case 31: return "US";
+
+	/* Non-printable regular keys */
+	case 32: return "Space"; case 127: return "Del";
+	case 160: return "NSBP"; case 173: return "SHY";
+
+	/* Special keyboard keys */
+	case 57358: return "CapsLock"; case 57359: return "ScrollLock";
+	case 57360: return "NumLock"; case 57361: return "PrtScr";
+	case 57362: return "Pause"; case 57363: return "Menu";
+	case 57376: return "F13"; case 57377: return "F14";
+	case 57378: return "F15"; case 57379: return "F16";
+	case 57380: return "F17"; case 57381: return "F18";
+	case 57382: return "F19"; case 57383: return "F20";
+	case 57384: return "F21"; case 57385: return "F22";
+	case 57386: return "F23"; case 57387: return "F24";
+	case 57388: return "F25"; case 57389: return "F26";
+	case 57390: return "F27"; case 57391: return "F28";
+	case 57392: return "F29"; case 57393: return "F30";
+	case 57394: return "F31"; case 57395: return "F32";
+	case 57396: return "F33"; case 57397: return "F34";
+	case 57398: return "F35"; case 57399: return "KP_0";
+	case 57400: return "KP_1"; case 57401: return "KP_2";
+	case 57402: return "KP_3"; case 57403: return "KP_4";
+	case 57404: return "KP_5"; case 57405: return "KP_6";
+	case 57406: return "KP_7"; case 57407: return "KP_8";
+	case 57408: return "KP_9"; case 57409: return "KP_Decimal";
+	case 57410: return "KP_Divide"; case 57411: return "KP_Multiply";
+	case 57412: return "KP_Subtract"; case 57413: return "KP_Add";
+	case 57414: return "KP_Enter"; case 57415: return "KP_Equals";
+	case 57416: return "KP_Separator"; case 57417: return "KP_Left";
+	case 57418: return "KP_Right"; case 57419: return "KP_Up";
+	case 57420: return "KP_Down"; case 57421: return "KP_PageUp";
+	case 57422: return "KP_PageDown"; case 57423: return "KP_Home";
+	case 57424: return "KP_End"; case 57425: return "KP_Insert";
+	case 57426: return "KP_Delete"; case 57427: return "KP_Begin";
+	case 57428: return "MediaPlay"; case 57429: return "MediaPause";
+	case 57430: return "MediaPlayPause"; case 57431: return "MediaReverse";
+	case 57432: return "MediaStop"; case 57433: return "MediaFastForward";
+	case 57434: return "MediaRewind"; case 57435: return "MediaTrackNext";
+	case 57436: return "MediaTrackPrevious"; case 57437: return "MediaRecord";
+	case 57438: return "VolumeDown"; case 57439: return "VolumeUp";
+	case 57440: return "VolumeMute"; case 57441: return "LShift";
+	case 57442: return "LControl"; case 57443: return "LAlt";
+	case 57444: return "LSuper"; case 57445: return "LHyper";
+	case 57446: return "LMeta"; case 57447: return "RShift";
+	case 57448: return "RControl"; case 57449: return "RAlt";
+	case 57450: return "RSuper"; case 57451: return "RHyper";
+	case 57452: return "RMeta"; case 57453: return "ISO_Level3_Shift";
+	case 57454: return "ISO_Level5_Shift";
+
+	default: return "UNKNOWN";
+	}
+}
+
+/* Translate the modifier number MOD_NUM into human-readable form. */
+static const char *
+get_kitty_mod_symbol(const int mod_key)
+{
+	/* The biggest value mod_key can take is 255 (since
+	 * 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 = 255). In this case, the modifier
+	 * string would be "Shift+Alt+Ctrl+Super+Hyper+Meta+CapsLock+NumLock-",
+	 * which is 50 bytes long, including the terminating NUL byte. */
+	static char mod[64];
+	memset(mod, '\0', sizeof(mod));
+
+	const int m = mod_key;
+	const size_t s = sizeof(mod);
+	int l = 0;
+
+	if (m & 4) l += snprintf(mod + l, s - (size_t)l, "Ctrl+");
+	if (m & 2) l += snprintf(mod + l, s - (size_t)l, "Alt+");
+	if (m & 1) l += snprintf(mod + l, s - (size_t)l, "Shift+");
+	if (m & 8) l += snprintf(mod + l, s - (size_t)l, "Super+");
+	if (m & 16) l += snprintf(mod + l, s - (size_t)l, "Hyper+");
+	if (m & 32) l += snprintf(mod + l, s - (size_t)l, "Meta+");
+	if (m & 64) l += snprintf(mod + l, s - (size_t)l, "CapsLock+");
+	if (m & 128) snprintf(mod + l, s - (size_t)l, "NumLock+");
+
+	return mod;
+}
+
+static char *
+write_kitty_keys(char *str, const size_t end)
+{
+	str[end] = '\0';
+
+	int keycode = -1;
+	int mod_key = 0;
+
+	char *delim = strchr(str, ';');
+	if (delim) {
+		*delim = '\0';
+		keycode = atoi(str);
+		mod_key = delim[1] ? atoi(delim + 1) - 1 : 0;
+	} else {
+		keycode = atoi(str);
+	}
+
+	const char *k = keycode != -1 ? get_kitty_key_symbol(keycode) : NULL;
+	const char *m = mod_key != 0 ? get_kitty_mod_symbol(mod_key) : NULL;
+
+	if (!k)
+		return NULL;
+
+	const size_t buf_len = strlen(k) + (m ? strlen(m) : 0) + 1;
+	char *buf = malloc(buf_len * sizeof(char));
+	if (!buf)
+		return NULL;
+
+	snprintf(buf, buf_len, "%s%s", m ?  m : "", k);
+	return buf;
+}
+
 /* Translate the escape sequence STR into the corresponding symbolic value.
  * E.g. "\x1b[1;7D" will return "Ctrl+Alt+Left". If no symbolic value is
  * found, NULL is returned.
@@ -361,6 +500,10 @@ translate_key(char *str)
 	size_t end = len > 0 ? len - 1 : len;
 
 	const char end_char = str[end];
+
+	if (IS_KITTY_END_CHAR(end_char) && csi_seq == 1)
+		return write_kitty_keys(str, end);
+
 	if (IS_MODKEY_END_CHAR(end_char))
 		set_end_char_is_mod_key(str, end, &keycode, &mod_key);
 	else if (IS_KEYCODE_END_CHAR(end_char))
@@ -593,6 +736,10 @@ struct keys_t keys[] = {
 
 	/* Sun/Solaris */
 	{"\x1b[224z", "F1"}, {"\x1b[214;7z", "Ctrl+Alt+Home"}, {"\x1b[2z", "Ins"},
+
+	/* Kitty protocol */
+	{"\x1b[57425u", "KP_Insert"}, {"\x1b[118;3u", "Alt+V"},
+	{"\x1b[106;7u", "Ctrl+Alt+J"},
 
 	/* cons25 uses \e[M-\e[X for F1-F12 keys. */
 

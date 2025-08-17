@@ -31,17 +31,27 @@
 #include <stdio.h>
 #include <unistd.h> /* getopt() */
 #include <string.h>
-#include <curses.h>
+#include <signal.h>
+#include <termios.h>
 #include <locale.h>
 #include <ctype.h>
-#include <errno.h> /* ENOMEM */
+#include <errno.h>  /* ENOMEM */
 #include <limits.h> /* CHAR_MIN, CHAR_MAX */
-#include <wchar.h> /* wcswidth() */
+#include <wchar.h>  /* wcswidth() */
 
 #include "translate_key.h" /* translate_key(), is_end_seq_char() */
 
 #define PROG_NAME "keypress"
 #define VERSION   "0.2.2"
+
+/* Some escape sequences */
+#define CLEAR_SCREEN     fputs("\x1b[H\x1b[2J\x1b[3J", stdout)
+#define HIDE_CURSOR      fputs("\x1b[?25l", stdout)
+#define UNHIDE_CURSOR    fputs("\x1b[?25h", stdout)
+#define SET_KITTY_KEYS   fputs("\x1b[>1u", stdout);
+#define UNSET_KITTY_KEYS fputs("\x1b[<u", stdout);
+#define SET_ALT_SCREEN   fputs("\x1b[?1049h", stdout);
+#define UNSET_ALT_SCREEN fputs("\x1b[?1049l", stdout);
 
 /* Drawing stuff */
 #define KP_HEADER \
@@ -73,6 +83,8 @@
 
 /* 32 bytes to hold bytes of an escape sequence or a UTF-8 character */
 #define BUF_SIZE 32
+
+int g_kitty_keys = 0;
 
 /* Symbols for control characters */
 const char *const keysym[] = {
@@ -113,6 +125,7 @@ print_help(void)
 	puts("  -c      Clear the screen before printing key information in\n"
 		"          interactive mode.");
 	puts("  -h      Display this help and exit.");
+	puts("  -k      Enable support for the Kitty keyboard protocol.");
 	puts("  -t SEQ  Run in translation mode: translate the escape sequence\n"
 		"          SEQ into its corresponding text/symbolic representation\n"
 		"          and exit.");
@@ -152,25 +165,29 @@ print_help(void)
 struct opts_t {
 	char *translate;
 	int clear_screen;
+	int kitty_keys;
 };
 
 #define DEFAULT_CLEAR_SCREEN 0
 #define DEFAULT_TRANSLATE NULL
+#define DEFAULT_KITTY_KEYS 0
 
 static void
 init_default_options(struct opts_t *options)
 {
 	options->clear_screen = DEFAULT_CLEAR_SCREEN;
 	options->translate    = DEFAULT_TRANSLATE;
+	options->kitty_keys   = DEFAULT_KITTY_KEYS;
 }
 
 static void
 parse_args(const int argc, char **argv, struct opts_t *options)
 {
 	int opt;
-	while ((opt = getopt(argc, argv, "cht:v")) != -1) {
+	while ((opt = getopt(argc, argv, "chkt:v")) != -1) {
 		switch (opt) {
 		case 'c': options->clear_screen = 1; break;
+		case 'k': options->kitty_keys = g_kitty_keys = 1; break;
 		case 't': options->translate = optarg; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);
 		case 'h': /* fallthrough */
@@ -252,12 +269,81 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 	char *str = translate_key(buf);
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 
-	printw(SEPARATOR_LINE);
-	printw(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");
-	printw(clear_screen == 0 ? BOTTOM_NO_CLR : BOTTOM_CLR);
+	printf(SEPARATOR_LINE);
+	printf(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");
+	printf(clear_screen == 0 ? BOTTOM_NO_CLR : BOTTOM_CLR);
 
 	memset(buf, '\0', BUF_SIZE);
 	free(str);
+}
+
+struct termios orig_termios;
+
+static void
+switch_to_alternate_buffer(void)
+{
+	SET_ALT_SCREEN;
+	HIDE_CURSOR;
+	if (g_kitty_keys == 1) SET_KITTY_KEYS;
+}
+
+static void
+switch_to_normal_buffer(void)
+{
+	if (g_kitty_keys == 1) UNSET_KITTY_KEYS;
+	UNHIDE_CURSOR;
+	UNSET_ALT_SCREEN;
+}
+
+static void
+disable_raw_mode(void)
+{
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
+static void
+enable_raw_mode(void)
+{
+	tcgetattr(STDIN_FILENO, &orig_termios);
+	struct termios raw = orig_termios;
+	raw.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+static void
+deinit_term(void)
+{
+	switch_to_normal_buffer();
+    disable_raw_mode();
+}
+
+static void
+handle_sigint(int signal)
+{
+	(void)signal;
+	deinit_term();
+    exit(0);
+}
+
+static void
+set_signals(void)
+{
+    struct sigaction sa;
+    sa.sa_handler = handle_sigint;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    sigaction(SIGINT, &sa, NULL);
+}
+
+static void
+init_term(void)
+{
+	setlocale(LC_ALL, "");
+	set_signals();
+	switch_to_alternate_buffer();
+	enable_raw_mode();
+	CLEAR_SCREEN;
 }
 
 int
@@ -270,24 +356,9 @@ main(int argc, char **argv)
 	if (options.translate != NULL) /* -t SEQ */
 		return run_translate_key(options.translate);
 
-	/* Tell the C libraries to use user's locale settings. */
-	setlocale(LC_ALL, "");
+	init_term();
 
-	/* Initialize curses. */
-	WINDOW *w = initscr();
-	if (w == NULL) {
-		fprintf(stderr, "Error initializing the curses library.\n");
-		return EXIT_FAILURE;
-	}
-
-	raw();            /* Terminal in raw mode, no buffering */
-	noecho();         /* Disable echoing */
-	nonl();           /* Disable newline/return mapping */
-	keypad(w, FALSE); /* FALSE: CSI codes, TRUE: curses codes for keys */
-	scrollok(w, 1);	  /* Enable screen scroll */
-	curs_set(0);      /* Hide cursor */
-
-	printw(KP_HEADER, VERSION);
+	printf(KP_HEADER, VERSION);
 
 	char buf[BUF_SIZE] = "";
 	char *ptr = buf;
@@ -296,24 +367,30 @@ main(int argc, char **argv)
 	int utf8_bytes = 0; /* Number of bytes of a UTF-8 character. */
 	int utf8_count = 0; /* Number of printed bytes of a UTF-8 character. */
 
-	int c = 0;
-	while ((c = getch()) != EXIT_KEY) { /* Ctrl+C */
-		if (c == CLR_KEY                /* Ctrl+X */
+	unsigned char ch = 0;
+	while (read(STDIN_FILENO, &ch, sizeof(ch)) == sizeof(ch)) {
+		const int c = (int)ch;
+
+		/* Ctrl+X (kitty protocol) */
+		if (*buf == ESC_KEY && strcmp(buf + 1, "[120;5") == 0 && c == 'u') {
+			clr_scr = 0; CLEAR_SCREEN; printf(KP_HEADER, VERSION);
+			continue;
+		} else if (c == CLR_KEY /* Ctrl+X */
 		|| clr_scr == 1) {
-			clr_scr = 0; clear(); refresh(); printw(KP_HEADER, VERSION);
+			clr_scr = 0; CLEAR_SCREEN; printf(KP_HEADER, VERSION);
 			if (c == CLR_KEY)
 				continue; /* Ctrl+X: do not print info about this key.  */
 		}
 
 		if (IS_CTRL_KEY(c)) { /* Control characters */
-			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4,
+			printf(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4,
 				keysym[c]);
 		} else if (isprint(c)) { /* ASCII printable characters */
-			printw(" │ \\x%02x │ \\%03o │ %3d │ %*c │\n", c, c, c, 4, c);
+			printf(" │ \\x%02x │ \\%03o │ %3d │ %*c │\n", c, c, c, 4, c);
 		} else { /* Extended ASCII, Unicode */
 			const char *s = (c == DEL_KEY ? "DEL"
 				: (c == NBSP_KEY ? "NBSP" : (c == SHY_KEY ? "SHY" : "")));
-			printw(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
+			printf(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
 			if (IS_UTF8_CHAR(c)) {
 				utf8_count++;
 				*ptr++ = c;
@@ -348,12 +425,10 @@ main(int argc, char **argv)
 		} else if (!IS_UTF8_CHAR(c)) {
 			/* Print a bottom line (ASCII characters only). */
 			clr_scr = options.clear_screen == 1;
-			printw(clr_scr == 0 ? BOTTOM_NO_CLR_SINGLE : BOTTOM_CLR_SINGLE);
+			printf(clr_scr == 0 ? BOTTOM_NO_CLR_SINGLE : BOTTOM_CLR_SINGLE);
 		}
-
 	}
 
-	curs_set(1); /* Unhide cursor */
-	endwin();
+	deinit_term();
 	return EXIT_SUCCESS;
 }

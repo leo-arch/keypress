@@ -17,10 +17,8 @@ SRC = src/*.c
 CFLAGS ?= -O3 -fstack-protector-strong
 CFLAGS += -Wall -Wextra -pedantic
 
-LIBS ?= -lncurses
-
 $(BIN): $(SRC)
-	$(CC) -o $(BIN) $(SRC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $(BIN) $(SRC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)
 
 build: $(BIN)
 
