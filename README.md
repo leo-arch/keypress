@@ -52,7 +52,7 @@ This command will output `Ctrl+Alt+Left`.
 
 #### 1.c. The Kitty keyboard protocol
 
-Use the `-k` option to enable support for the [Kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
+Use the `-k` option to enable support for the [Kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/). Version  0.2.3 or later required.
 
 ---
 
