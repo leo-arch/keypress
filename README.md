@@ -7,7 +7,9 @@
 
 ### 1. Description
 
-**Keypress** generates a byte-by-byte representation of keyboard inputs, whether for individual keys or key combinations. This representation includes the following formats: **hexadecimal**, **octal**, **decimal**, and the corresponding **symbols**.
+#### 1.a. Interactive mode
+
+By default, **keypress** runs in interactive mode. In this mode, it generates a byte-by-byte representation of keyboard inputs as the user types, whether for individual keys or key combinations. This representation includes the following formats: **hexadecimal**, **octal**, **decimal**, and the corresponding **symbols**.
 
 Why? Have you ever developed a terminal program dealing with keyboard input? That is why.
 
@@ -21,7 +23,9 @@ Awful, useful.
 > Did you know, for example, that `printf "\xc3\x9f\n"` will print an `ß` (the german _Eszett_)?\
 > Try with `printf "\xf0\x9f\x98\x80\n"`. Nice!
 
-By using the `-t` option, **keypress** can also translate keyboard escape sequences into the corresponding symbolic/text representation. For example:
+#### 1.b. Translation mode
+
+By using the `-t` option, **keypress** runs in translation mode: it translates a keyboard escape sequence passed as parameter into the corresponding symbolic/text representation. For example:
 
 ```sh
 keypress -t "\x1b[1;7D"
@@ -45,6 +49,10 @@ This command will output `Ctrl+Alt+Left`.
 > }
 > ...
 > ```
+
+#### 1.c. The Kitty keyboard protocol
+
+Use the `-k` option to enable support for the [Kitty keyboard protocol](https://sw.kovidgoyal.net/kitty/keyboard-protocol/).
 
 ---
 
