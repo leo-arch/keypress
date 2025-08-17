@@ -40,8 +40,8 @@
  * 2. Defining the modifier key. E.g.: '\x1b[11^', where '^' means the
  * modifier key (Control) and '11' the key pressed (F1).
  *
- * 3. Raw the sequence terminator. E.g. '\x1b[15;3~', where '~' simply
- * ends the sequence, '15' the pressed key (F5), and '3' the modifier
+ * 3. Raw sequence terminator. E.g. '\x1b[15;3~', where '~' simply
+ * ends the sequence, '15' is the pressed key (F5), and '3' the modifier
  * key (Alt). */
 
 #define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
@@ -111,15 +111,18 @@ static const char *key_table[256] = {
 	[32] = "F18", [33] = "F19", [34] = "F20",
 
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
+
 	/* Rxvt */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
 	['n'] = "Supr", ['p'] = "Ins",
 	['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3", ['t'] = "KP_4",
 	['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7", ['x'] = "KP_8",
 	['y'] = "KP_9",
+
 	/* Xterm */
 	['E'] = "KP_5", ['F'] = "End", ['G'] = "KP_5", ['H'] = "Home",
 	['P'] = "F1", ['Q'] = "F2", ['R'] = "F3", ['S'] = "F4",
+
 	/* Sun/Solaris */
 	[192] = "F11", [193] = "F12",
 	[214] = "Home", [216] = "PgUp", [218] = "KP_5", [220] = "End",
@@ -588,7 +591,9 @@ struct keys_t keys[] = {
 	{"\x1b[1;13P", "Ctrl+Meta+F1"}, {"\x1b[3;15~", "Ctrl+Alt+Meta+Del"},
 	{"\x1b[19;10~", "Meta+Shift+F8"},
 
-	/* sun-color uses \e[224z-\e[235z for F1-F12 keys. */
+	/* Sun/Solaris */
+	{"\x1b[224z", "F1"}, {"\x1b[214;7z", "Ctrl+Alt+Home"}, {"\x1b[2z", "Ins"},
+
 	/* cons25 uses \e[M-\e[X for F1-F12 keys. */
 
 	{NULL, NULL},
