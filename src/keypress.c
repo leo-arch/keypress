@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <unistd.h> /* getopt() */
 #include <string.h>
-#include <signal.h>
 #include <termios.h>
 #include <locale.h>
 #include <ctype.h>
@@ -292,29 +291,9 @@ deinit_term(void)
 }
 
 static void
-handle_sigint(int signal)
-{
-	(void)signal;
-	deinit_term();
-    exit(0);
-}
-
-static void
-set_signals(void)
-{
-    struct sigaction sa;
-    sa.sa_handler = handle_sigint;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-
-    sigaction(SIGINT, &sa, NULL);
-}
-
-static void
 init_term(void)
 {
 	setlocale(LC_ALL, "");
-	set_signals();
 	switch_to_alternate_buffer();
 	enable_raw_mode();
 }
