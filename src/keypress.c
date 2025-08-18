@@ -280,6 +280,7 @@ enable_raw_mode(void)
 	tcgetattr(STDIN_FILENO, &orig_termios);
 	struct termios raw = orig_termios;
 	raw.c_lflag &= ~(ICANON | ECHO);
+	raw.c_iflag &= ~(IXON | IXOFF);
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
