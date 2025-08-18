@@ -275,18 +275,12 @@ disable_raw_mode(void)
 }
 
 static void
-enable_raw_mode(const int kitty_keys)
+enable_raw_mode(void)
 {
 	tcgetattr(STDIN_FILENO, &orig_termios);
 	struct termios raw = orig_termios;
-
-	/* For some reason, the Kitty protocol does not like ISIG */
-	if (kitty_keys == 1)
-		raw.c_lflag &= ~(ICANON | ECHO);
-	else
-		raw.c_lflag &= ~(ICANON | ECHO | ISIG);
+	raw.c_lflag &= ~(ICANON | ECHO | ISIG);
 	raw.c_iflag &= ~(IXON | IXOFF | ICRNL);
-
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
@@ -317,12 +311,12 @@ set_signals(void)
 }
 
 static void
-init_term(const int kitty_keys)
+init_term(void)
 {
 	setlocale(LC_ALL, "");
 	set_signals();
 	switch_to_alternate_buffer();
-	enable_raw_mode(kitty_keys);
+	enable_raw_mode();
 }
 
 static void
@@ -377,7 +371,7 @@ main(int argc, char **argv)
 	if (options.translate != NULL) /* -t SEQ */
 		return run_translate_key(options.translate);
 
-	init_term(options.kitty_keys);
+	init_term();
 
 	char buf[BUF_SIZE] = "";
 	char *ptr = buf;
@@ -392,8 +386,7 @@ main(int argc, char **argv)
 	while (read(STDIN_FILENO, &ch, sizeof(ch)) == sizeof(ch)) {
 		const int c = (int)ch;
 
-		/* Ctrl+C */
-		if (options.kitty_keys == 0 && c == EXIT_KEY)
+		if (c == EXIT_KEY) /* Ctrl+C */
 			break;
 
 		/* Ctrl+X (kitty protocol) */
