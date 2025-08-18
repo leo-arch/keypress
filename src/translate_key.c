@@ -34,13 +34,13 @@
 /* When it comes to keyboard escape sequences, we have three kind of
  * terminating characters:
  *
- * 1. Defining the keycode. E.g. '\x1b[1;2D', where 'D' means the key pressed,
+ * 1. Defining the keycode. E.g. 'CSI 1;2D', where 'D' means the key pressed,
  * (Left), and '2' the modifier key (Shift).
  *
- * 2. Defining the modifier key. E.g.: '\x1b[11^', where '^' means the
+ * 2. Defining the modifier key. E.g.: 'CSI 11^', where '^' means the
  * modifier key (Control) and '11' the key pressed (F1).
  *
- * 3. Raw sequence terminator. E.g. '\x1b[15;3~', where '~' simply
+ * 3. Raw sequence terminator. E.g. 'CSI 15;3~', where '~' simply
  * ends the sequence, '15' is the pressed key (F5), and '3' the modifier
  * key (Alt). */
 
@@ -79,7 +79,7 @@ is_end_seq_char(char c)
 {
 	return (IS_KEYCODE_END_CHAR(c) || IS_MODKEY_END_CHAR(c)
 		|| IS_GENERIC_END_CHAR(c) || IS_KITTY_END_CHAR(c)
-		|| (c) == 'Z'); /* 'Z' required for Shift-Tab (\\e[Z) */
+		|| (c) == 'Z'); /* 'Z' required for Shift-Tab (CSI Z) */
 }
 
 /* Some names for control keys. */
@@ -227,7 +227,7 @@ set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
 }
 
 /* The terminating character desginates the key pressed. Mostly arrow keys
- * (e.g. \\e[D) for the Left key. */
+ * (e.g. CSI D) for the Left key. */
 static void
 set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 {
@@ -272,18 +272,12 @@ print_non_esc_seq(const char *str)
 		return NULL;
 
 	if (str[1])
-		snprintf(buf, MAX_BUF, "%s", str);
-	else if (*str == 0x08)
+		snprintf(buf, MAX_BUF, "%s", str); /* A string, not a byte */
+	else if (*str == 0x08 || *str == 0x09 || *str == 0x0d
+	|| *str == 0x20 || *str == 0x7f)
+		/* Backspace, Tab, Enter, Sapce, Del */
 		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
-	else if (*str == 0x09)
-		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
-	else if (*str == 0x0d)
-		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
-	else if (*str == 0x20)
-		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
-	else if (*str == 0x7f)
-		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
-	else if (*str < 0x20)
+	else if (*str < 0x20) /* Control characters */
 		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+", *str + '@');
 	else
 		return NULL;
@@ -486,12 +480,13 @@ write_kitty_keys(char *str, const size_t end)
 	return buf;
 }
 
-/* A Foot sequence is "CSI 27;mod;key~" */
+/* A Foot sequence is "CSI 27;mod;key~"
+ * See https://codeberg.org/dnkl/foot/src/branch/master/keymap.h*/
 static char *
 write_foot_seq(char *str, const size_t end)
 {
 	str[end] = '\0';
-	str += 3; // Skip "27;"
+	str += 3; /* Skip "27;" */
 	char *s = strchr(str, ';');
 	if (!s)
 		return NULL;
@@ -542,8 +537,8 @@ translate_key(char *str)
 	int keycode = -1;
 	int mod_key = 0;
 
-	size_t len = strlen(str);
-	size_t end = len > 0 ? len - 1 : len;
+	const size_t len = strlen(str);
+	const size_t end = len > 0 ? len - 1 : len;
 
 	const char end_char = str[end];
 
@@ -674,9 +669,7 @@ struct keys_t keys[] = {
 
 	{"\x1b", "Escape"},
 
-	{"\x09", "Ctrl+I"}, /* Tab */
-	{"\x1b\x09", "Ctrl+Alt+I"}, /* Alt+Tab */
-	{"\x1b[Z", "Shift+Tab"},
+	{"\x09", "Tab"}, {"\x1b\x09", "Alt+Tab"}, {"\x1b[Z", "Shift+Tab"},
 
 	{"\x7f", "Del"}, {"\x1b\x7f", "Alt+Del"},
 
@@ -789,6 +782,10 @@ struct keys_t keys[] = {
 	/* Kitty protocol */
 	{"\x1b[57425u", "KP_Insert"}, {"\x1b[118;3u", "Alt+V"},
 	{"\x1b[106;7u", "Ctrl+Alt+J"},
+
+	/* Foot */
+	{"\x1b[27;5;13~", "Ctrl+Enter"}, {"\x1b[27;5;49~", "Ctrl+1"},
+	{"\x1b[27;9;9~", "Meta+Tab"},
 
 	/* cons25 uses \e[M-\e[X for F1-F12 keys. */
 
