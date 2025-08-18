@@ -56,8 +56,8 @@
 	IS_ARROW_CHAR((c))         || \
 	((c) >= 'E' && (c) <= 'H') || \
 	((c) >= 'P' && (c) <= 'S') || \
-	((c) >= 'p' && (c) <= 'y') || \
-	(c) == 'n')
+	((c) >= 'j' && (c) <= 'y') || \
+	(c) == 'M')
 
 #define ESC_KEY 0x1b
 
@@ -122,7 +122,9 @@ static const char *key_table[256] = {
 
 	/* Rxvt */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
-	['n'] = "Supr", ['p'] = "Ins",
+	['j'] = "KP_Multiply", ['m'] = "KP_Subtract", ['M'] = "KP_Enter",
+	['k'] = "KP_Add",
+	['n'] = "KP_Del", ['o'] = "KP_Divide", ['p'] = "KP_Ins",
 	['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3", ['t'] = "KP_4",
 	['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7", ['x'] = "KP_8",
 	['y'] = "KP_9",
