@@ -1,3 +1,8 @@
+0.3.1 (Aug 18, 2025)
+
+BUG FIXES
+* Ctrl+S freezes the screen (XOFF not ignored).
+
 0.3 (Aug 18, 2025)
 
 BUG FIXES
