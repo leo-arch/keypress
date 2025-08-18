@@ -1,0 +1,30 @@
+0.3 (Aug 18, 2025)
+
+BUG FIXES
+* F1-5 not working in the Linux console.
+
+IMPROVEMENTS
+* Add support for Sun keyboard mapping.
+* Add translation support for KP_5 (keypad 5).
+* Add text translation for multi-byte keys in interactive mode.
+* Add -c option to clear the screen before printing key info.
+* Add support for the Kitty protocol (enable using the -k option).
+
+MISC
+* Removed dependency on ncurses (it does not support the Kitty protocol).
+
+0.2.1 (Aug 14, 2025)
+
+IMPROVEMENTS:
+* Avoid the use of printf(1) with the -t option. Just run keypress -t "\x1b[19;10~".
+
+0.2 (Aug 14, 2025)
+
+IMPROVEMENTS
+* Add -t option to translate a keyboard escape sequence into its symbolic/text representation. E.g.:
+  keypress -t $(printf "\x1b[19;10~")
+This command will output Meta+Shift+F8.
+
+0.1 (Jul 31, 2025)
+
+* Initial release
