@@ -49,6 +49,8 @@
 #define IS_UPPER_ARROW_CHAR(c) ((c) >= 'A' && (c) <= 'D')
 #define IS_ARROW_CHAR(c) (IS_LOWER_ARROW_CHAR((c)) || IS_UPPER_ARROW_CHAR((c)))
 
+#define IS_FOOT_SEQ(s, end) (*(s) == '2' && (s)[1] == '7' && (s)[2] == ';' \
+	&& (end) == '~')
 #define IS_KITTY_END_CHAR(c)   ((c) == 'u')
 #define IS_MODKEY_END_CHAR(c)  ((c) == '^' || (c) == '$' || (c) == '@')
 #define IS_GENERIC_END_CHAR(c) ((c) == '~' || (c) == 'z')
@@ -122,12 +124,11 @@ static const char *key_table[256] = {
 
 	/* Rxvt */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
-	['j'] = "KP_Multiply", ['m'] = "KP_Subtract", ['M'] = "KP_Enter",
-	['k'] = "KP_Add",
-	['n'] = "KP_Del", ['o'] = "KP_Divide", ['p'] = "KP_Ins",
-	['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3", ['t'] = "KP_4",
-	['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7", ['x'] = "KP_8",
-	['y'] = "KP_9",
+	['j'] = "KP_Multiply", ['k'] = "KP_Add", ['m'] = "KP_Subtract",
+	['M'] = "KP_Enter", ['n'] = "KP_Del", ['o'] = "KP_Divide",
+	['p'] = "KP_Ins", ['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3",
+	['t'] = "KP_4", ['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7",
+	['x'] = "KP_8", ['y'] = "KP_9",
 
 	/* Xterm */
 	['E'] = "KP_5", ['F'] = "End", ['G'] = "KP_5", ['H'] = "Home",
@@ -363,14 +364,14 @@ get_kitty_key_symbol(const int keycode)
 	/* Control keys */
 	case 0: return "NULL"; case 1: return "SOH"; case 2: return "STX";
 	case 3: return "ETX"; case 4: return "EOT"; case 5: return "ENQ";
-	case 6: return "ACK"; case 7: return "BELL"; case 8: return "BS";
+	case 6: return "ACK"; case 7: return "BELL"; case 8: return "Backspace";
 	case 9: return "Tab"; case 10: return "LF"; case 11: return "VT";
 	case 12: return "FF"; case 13: return "Enter"; case 14: return "SO";
 	case 15: return "SI"; case 16: return "DLE"; case 17: return "DC1";
 	case 18: return "DC2"; case 19: return "DC3"; case 20: return "DC4";
 	case 21: return "NAK"; case 22: return "SYN"; case 23: return "ETB";
 	case 24: return "CAN"; case 25: return "EM"; case 26: return "SUB";
-	case 27: return "ESC"; case 28: return "FS"; case 29: return "GS";
+	case 27: return "Escape"; case 28: return "FS"; case 29: return "GS";
 	case 30: return "RS"; case 31: return "US";
 
 	/* Non-printable regular keys */
@@ -485,6 +486,30 @@ write_kitty_keys(char *str, const size_t end)
 	return buf;
 }
 
+/* A Foot sequence is "CSI 27;mod;key~" */
+static char *
+write_foot_seq(char *str, const size_t end)
+{
+	str[end] = '\0';
+	str += 3; // Skip "27;"
+	char *s = strchr(str, ';');
+	if (!s)
+		return NULL;
+
+	*s = '\0';
+	const int mod_key = atoi(str) - 1;
+	const int keycode = atoi(s + 1);
+	const char *k = get_kitty_key_symbol(keycode);
+	const char *m = (mod_key >= 0 && mod_key <= 255) ? mod_table[mod_key] : NULL;
+
+	char *buf = malloc(MAX_BUF * sizeof(char));
+	if (!buf)
+		return NULL;
+
+	snprintf(buf, MAX_BUF, "%s%s%s", m ? m : "", m ? "+" : "", k);
+	return buf;
+}
+
 /* Translate the escape sequence STR into the corresponding symbolic value.
  * E.g. "\x1b[1;7D" will return "Ctrl+Alt+Left". If no symbolic value is
  * found, NULL is returned.
@@ -514,7 +539,6 @@ translate_key(char *str)
 	if (buf)
 		return buf;
 
-
 	int keycode = -1;
 	int mod_key = 0;
 
@@ -526,7 +550,10 @@ translate_key(char *str)
 	if (IS_KITTY_END_CHAR(end_char) && csi_seq == 1)
 		return write_kitty_keys(str, end);
 
-	if (IS_MODKEY_END_CHAR(end_char))
+	if (IS_FOOT_SEQ(str, end_char))
+		return write_foot_seq(str, end);
+
+	else if (IS_MODKEY_END_CHAR(end_char))
 		set_end_char_is_mod_key(str, end, &keycode, &mod_key);
 	else if (IS_KEYCODE_END_CHAR(end_char))
 		set_end_char_is_keycode(str, end, &keycode, &mod_key);
