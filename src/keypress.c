@@ -237,12 +237,12 @@ run_translate_key(const char *arg)
 
 	transform_esc_seq(arg, str);
 
-	char *keysym = translate_key(str);
+	char *key_sym = translate_key(str);
 	free(str);
 
-	if (keysym) {
-		printf("%s\n", keysym);
-		free(keysym);
+	if (key_sym) {
+		printf("%s\n", key_sym);
+		free(key_sym);
 		return EXIT_SUCCESS;
 	}
 
@@ -322,10 +322,10 @@ static void
 print_header(void)
 {
 	CLEAR_SCREEN;
-	printf(" Keypress %s  (C-c: quit, C-x: clear)\n"
+	printf(" %s %s  (C-c: quit, C-x: clear)\n"
 		" ┌──────┬──────┬─────┬──────┐\n"
 		" │ Hex  │ Oct  │ Dec │ Sym  │\n"
-		" ├──────┼──────┼─────┼──────┤\n", VERSION);
+		" ├──────┼──────┼─────┼──────┤\n", PROG_NAME, VERSION);
 }
 
 static void
