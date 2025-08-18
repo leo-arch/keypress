@@ -76,8 +76,15 @@ int
 is_end_seq_char(char c)
 {
 	return (IS_KEYCODE_END_CHAR(c) || IS_MODKEY_END_CHAR(c)
-		|| IS_GENERIC_END_CHAR(c) || IS_KITTY_END_CHAR(c));
+		|| IS_GENERIC_END_CHAR(c) || IS_KITTY_END_CHAR(c)
+		|| (c) == 'Z'); /* 'Z' required for Shift-Tab (\\e[Z) */
 }
+
+/* Some names for control keys. */
+static const char *ctrl_keys[256] = {
+	[0x7f] = "Del", [0x0d] = "Enter", [0x08] = "Backspace",
+	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape",
+};
 
 /* The Meta key is usually mapped to the Super/logo key (Mod4), for example,
  * on Wayland. Mod1 is typically Alt, while Mod2 is NumLock, and Mod5 AltGr
@@ -258,14 +265,25 @@ print_non_esc_seq(const char *str)
 	if (!buf)
 		exit(ENOMEM);
 
-	if (*str == 0x7f && !str[1])
-		snprintf(buf, MAX_BUF, "%s", "Del");
-	else if (*str < 0x20 && !str[1])
-		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+", *str + '@');
-	else if (*str == 0x20 && !str[1])
-		snprintf(buf, MAX_BUF, "%s", "Space");
-	else
+	if (!str || !*str)
+		return NULL;
+
+	if (str[1])
 		snprintf(buf, MAX_BUF, "%s", str);
+	else if (*str == 0x08)
+		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
+	else if (*str == 0x09)
+		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
+	else if (*str == 0x0d)
+		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
+	else if (*str == 0x20)
+		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
+	else if (*str == 0x7f)
+		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
+	else if (*str < 0x20)
+		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+", *str + '@');
+	else
+		return NULL;
 
 	return buf;
 }
@@ -278,22 +296,24 @@ check_single_key(char *str, const int csi_seq)
 		exit(ENOMEM);
 
 	if (!*str) {
-		snprintf(buf, MAX_BUF, "%s", "Escape");
+		snprintf(buf, MAX_BUF, "%s", ctrl_keys[ESC_KEY]);
 		return buf;
 	}
 
-	if (*str == 'Z' && !str[1]) {
+	if (str[1]) {
+		free(buf);
+		return NULL;
+	}
+
+	if (*str == 'Z') {
 		snprintf(buf, MAX_BUF, "%s", "Shift+Tab");
 		return buf;
 	}
 
-	if (*str == 0x08 || *str == 0x7f) {
-		snprintf(buf, MAX_BUF, "Alt+%s", *str == 0x08 ? "Backspace" : "Del");
-		return buf;
-	}
-
-	if (!str[1] && csi_seq == 0) {
-		if (*str < 0x20)
+	if (csi_seq == 0) {
+		if (*str == 0x08 || *str == 0x7f || *str == 0x09 || *str == 0x0d)
+			snprintf(buf, MAX_BUF, "Alt+%s", ctrl_keys[(int)*str]);
+		else if (*str < 0x20)
 			snprintf(buf, MAX_BUF, "%s%c", "Ctrl+Alt+", *str + '@');
 		else
 			snprintf(buf, MAX_BUF, "%s%c", "Alt+", toupper(*str));
@@ -343,7 +363,7 @@ get_kitty_key_symbol(const int keycode)
 	case 3: return "ETX"; case 4: return "EOT"; case 5: return "ENQ";
 	case 6: return "ACK"; case 7: return "BELL"; case 8: return "BS";
 	case 9: return "Tab"; case 10: return "LF"; case 11: return "VT";
-	case 12: return "FF"; case 13: return "CR"; case 14: return "SO";
+	case 12: return "FF"; case 13: return "Enter"; case 14: return "SO";
 	case 15: return "SI"; case 16: return "DLE"; case 17: return "DC1";
 	case 18: return "DC2"; case 19: return "DC3"; case 20: return "DC4";
 	case 21: return "NAK"; case 22: return "SYN"; case 23: return "ETB";

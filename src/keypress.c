@@ -75,7 +75,7 @@ int g_kitty_keys = 0;
 /* Symbols for control characters */
 const char *const keysym[] = {
 	"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
-	"BS", "HT", "LF", "CT", "FF", "CR", "SO", "SI", "DLE",
+	"BS", "HT", "LF", "VT", "FF", "CR", "SO", "SI", "DLE",
 	"DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN",
 	"EM", "SUB", "ESC", "FS", "GS", "RS", "US", "SP", NULL
 };
