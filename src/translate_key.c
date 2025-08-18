@@ -550,7 +550,7 @@ translate_key(char *str)
 	if (IS_KITTY_END_CHAR(end_char) && csi_seq == 1)
 		return write_kitty_keys(str, end);
 
-	if (IS_FOOT_SEQ(str, end_char))
+	if (IS_FOOT_SEQ(str, end_char) && csi_seq == 1)
 		return write_foot_seq(str, end);
 
 	else if (IS_MODKEY_END_CHAR(end_char))
