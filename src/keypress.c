@@ -375,10 +375,9 @@ main(int argc, char **argv)
 		if (c == EXIT_KEY || KITTY_EXIT_KEY(buf, c)) /* Ctrl+C */
 			break;
 
-		/* Ctrl+X (kitty protocol) */
-		if (KITTY_CLR_KEY(buf, c)) {
+		if (KITTY_CLR_KEY(buf, c)) { /* Ctrl+X (kitty protocol) */
 			clr_scr = 0; print_header();
-			*buf = '\0'; ptr = buf;
+			memset(buf, 0, sizeof(buf)); ptr = buf;
 			continue;
 		} else if (c == CLR_KEY /* Ctrl+X */
 		|| clr_scr == 1) {
