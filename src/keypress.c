@@ -52,6 +52,13 @@
 #define SET_ALT_SCREEN   fputs("\x1b[?1049h", stdout);
 #define UNSET_ALT_SCREEN fputs("\x1b[?1049l", stdout);
 
+/* Ctrl+C */
+#define KITTY_EXIT_KEY(s, c) (*(s) == ESC_KEY && \
+	(c) == 'u' && strcmp((s) + 1, "[99;5") == 0)
+/* Ctrl+X */
+#define KITTY_CLR_KEY(s, c) (*(s) == ESC_KEY && \
+	(c) == 'u' && strcmp((s) + 1, "[120;5") == 0)
+
 #define EXIT_KEY 0x03 /* Ctrl+C */
 #define CLR_KEY  0x18 /* Ctrl+X */
 #define ESC_KEY  0x1b /* Esc */
@@ -365,12 +372,13 @@ main(int argc, char **argv)
 	while (read(STDIN_FILENO, &ch, sizeof(ch)) == sizeof(ch)) {
 		const int c = (int)ch;
 
-		if (c == EXIT_KEY) /* Ctrl+C */
+		if (c == EXIT_KEY || KITTY_EXIT_KEY(buf, c)) /* Ctrl+C */
 			break;
 
 		/* Ctrl+X (kitty protocol) */
-		if (*buf == ESC_KEY && strcmp(buf + 1, "[120;5") == 0 && c == 'u') {
+		if (KITTY_CLR_KEY(buf, c)) {
 			clr_scr = 0; print_header();
+			*buf = '\0'; ptr = buf;
 			continue;
 		} else if (c == CLR_KEY /* Ctrl+X */
 		|| clr_scr == 1) {
