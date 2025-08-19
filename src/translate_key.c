@@ -59,7 +59,7 @@
 	((c) >= 'E' && (c) <= 'H') || \
 	((c) >= 'P' && (c) <= 'S') || \
 	((c) >= 'j' && (c) <= 'y') || \
-	((c) >= 'J' && (c) <= 'M') || (c) == 'h')
+	(c) == 'M')
 
 #define ESC_KEY 0x1b
 
@@ -68,19 +68,10 @@
 #define SHIFT_VAL 1
 #define ALT_VAL   2
 #define CTRL_VAL  4
-#define META_VAL  8
+#define SUPER_VAL 8
 
 /* Max output string length */
 #define MAX_BUF 256
-
-/* Return 1 if the byte C ends a keyboard escape sequence, or 0 otherwise. */
-int
-is_end_seq_char(char c)
-{
-	return (IS_KEYCODE_END_CHAR(c) || IS_MODKEY_END_CHAR(c)
-		|| IS_GENERIC_END_CHAR(c) || IS_KITTY_END_CHAR(c)
-		|| (c) == 'Z'); /* 'Z' required for Shift-Tab (CSI Z) */
-}
 
 /* Some names for control keys. */
 static const char *ctrl_keys[256] = {
@@ -88,23 +79,23 @@ static const char *ctrl_keys[256] = {
 	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape",
 };
 
-/* The Meta key is usually mapped to the Super/logo key (Mod4), for example,
- * on Wayland. Mod1 is typically Alt, while Mod2 is NumLock, and Mod5 AltGr
- * (Right Alt). Mod3 is normally left unassigned. */
+/* The Super key is usually mapped to the Win/logo key (Mod4), for example,
+ * on Wayland and Kitty. Mod1 is typically Alt, while Mod2 is NumLock, and
+ * Mod5 AltGr (Right Alt). Mod3 is normally left unassigned. */
 static const char *mod_table[256] = {
 	[SHIFT_VAL] = "Shift",
 	[ALT_VAL] = "Alt",
 	[CTRL_VAL] = "Ctrl",
-	[META_VAL] = "Meta",
+	[SUPER_VAL] = "Super",
 	[ALT_VAL + SHIFT_VAL] = "Alt+Shift",
 	[CTRL_VAL + SHIFT_VAL] = "Ctrl+Shift",
-	[META_VAL + SHIFT_VAL] = "Meta+Shift",
+	[SUPER_VAL + SHIFT_VAL] = "Super+Shift",
 	[CTRL_VAL + ALT_VAL] = "Ctrl+Alt",
 	[CTRL_VAL + ALT_VAL + SHIFT_VAL] = "Ctrl+Alt+Shift",
-	[CTRL_VAL + META_VAL] = "Ctrl+Meta",
-	[ALT_VAL + META_VAL] = "Alt+Meta",
-	[CTRL_VAL + ALT_VAL + META_VAL] = "Ctrl+Alt+Meta",
-	[CTRL_VAL + ALT_VAL + SHIFT_VAL + META_VAL] = "Ctrl+Alt+Shift+Meta"
+	[CTRL_VAL + SUPER_VAL] = "Ctrl+Super",
+	[ALT_VAL + SUPER_VAL] = "Alt+Super",
+	[CTRL_VAL + ALT_VAL + SUPER_VAL] = "Ctrl+Alt+Super",
+	[CTRL_VAL + ALT_VAL + SHIFT_VAL + SUPER_VAL] = "Ctrl+Alt+Shift+Super"
 };
 
 static const char *key_table[256] = {
@@ -147,9 +138,12 @@ struct exceptions_t {
 	const char *name;
 };
 
-/* A list of escape sequences missed by our identifying algorithms. */
+/* A list of escape sequences missed by our identifying algorithms, mostly
+ * because they deviate from Xterm and Rxvt protocols. */
 static const struct exceptions_t exceptions[] = {
 	/* Linux console */
+	/* Using A-D (almost universally used for arrow keys) for function keys
+	 * is confusing, to say the least. */
 	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
 	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
 
@@ -163,7 +157,9 @@ static const struct exceptions_t exceptions[] = {
 	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
 	{"\x1b[2J", "Shift+Home"}, {"\x1b[K", "Shift+End"},
 	{"\x1b[2K", "Shift+Del"}, {"\x1b[J", "Ctrl+End"},
-	{"\x1b[4l", "Shift+Ins"}, {"\x1b[P", "Del"},
+	{"\x1b[4l", "Shift+Ins"},
+	/* This is F1 in Kitty, forget about it.
+	{"\x1b[P", "Del"}, */
 	{NULL, NULL}
 };
 
@@ -186,6 +182,17 @@ check_exceptions(const char *str)
 	return NULL;
 }
 
+/* Return 1 if the byte C ends a keyboard escape sequence, or 0 otherwise. */
+int
+is_end_seq_char(char c)
+{
+	return (c != '[' /* Start of CSI sequence. */
+	&& c != 'O'      /* Start of SS3 sequence. */
+	&& !IS_DIGIT(c)  /* Parameter values. */
+	&& c != ';');    /* Parameter separator. */
+	/* Everything else could be used to terminate a sequence. */
+}
+
 /* Rxvt uses '$', '@', and '^' to indicate the modifier key. */
 static void
 set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
@@ -205,7 +212,7 @@ set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
 	*keycode = atoi(str);
 }
 
-/* The terminating character just tetrminates the string. Mostly '~', but
+/* The terminating character just terminates the string. Mostly '~', but
  * also 'z' is Sun/Solaris terminals. In this case, the pressed key and
  * the modifier key are defined as parameters in the sequence. */
 static void
@@ -326,9 +333,9 @@ check_single_key(char *str, const int csi_seq)
 		|| *str == 0x0d || *str == 0x20)
 			snprintf(buf, MAX_BUF, "Alt+%s", ctrl_keys[(int)*str]);
 		else if (*str < 0x20)
-			snprintf(buf, MAX_BUF, "%s%c", "Ctrl+Alt+", *str + '@');
+			snprintf(buf, MAX_BUF, "Ctrl+Alt+%c", *str + '@');
 		else
-			snprintf(buf, MAX_BUF, "%s%c", "Alt+", toupper(*str));
+			snprintf(buf, MAX_BUF, "Alt+%c", toupper(*str));
 		return buf;
 	}
 
@@ -358,7 +365,7 @@ write_translation(const int keycode, const int mod_key)
 }
 
 static const char *
-get_key_symbol(const int keycode)
+get_ext_key_symbol(const int keycode)
 {
 	static char keysym_str[2] = {0};
 
@@ -385,7 +392,7 @@ get_key_symbol(const int keycode)
 
 	/* Non-printable regular keys */
 	case 32: return "Space"; case 127: return "Del";
-	case 160: return "NSBP"; case 173: return "SHY";
+	case 160: return "NBSP"; case 173: return "SHY";
 
 	/* Special keyboard keys (Kitty) */
 	case 57358: return "CapsLock"; case 57359: return "ScrollLock";
@@ -486,7 +493,7 @@ write_kitty_keys(char *str, const size_t end)
 		keycode = atoi(str);
 	}
 
-	const char *k = keycode != -1 ? get_key_symbol(keycode) : NULL;
+	const char *k = keycode != -1 ? get_ext_key_symbol(keycode) : NULL;
 	const char *m = mod_key != 0 ? get_kitty_mod_symbol(mod_key) : NULL;
 
 	if (!k)
@@ -515,7 +522,7 @@ write_foot_seq(char *str, const size_t end)
 	*s = '\0';
 	const int mod_key = atoi(str) - 1;
 	const int keycode = atoi(s + 1);
-	const char *k = get_key_symbol(keycode);
+	const char *k = get_ext_key_symbol(keycode);
 	const char *m = (mod_key >= 0 && mod_key <= 255) ? mod_table[mod_key] : NULL;
 
 	char *buf = malloc(MAX_BUF * sizeof(char));
@@ -792,10 +799,10 @@ struct keys_t keys[] = {
 	/* Linux console */
 	{"\x1b[[A", "F1"}, {"\x1b[[E", "F5"},
 
-	/* Let's test the Meta key */
-	{"\x1b[6;9~", "Meta+PgDn"}, {"\x1b[1;11F", "Alt+Meta+End"},
-	{"\x1b[1;13P", "Ctrl+Meta+F1"}, {"\x1b[3;15~", "Ctrl+Alt+Meta+Del"},
-	{"\x1b[19;10~", "Meta+Shift+F8"},
+	/* Let's test the Super key */
+	{"\x1b[6;9~", "Super+PgDn"}, {"\x1b[1;11F", "Alt+Super+End"},
+	{"\x1b[1;13P", "Ctrl+Super+F1"}, {"\x1b[3;15~", "Ctrl+Alt+Super+Del"},
+	{"\x1b[19;10~", "Super+Shift+F8"},
 
 	/* Sun/Solaris */
 	{"\x1b[224z", "F1"}, {"\x1b[214;7z", "Ctrl+Alt+Home"}, {"\x1b[2z", "Ins"},
@@ -806,7 +813,7 @@ struct keys_t keys[] = {
 
 	/* Foot */
 	{"\x1b[27;5;13~", "Ctrl+Enter"}, {"\x1b[27;5;49~", "Ctrl+1"},
-	{"\x1b[27;9;9~", "Meta+Tab"}, {"\x1b[27;5;65450~", "Ctrl+KP_Multiply"},
+	{"\x1b[27;9;9~", "Super+Tab"}, {"\x1b[27;5;65450~", "Ctrl+KP_Multiply"},
 
 	/* Contour */
 	{"\x1b[O6P", "Ctrl+Shift+F1"},
