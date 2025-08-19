@@ -418,8 +418,8 @@ main(int argc, char **argv)
 
 		if (c == ESC_KEY) {
 			*ptr++ = c;
-		} else if (IS_CTRL_KEY(c) || (buf[0] == ESC_KEY && (is_end_seq_char(c)
-		|| (!buf[1] && c != '[' && c != 'O')))) {
+		} else if (c > 0 && (IS_CTRL_KEY(c) || (buf[0] == ESC_KEY && (is_end_seq_char(c)
+		|| (!buf[1] && c != '[' && c != 'O'))))) {
 			/* Key combination involving modifier keys (Ctrl, Alt, Meta). */
 			*ptr++ = c;
 			*ptr = '\0';

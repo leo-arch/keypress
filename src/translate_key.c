@@ -220,9 +220,14 @@ set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
 {
 	*keycode = str[end];
 	char *s = strchr(str, ';');
+	str[end] = '\0';
+
 	if (s) {
-		str[end] = '\0';
 		*mod_key += (s && s[1]) ? atoi(s + 1) - 1 : 0;
+	} else {
+		if (*str == 'O') /* Contour (SS3 mod key) */
+			str++;
+		*mod_key += *str ? atoi(str) - 1 : 0;
 	}
 }
 
@@ -275,7 +280,7 @@ print_non_esc_seq(const char *str)
 		snprintf(buf, MAX_BUF, "%s", str); /* A string, not a byte */
 	else if (*str == 0x08 || *str == 0x09 || *str == 0x0d
 	|| *str == 0x20 || *str == 0x7f)
-		/* Backspace, Tab, Enter, Sapce, Del */
+		/* Backspace, Tab, Enter, Space, Del */
 		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
 	else if (*str < 0x20) /* Control characters */
 		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+", *str + '@');
@@ -308,7 +313,8 @@ check_single_key(char *str, const int csi_seq)
 	}
 
 	if (csi_seq == 0) {
-		if (*str == 0x08 || *str == 0x7f || *str == 0x09 || *str == 0x0d)
+		if (*str == 0x08 || *str == 0x7f || *str == 0x09
+		|| *str == 0x0d || *str == 0x20)
 			snprintf(buf, MAX_BUF, "Alt+%s", ctrl_keys[(int)*str]);
 		else if (*str < 0x20)
 			snprintf(buf, MAX_BUF, "%s%c", "Ctrl+Alt+", *str + '@');
@@ -343,7 +349,7 @@ write_translation(const int keycode, const int mod_key)
 }
 
 static const char *
-get_kitty_key_symbol(const int keycode)
+get_key_symbol(const int keycode)
 {
 	static char keysym_str[2] = {0};
 
@@ -416,6 +422,7 @@ get_kitty_key_symbol(const int keycode)
 	case 57450: return "RSuper"; case 57451: return "RHyper";
 	case 57452: return "RMeta"; case 57453: return "ISO_Level3_Shift";
 	case 57454: return "ISO_Level5_Shift";
+
 	/* Foot */
 	case 65450: return "KP_Multiply"; case 65451: return "KP_Add";
 	case 65453: return "KP_Subtract"; case 65454: return "KP_Delete";
@@ -470,7 +477,7 @@ write_kitty_keys(char *str, const size_t end)
 		keycode = atoi(str);
 	}
 
-	const char *k = keycode != -1 ? get_kitty_key_symbol(keycode) : NULL;
+	const char *k = keycode != -1 ? get_key_symbol(keycode) : NULL;
 	const char *m = mod_key != 0 ? get_kitty_mod_symbol(mod_key) : NULL;
 
 	if (!k)
@@ -499,7 +506,7 @@ write_foot_seq(char *str, const size_t end)
 	*s = '\0';
 	const int mod_key = atoi(str) - 1;
 	const int keycode = atoi(s + 1);
-	const char *k = get_kitty_key_symbol(keycode);
+	const char *k = get_key_symbol(keycode);
 	const char *m = (mod_key >= 0 && mod_key <= 255) ? mod_table[mod_key] : NULL;
 
 	char *buf = malloc(MAX_BUF * sizeof(char));
