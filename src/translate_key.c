@@ -398,8 +398,8 @@ get_kitty_key_symbol(const int keycode)
 	case 57414: return "KP_Enter"; case 57415: return "KP_Equals";
 	case 57416: return "KP_Separator"; case 57417: return "KP_Left";
 	case 57418: return "KP_Right"; case 57419: return "KP_Up";
-	case 57420: return "KP_Down"; case 57421: return "KP_PageUp";
-	case 57422: return "KP_PageDown"; case 57423: return "KP_Home";
+	case 57420: return "KP_Down"; case 57421: return "KP_PgUp";
+	case 57422: return "KP_PgDn"; case 57423: return "KP_Home";
 	case 57424: return "KP_End"; case 57425: return "KP_Insert";
 	case 57426: return "KP_Delete"; case 57427: return "KP_Begin";
 	case 57428: return "MediaPlay"; case 57429: return "MediaPause";
@@ -419,7 +419,8 @@ get_kitty_key_symbol(const int keycode)
 	/* Foot */
 	case 65450: return "KP_Multiply"; case 65451: return "KP_Add";
 	case 65453: return "KP_Subtract"; case 65454: return "KP_Delete";
-	case 65455: return "KP_Divide";
+	case 65455: return "KP_Divide"; case 65456: return "KP_Insert";
+	case 65457: return "KP_End"; case 65465: return "KP_PgUp"
 
 	default: return "UNKNOWN";
 	}
