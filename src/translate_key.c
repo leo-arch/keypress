@@ -799,6 +799,9 @@ struct keys_t keys[] = {
 	{"\x1b[27;5;13~", "Ctrl+Enter"}, {"\x1b[27;5;49~", "Ctrl+1"},
 	{"\x1b[27;9;9~", "Meta+Tab"}, {"\x1b[27;5;65450~", "Ctrl+KP_Multiply"},
 
+	/* Contour */
+	{"\x1b[O6P", "Ctrl+Shift+F1"},
+
 	/* cons25 uses \e[M-\e[X for F1-F12 keys. */
 
 	{NULL, NULL},
