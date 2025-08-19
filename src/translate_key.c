@@ -372,7 +372,7 @@ get_kitty_key_symbol(const int keycode)
 	case 32: return "Space"; case 127: return "Del";
 	case 160: return "NSBP"; case 173: return "SHY";
 
-	/* Special keyboard keys */
+	/* Special keyboard keys (Kitty) */
 	case 57358: return "CapsLock"; case 57359: return "ScrollLock";
 	case 57360: return "NumLock"; case 57361: return "PrtScr";
 	case 57362: return "Pause"; case 57363: return "Menu";
@@ -416,6 +416,8 @@ get_kitty_key_symbol(const int keycode)
 	case 57450: return "RSuper"; case 57451: return "RHyper";
 	case 57452: return "RMeta"; case 57453: return "ISO_Level3_Shift";
 	case 57454: return "ISO_Level5_Shift";
+	/* Foot */
+	case 65450: return "KP_Multiply"; case 65455: return "KP_Divide";
 
 	default: return "UNKNOWN";
 	}
@@ -785,7 +787,7 @@ struct keys_t keys[] = {
 
 	/* Foot */
 	{"\x1b[27;5;13~", "Ctrl+Enter"}, {"\x1b[27;5;49~", "Ctrl+1"},
-	{"\x1b[27;9;9~", "Meta+Tab"},
+	{"\x1b[27;9;9~", "Meta+Tab"}, {"\x1b[27;5;65450~", "Ctrl+KP_Multiply"},
 
 	/* cons25 uses \e[M-\e[X for F1-F12 keys. */
 
