@@ -347,6 +347,18 @@ print_bottom_line(const int clear_screen)
 		printf(" └──────┴──────┴─────┴──────┘\n");
 }
 
+static char *
+get_ctrl_keysym(const int c)
+{
+	switch (c) {
+	case DEL_KEY: return "DEL";
+	case NBSP_KEY: return "NBSP";
+	case SHY_KEY: return "SHY";
+	case 0x20: return "SP";
+	default: return "";
+	}
+}
+
 int
 main(int argc, char **argv)
 {
@@ -388,13 +400,11 @@ main(int argc, char **argv)
 
 		if (IS_CTRL_KEY(c)) { /* Control characters */
 			print_row(c, keysym[c]);
-		} else if (isprint(c)) { /* ASCII printable characters */
+		} else if (isprint(c) && c != 0x20) { /* ASCII printable characters */
 			char s[2] = {(char)c, 0};
 			print_row(c, s);
 		} else { /* Extended ASCII, Unicode */
-			const char *s = (c == DEL_KEY ? "DEL"
-				: (c == NBSP_KEY ? "NBSP" : (c == SHY_KEY ? "SHY" : "")));
-			print_row(c, s);
+			print_row(c, get_ctrl_keysym(c));
 
 			if (IS_UTF8_CHAR(c)) {
 				utf8_count++;
