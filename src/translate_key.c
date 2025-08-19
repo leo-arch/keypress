@@ -59,7 +59,7 @@
 	((c) >= 'E' && (c) <= 'H') || \
 	((c) >= 'P' && (c) <= 'S') || \
 	((c) >= 'j' && (c) <= 'y') || \
-	(c) == 'M')
+	((c) >= 'J' && (c) <= 'M') || (c) == 'h')
 
 #define ESC_KEY 0x1b
 
@@ -153,8 +153,17 @@ static const struct exceptions_t exceptions[] = {
 	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
 	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
 
-	/* st */
+	/* St
+	 * Keycodes and modifiers are not used consistently. For example,
+	 * "CSI 2J" is Shift+Home: '2' for Shift and 'J' for Home. But,
+	 * "CSI J" is Ctrl+End: no modifier (it should be '5') and 'J' is not
+	 * Home anymore, but Del.
+	 * Also, while "CSI P", is Del, "CSI 2K" is Shift+Del and "CSI K" is Shift+End.
+	 * Also, while "CSI L" is Ctrl+Ins, "CSI 4l" is Shift+Ins. */
 	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
+	{"\x1b[2J", "Shift+Home"}, {"\x1b[K", "Shift+End"},
+	{"\x1b[2K", "Shift+Del"}, {"\x1b[J", "Ctrl+End"},
+	{"\x1b[4l", "Shift+Ins"}, {"\x1b[P", "Del"},
 	{NULL, NULL}
 };
 
