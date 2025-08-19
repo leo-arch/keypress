@@ -418,7 +418,8 @@ get_kitty_key_symbol(const int keycode)
 	case 57454: return "ISO_Level5_Shift";
 	/* Foot */
 	case 65450: return "KP_Multiply"; case 65451: return "KP_Add";
-	case 65453: return "KP_Subtract"; case 65455: return "KP_Divide";
+	case 65453: return "KP_Subtract"; case 65454: return "KP_Delete";
+	case 65455: return "KP_Divide";
 
 	default: return "UNKNOWN";
 	}
