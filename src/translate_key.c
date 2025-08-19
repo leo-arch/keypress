@@ -417,7 +417,8 @@ get_kitty_key_symbol(const int keycode)
 	case 57452: return "RMeta"; case 57453: return "ISO_Level3_Shift";
 	case 57454: return "ISO_Level5_Shift";
 	/* Foot */
-	case 65450: return "KP_Multiply"; case 65455: return "KP_Divide";
+	case 65450: return "KP_Multiply"; case 65451: return "KP_Add";
+	case 65453: return "KP_Subtract"; case 65455: return "KP_Divide";
 
 	default: return "UNKNOWN";
 	}
