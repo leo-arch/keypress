@@ -456,7 +456,7 @@ get_ext_key_symbol(const int keycode)
 	}
 
 	/* linear search through ext_key_map */
-	for (size_t i = 0; ext_key_map[i].code != -1; ++i) {
+	for (size_t i = 0; ext_key_map[i].name != NULL; ++i) {
 		if (ext_key_map[i].code == keycode)
 			return ext_key_map[i].name;
 	}
