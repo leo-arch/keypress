@@ -285,8 +285,8 @@ enable_raw_mode(void)
 {
 	tcgetattr(STDIN_FILENO, &orig_termios);
 	struct termios raw = orig_termios;
-	raw.c_lflag &= ~(ICANON | ECHO | ISIG);
-	raw.c_iflag &= ~(IXON | IXOFF | ICRNL | INPCK);
+	raw.c_lflag &= (tcflag_t)~(ICANON | ECHO | ISIG);
+	raw.c_iflag &= (tcflag_t)~(IXON | IXOFF | ICRNL | INPCK);
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
@@ -408,7 +408,7 @@ main(int argc, char **argv)
 
 			if (IS_UTF8_CHAR(c)) {
 				utf8_count++;
-				*ptr++ = c;
+				*ptr++ = (char)c;
 				int bytes = IS_UTF8_LEAD_BYTE(c)
 					? utf8_char_bytes((unsigned char)c) : 0;
 				if (bytes > 1)
@@ -417,11 +417,11 @@ main(int argc, char **argv)
 		}
 
 		if (c == ESC_KEY) {
-			*ptr++ = c;
-		} else if (c > 0 && (IS_CTRL_KEY(c) || (buf[0] == ESC_KEY && (is_end_seq_char(c)
+			*ptr++ = (char)c;
+		} else if (c > 0 && (IS_CTRL_KEY(c) || (buf[0] == ESC_KEY && (is_end_seq_char((char)c)
 		|| (!buf[1] && c != '[' && c != 'O'))))) {
 			/* Key combination involving modifier keys (Ctrl, Alt, Meta). */
-			*ptr++ = c;
+			*ptr++ = (char)c;
 			*ptr = '\0';
 			print_footer(buf, 0, options.clear_screen);
 			ptr = buf;
@@ -436,7 +436,7 @@ main(int argc, char **argv)
 		} else if (buf[0] == ESC_KEY) {
 			/* Append byte to the buffer only provided we are in the
 			 * middle of an escape sequence. */
-			*ptr++ = c;
+			*ptr++ = (char)c;
 		} else if (!IS_UTF8_CHAR(c)) {
 			/* Print a bottom line (ASCII characters only). */
 			clr_scr = options.clear_screen == 1;

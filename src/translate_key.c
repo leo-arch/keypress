@@ -28,8 +28,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h> /* toupper() */
-#include <errno.h> /* ENOMEM */
+#include <limits.h> /* strtol() */
+#include <ctype.h>  /* toupper() */
+#include <errno.h>  /* ENOMEM */
 
 /* When it comes to keyboard escape sequences, we have three kind of
  * terminating characters:
@@ -163,6 +164,24 @@ static const struct exceptions_t exceptions[] = {
 	{NULL, NULL}
 };
 
+/* A safe atoi */
+static int
+xatoi(const char *str)
+{
+	if (!str || !*str)
+		return 0;
+
+	char *endptr = NULL;
+	const long n = strtol(str, &endptr, 10);
+
+	if (endptr == str)
+		return 0;
+
+	if (n > INT_MAX) return INT_MAX;
+	if (n < INT_MIN) return INT_MIN;
+	return (int)n;
+}
+
 /* Return the translated key for the escape sequence STR looking in the
  * exceptions list. If none is found, NULL is returned. */
 static char *
@@ -209,7 +228,7 @@ set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
 		str += 2;
 	}
 
-	*keycode = atoi(str);
+	*keycode = xatoi(str);
 }
 
 /* The terminating character just terminates the string. Mostly '~', but
@@ -221,12 +240,12 @@ set_end_char_is_generic(char *str, const size_t end, int *keycode, int *mod_key)
 	str[end] = '\0';
 	if (*str == ESC_KEY) { /* Rxvt */
 		*mod_key += ALT_VAL;
-		*keycode = atoi(str + 2);
+		*keycode = xatoi(str + 2);
 	} else {
 		char *s = strchr(str, ';');
 		if (s) *s = '\0';
-		*keycode = atoi(str);
-		*mod_key += (s && s[1]) ? atoi(s + 1) - 1 : 0;
+		*keycode = xatoi(str);
+		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	}
 }
 
@@ -239,11 +258,11 @@ set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
 	str[end] = '\0';
 
 	if (s) {
-		*mod_key += (s && s[1]) ? atoi(s + 1) - 1 : 0;
+		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	} else {
 		if (*str == 'O') /* Contour (SS3 mod key) */
 			str++;
-		*mod_key += *str ? atoi(str) - 1 : 0;
+		*mod_key += *str ? xatoi(str) - 1 : 0;
 	}
 }
 
@@ -267,7 +286,7 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 	char *s = strchr(str, ';');
 	if (s) {
 		str[end] = '\0';
-		*mod_key += (s && s[1]) ? atoi(s + 1) - 1 : 0;
+		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	} else if (IS_LOWER_ARROW_CHAR(str[end])) { /* Rxvt */
 		if (*str == 'O')
 			*mod_key += CTRL_VAL;
@@ -278,7 +297,7 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 		if (*str == 'O')
 			str++;
 		if (IS_DIGIT(*str))
-			*mod_key += atoi(str) - 1;
+			*mod_key += xatoi(str) - 1;
 	}
 }
 
@@ -287,21 +306,25 @@ print_non_esc_seq(const char *str)
 {
 	char *buf = malloc((MAX_BUF + 1) * sizeof(char));
 	if (!buf)
-		exit(ENOMEM);
-
-	if (!str || !*str)
 		return NULL;
 
-	if (str[1])
-		snprintf(buf, MAX_BUF, "%s", str); /* A string, not a byte */
-	else if (*str == 0x08 || *str == 0x09 || *str == 0x0d
-	|| *str == 0x20 || *str == 0x7f)
-		/* Backspace, Tab, Enter, Space, Del */
-		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(int)*str]);
-	else if (*str < 0x20) /* Control characters */
-		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+", *str + '@');
-	else
+	if (!str || !*str) {
+		free(buf);
 		return NULL;
+	}
+
+	const unsigned char *s = (const unsigned char *)str;
+
+	if (s[1]) {
+		snprintf(buf, MAX_BUF, "%s", s); /* A string, not a byte */
+	} else if (ctrl_keys[*s]) { /* Backspace, Tab, Enter, Space, Del */
+		snprintf(buf, MAX_BUF, "%s", ctrl_keys[*s]);
+	} else if (*s < 0x20) { /* Control characters */
+		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+", *s + '@');
+	} else {|
+		free(buf);
+		return NULL;
+	}
 
 	return buf;
 }
@@ -311,10 +334,10 @@ check_single_key(char *str, const int csi_seq)
 {
 	char *buf = malloc((MAX_BUF + 1) * sizeof(char));
 	if (!buf)
-		exit(ENOMEM);
+		return NULL;
 
 	if (!*str) {
-		snprintf(buf, MAX_BUF, "%s", ctrl_keys[ESC_KEY]);
+		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(unsigned char)ESC_KEY]);
 		return buf;
 	}
 
@@ -329,13 +352,13 @@ check_single_key(char *str, const int csi_seq)
 	}
 
 	if (csi_seq == 0) {
-		if (*str == 0x08 || *str == 0x7f || *str == 0x09
-		|| *str == 0x0d || *str == 0x20)
-			snprintf(buf, MAX_BUF, "Alt+%s", ctrl_keys[(int)*str]);
-		else if (*str < 0x20)
-			snprintf(buf, MAX_BUF, "Ctrl+Alt+%c", *str + '@');
+		unsigned char *s = (unsigned char *)str;
+		if (ctrl_keys[*s]) /* Backspace, Tab, Enter, Space, Del */
+			snprintf(buf, MAX_BUF, "Alt+%s", ctrl_keys[*s]);
+		else if (*s < 0x20)
+			snprintf(buf, MAX_BUF, "Ctrl+Alt+%c", *s + '@');
 		else
-			snprintf(buf, MAX_BUF, "Alt+%c", toupper(*str));
+			snprintf(buf, MAX_BUF, "Alt+%c", toupper(*s));
 		return buf;
 	}
 
@@ -346,20 +369,23 @@ check_single_key(char *str, const int csi_seq)
 static char *
 write_translation(const int keycode, const int mod_key)
 {
-	const char *k = (keycode >= 0 && keycode <= 255) ? key_table[keycode] : NULL;
-	const char *m = (mod_key >= 0 && mod_key <= 255) ? mod_table[mod_key] : NULL;
+	const char *k = (keycode >= 0 && keycode <= 255)
+		? key_table[(unsigned char)keycode] : NULL;
+	const char *m = (mod_key >= 0 && mod_key <= 255)
+		? mod_table[(unsigned char)mod_key] : NULL;
 
 	if (!k)
 		return NULL;
 
-	char *buf = malloc((MAX_BUF + 1) * sizeof(char));
+	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 2;
+	char *buf = malloc(len * sizeof(char));
 	if (!buf)
-		exit(ENOMEM);
+		return NULL;
 
 	if (m)
-		snprintf(buf, MAX_BUF, "%s+%s", m, k);
+		snprintf(buf, len, "%s+%s", m, k);
 	else
-		snprintf(buf, MAX_BUF, "%s", k);
+		snprintf(buf, len, "%s", k);
 
 	return buf;
 }
@@ -487,10 +513,10 @@ write_kitty_keys(char *str, const size_t end)
 	char *delim = strchr(str, ';');
 	if (delim) {
 		*delim = '\0';
-		keycode = atoi(str);
-		mod_key = delim[1] ? atoi(delim + 1) - 1 : 0;
+		keycode = xatoi(str);
+		mod_key = delim[1] ? xatoi(delim + 1) - 1 : 0;
 	} else {
-		keycode = atoi(str);
+		keycode = xatoi(str);
 	}
 
 	const char *k = keycode != -1 ? get_ext_key_symbol(keycode) : NULL;
@@ -520,16 +546,18 @@ write_foot_seq(char *str, const size_t end)
 		return NULL;
 
 	*s = '\0';
-	const int mod_key = atoi(str) - 1;
-	const int keycode = atoi(s + 1);
+	const int mod_key = xatoi(str) - 1;
+	const int keycode = xatoi(s + 1);
 	const char *k = get_ext_key_symbol(keycode);
-	const char *m = (mod_key >= 0 && mod_key <= 255) ? mod_table[mod_key] : NULL;
+	const char *m = (mod_key >= 0 && mod_key <= 255)
+		? mod_table[(unsigned char)mod_key] : NULL;
 
-	char *buf = malloc(MAX_BUF * sizeof(char));
+	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 2;
+	char *buf = malloc(len * sizeof(char));
 	if (!buf)
 		return NULL;
 
-	snprintf(buf, MAX_BUF, "%s%s%s", m ? m : "", m ? "+" : "", k);
+	snprintf(buf, len, "%s%s%s", m ? m : "", m ? "+" : "", k);
 	return buf;
 }
 
