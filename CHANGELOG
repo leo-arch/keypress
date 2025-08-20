@@ -1,3 +1,19 @@
+0.3.2 (Aug 20, 2025)
+
+BUG FIXES
+* Enter/Return shown as LF instead of CR.
+* Ctrl+z not showing any results.
+* Ctrl+k says 'CT', when it should be 'VT' (vertical tabulation).
+
+IMPROVEMENTS
+* Add a few missing keypad keys in Rxvt.
+* Add support for Foot terminal sequences.
+* Add support for Contour Mod+F1-4.
+* Truncate translation if it does not fit in the table.
+
+MISC
+* Meta key renamed to Super.
+
 0.3.1 (Aug 18, 2025)
 
 BUG FIXES
