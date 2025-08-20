@@ -36,7 +36,7 @@ char *translate_key(char *str);
 #ifdef TK_TEST
 int key_test(void);
 #endif
-int is_end_seq_char(char c);
+int is_end_seq_char(unsigned char c);
 
 #ifdef __cplusplus
 }

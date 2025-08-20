@@ -71,9 +71,6 @@
 #define CTRL_VAL  4
 #define SUPER_VAL 8
 
-/* Max output string length */
-#define MAX_BUF 256
-
 /* Some names for control keys. */
 static const char *ctrl_keys[256] = {
 	[0x7f] = "Del", [0x0d] = "Enter", [0x08] = "Backspace",
@@ -164,6 +161,59 @@ static const struct exceptions_t exceptions[] = {
 	{NULL, NULL}
 };
 
+struct ext_key_map_t {
+	int code;
+	const char *name;
+};
+
+/* An extended list of key symbols and their corresponding key codes.
+ * This includes control characters, just as Kitty and Foot extended keys. */
+static const struct ext_key_map_t ext_key_map[] = {
+	{0, "NULL"}, {1, "SOH"}, {2, "STX"}, {3, "ETX"}, {4, "EOT"},
+	{5, "ENQ"}, {6, "ACK"}, {7, "BELL"}, {8, "Backspace"}, {9, "Tab"},
+	{10, "LF"}, {11, "VT"}, {12, "FF"}, {13, "Enter"}, {14, "SO"},
+	{15, "SI"}, {16, "DLE"}, {17, "DC1"}, {18, "DC2"}, {19, "DC3"},
+	{20, "DC4"}, {21, "NAK"}, {22, "SYN"}, {23, "ETB"}, {24, "CAN"},
+	{25, "EM"}, {26, "SUB"}, {27, "Escape"}, {28, "FS"}, {29, "GS"},
+	{30, "RS"}, {31, "US"}, {32, "Space"}, {127, "Del"},
+	{160, "NBSP"}, {173, "SHY"},
+
+	/* Kitty / extended keys */
+	{57358, "CapsLock"}, {57359, "ScrollLock"}, {57360, "NumLock"},
+	{57361, "PrtScr"}, {57362, "Pause"}, {57363, "Menu"},
+	{57376, "F13"}, {57377, "F14"}, {57378, "F15"}, {57379, "F16"},
+	{57380, "F17"}, {57381, "F18"}, {57382, "F19"}, {57383, "F20"},
+	{57384, "F21"}, {57385, "F22"}, {57386, "F23"}, {57387, "F24"},
+	{57388, "F25"}, {57389, "F26"}, {57390, "F27"}, {57391, "F28"},
+	{57392, "F29"}, {57393, "F30"}, {57394, "F31"}, {57395, "F32"},
+	{57396, "F33"}, {57397, "F34"}, {57398, "F35"}, {57399, "KP_0"},
+	{57400, "KP_1"}, {57401, "KP_2"}, {57402, "KP_3"}, {57403, "KP_4"},
+	{57404, "KP_5"}, {57405, "KP_6"}, {57406, "KP_7"}, {57407, "KP_8"},
+	{57408, "KP_9"}, {57409, "KP_Decimal"}, {57410, "KP_Divide"},
+	{57411, "KP_Multiply"}, {57412, "KP_Subtract"}, {57413, "KP_Add"},
+	{57414, "KP_Enter"}, {57415, "KP_Equals"}, {57416, "KP_Separator"},
+	{57417, "KP_Left"}, {57418, "KP_Right"}, {57419, "KP_Up"},
+	{57420, "KP_Down"}, {57421, "KP_PgUp"}, {57422, "KP_PgDn"},
+	{57423, "KP_Home"}, {57424, "KP_End"}, {57425, "KP_Insert"},
+	{57426, "KP_Delete"}, {57427, "KP_Begin"}, {57428, "MediaPlay"},
+	{57429, "MediaPause"}, {57430, "MediaPlayPause"}, {57431, "MediaReverse"},
+	{57432, "MediaStop"}, {57433, "MediaFastForward"}, {57434, "MediaRewind"},
+	{57435, "MediaTrackNext"}, {57436, "MediaTrackPrevious"},
+	{57437, "MediaRecord"}, {57438, "VolumeDown"}, {57439, "VolumeUp"},
+	{57440, "VolumeMute"}, {57441, "LShift"}, {57442, "LControl"},
+	{57443, "LAlt"}, {57444, "LSuper"}, {57445, "LHyper"}, {57446, "LMeta"},
+	{57447, "RShift"}, {57448, "RControl"}, {57449, "RAlt"},
+	{57450, "RSuper"}, {57451, "RHyper"}, {57452, "RMeta"},
+	{57453, "ISO_Level3_Shift"}, {57454, "ISO_Level5_Shift"},
+
+	/* Foot */
+	{65450, "KP_Multiply"}, {65451, "KP_Add"}, {65453, "KP_Subtract"},
+	{65454, "KP_Delete"}, {65455, "KP_Divide"}, {65456, "KP_Insert"},
+	{65457, "KP_End"}, {65465, "KP_PgUp"},
+
+	{0, NULL}
+};
+
 /* A safe atoi */
 static int
 xatoi(const char *str)
@@ -192,7 +242,7 @@ check_exceptions(const char *str)
 			const size_t len = strlen(exceptions[i].name);
 			char *p = malloc((len + 1) * sizeof(char));
 			if (!p)
-				exit(ENOMEM);
+				return NULL;
 			memcpy(p, exceptions[i].name, len + 1);
 			return p;
 		}
@@ -300,10 +350,13 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 	}
 }
 
+/* Max output string length */
+#define MAX_BUF 256
+
 static char *
 print_non_esc_seq(const char *str)
 {
-	char *buf = malloc((MAX_BUF + 1) * sizeof(char));
+	char *buf = malloc(MAX_BUF * sizeof(char));
 	if (!buf)
 		return NULL;
 
@@ -331,7 +384,7 @@ print_non_esc_seq(const char *str)
 static char *
 check_single_key(char *str, const int csi_seq)
 {
-	char *buf = malloc((MAX_BUF + 1) * sizeof(char));
+	char *buf = malloc(MAX_BUF * sizeof(char));
 	if (!buf)
 		return NULL;
 
@@ -364,6 +417,7 @@ check_single_key(char *str, const int csi_seq)
 	free(buf);
 	return NULL;
 }
+#undef MAX_BUF
 
 static char *
 write_translation(const int keycode, const int mod_key)
@@ -401,77 +455,12 @@ get_ext_key_symbol(const int keycode)
 		return keysym_str;
 	}
 
-	switch (keycode) {
-	/* Control keys */
-	case 0: return "NULL"; case 1: return "SOH"; case 2: return "STX";
-	case 3: return "ETX"; case 4: return "EOT"; case 5: return "ENQ";
-	case 6: return "ACK"; case 7: return "BELL"; case 8: return "Backspace";
-	case 9: return "Tab"; case 10: return "LF"; case 11: return "VT";
-	case 12: return "FF"; case 13: return "Enter"; case 14: return "SO";
-	case 15: return "SI"; case 16: return "DLE"; case 17: return "DC1";
-	case 18: return "DC2"; case 19: return "DC3"; case 20: return "DC4";
-	case 21: return "NAK"; case 22: return "SYN"; case 23: return "ETB";
-	case 24: return "CAN"; case 25: return "EM"; case 26: return "SUB";
-	case 27: return "Escape"; case 28: return "FS"; case 29: return "GS";
-	case 30: return "RS"; case 31: return "US";
-
-	/* Non-printable regular keys */
-	case 32: return "Space"; case 127: return "Del";
-	case 160: return "NBSP"; case 173: return "SHY";
-
-	/* Special keyboard keys (Kitty) */
-	case 57358: return "CapsLock"; case 57359: return "ScrollLock";
-	case 57360: return "NumLock"; case 57361: return "PrtScr";
-	case 57362: return "Pause"; case 57363: return "Menu";
-	case 57376: return "F13"; case 57377: return "F14";
-	case 57378: return "F15"; case 57379: return "F16";
-	case 57380: return "F17"; case 57381: return "F18";
-	case 57382: return "F19"; case 57383: return "F20";
-	case 57384: return "F21"; case 57385: return "F22";
-	case 57386: return "F23"; case 57387: return "F24";
-	case 57388: return "F25"; case 57389: return "F26";
-	case 57390: return "F27"; case 57391: return "F28";
-	case 57392: return "F29"; case 57393: return "F30";
-	case 57394: return "F31"; case 57395: return "F32";
-	case 57396: return "F33"; case 57397: return "F34";
-	case 57398: return "F35"; case 57399: return "KP_0";
-	case 57400: return "KP_1"; case 57401: return "KP_2";
-	case 57402: return "KP_3"; case 57403: return "KP_4";
-	case 57404: return "KP_5"; case 57405: return "KP_6";
-	case 57406: return "KP_7"; case 57407: return "KP_8";
-	case 57408: return "KP_9"; case 57409: return "KP_Decimal";
-	case 57410: return "KP_Divide"; case 57411: return "KP_Multiply";
-	case 57412: return "KP_Subtract"; case 57413: return "KP_Add";
-	case 57414: return "KP_Enter"; case 57415: return "KP_Equals";
-	case 57416: return "KP_Separator"; case 57417: return "KP_Left";
-	case 57418: return "KP_Right"; case 57419: return "KP_Up";
-	case 57420: return "KP_Down"; case 57421: return "KP_PgUp";
-	case 57422: return "KP_PgDn"; case 57423: return "KP_Home";
-	case 57424: return "KP_End"; case 57425: return "KP_Insert";
-	case 57426: return "KP_Delete"; case 57427: return "KP_Begin";
-	case 57428: return "MediaPlay"; case 57429: return "MediaPause";
-	case 57430: return "MediaPlayPause"; case 57431: return "MediaReverse";
-	case 57432: return "MediaStop"; case 57433: return "MediaFastForward";
-	case 57434: return "MediaRewind"; case 57435: return "MediaTrackNext";
-	case 57436: return "MediaTrackPrevious"; case 57437: return "MediaRecord";
-	case 57438: return "VolumeDown"; case 57439: return "VolumeUp";
-	case 57440: return "VolumeMute"; case 57441: return "LShift";
-	case 57442: return "LControl"; case 57443: return "LAlt";
-	case 57444: return "LSuper"; case 57445: return "LHyper";
-	case 57446: return "LMeta"; case 57447: return "RShift";
-	case 57448: return "RControl"; case 57449: return "RAlt";
-	case 57450: return "RSuper"; case 57451: return "RHyper";
-	case 57452: return "RMeta"; case 57453: return "ISO_Level3_Shift";
-	case 57454: return "ISO_Level5_Shift";
-
-	/* Foot */
-	case 65450: return "KP_Multiply"; case 65451: return "KP_Add";
-	case 65453: return "KP_Subtract"; case 65454: return "KP_Delete";
-	case 65455: return "KP_Divide"; case 65456: return "KP_Insert";
-	case 65457: return "KP_End"; case 65465: return "KP_PgUp";
-
-	default: return "UNKNOWN";
+	/* linear search through ext_key_map */
+	for (size_t i = 0; ext_key_map[i].code != -1; ++i) {
+		if (ext_key_map[i].code == keycode)
+			return ext_key_map[i].name;
 	}
+	return "UNKNOWN";
 }
 
 /* Translate the modifier number MOD_NUM into human-readable form. */
