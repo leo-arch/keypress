@@ -320,6 +320,9 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 {
 	char *str = translate_key(buf);
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
+	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH - 1)
+		str[TABLE_WIDTH] = '\0';
+
 
 	printf(" ├──────┴──────┴─────┴──────┤\n");
 	printf(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");

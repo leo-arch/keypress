@@ -321,7 +321,7 @@ print_non_esc_seq(const char *str)
 		snprintf(buf, MAX_BUF, "%s", ctrl_keys[*s]);
 	} else if (*s < 0x20) { /* Control characters */
 		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+", *s + '@');
-	} else {|
+	} else {
 		free(buf);
 		return NULL;
 	}
