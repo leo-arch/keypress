@@ -255,7 +255,7 @@ check_exceptions(const char *str)
 int
 is_end_seq_char(unsigned char c)
 {
-	return (c != 0x1b /* First escape sequence byte */
+	return (c != 0x1b /* First byte of an escape sequence */
 		&& c != '[' && c != 'O' /* CSI and SS3 introducers */
 		&& ((c >= 0x40 && c <= 0x7e) /* ECMA-48 terminating bytes */
 		|| c == '$')); /* Rxvt uses this (E.g. "CSI 24$" for Shift+F12) */
@@ -843,12 +843,13 @@ int
 key_test(void)
 {
 	size_t errors = 0;
+	size_t i;
 
-	for (size_t i = 0; keys[i].key; i++) {
+	for (i = 0; keys[i].key; i++) {
 		const size_t key_len = strlen(keys[i].key);
 		char *s = malloc((key_len + 1) * sizeof(char));
 		if (!s)
-			exit(ENOMEM);
+			return -ENOMEM;
 
 		memcpy(s, keys[i].key, key_len + 1);
 
@@ -856,12 +857,12 @@ key_test(void)
 		if (!ret || strcmp(ret, keys[i].translation) != 0) {
 			errors++;
 			size_t count;
-			for (count = 0; keys[i].key[count] == '\x1b'; count++)
+			for (count = 0; keys[i].key[count] == ESC_KEY; count++)
 				printf("\\e");
 			printf("%s (%s): ",  keys[i].key + count, keys[i].translation);
 
 			if (!ret)
-				printf("Unknown escape sequence\n");
+				puts("Unknown escape sequence");
 			else
 				printf("%s\n", ret);
 		};
@@ -870,11 +871,12 @@ key_test(void)
 		free(s);
 	}
 
-	if (errors == 0)
+	printf("Performed %zu tests: %zu errors\n", i, errors);
+/*	if (errors == 0)
 		printf("All tests passed\n");
 	else
-		printf("%zu errors\n", errors);
+		printf("%zu errors\n", errors); */
 
-	return 0;
+	return (errors > 0);
 }
 #endif /* TK_TEST */
