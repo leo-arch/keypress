@@ -12,10 +12,10 @@
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in
 * all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -203,13 +203,12 @@ check_exceptions(const char *str)
 
 /* Return 1 if the byte C ends a keyboard escape sequence, or 0 otherwise. */
 int
-is_end_seq_char(char c)
+is_end_seq_char(unsigned char c)
 {
-	return (c != '[' /* Start of CSI sequence. */
-	&& c != 'O'      /* Start of SS3 sequence. */
-	&& !IS_DIGIT(c)  /* Parameter values. */
-	&& c != ';');    /* Parameter separator. */
-	/* Everything else could be used to terminate a sequence. */
+	return (c != 0x1b /* First escape sequence byte */
+		&& c != '[' && c != 'O' /* CSI and SS3 introducers */
+		&& ((c >= 0x40 && c <= 0x7e) /* ECMA-48 terminating bytes */
+		|| c == '$')); /* Rxvt uses this (E.g. "CSI 24$" for Shift+F12) */
 }
 
 /* Rxvt uses '$', '@', and '^' to indicate the modifier key. */
