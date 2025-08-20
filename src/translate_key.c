@@ -455,11 +455,12 @@ get_ext_key_symbol(const int keycode)
 		return keysym_str;
 	}
 
-	/* linear search through ext_key_map */
-	for (size_t i = 0; ext_key_map[i].name != NULL; ++i) {
+	/* Linear search through ext_key_map */
+	for (size_t i = 0; ext_key_map[i].name != NULL; i++) {
 		if (ext_key_map[i].code == keycode)
 			return ext_key_map[i].name;
 	}
+
 	return "UNKNOWN";
 }
 
