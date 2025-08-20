@@ -872,10 +872,6 @@ key_test(void)
 	}
 
 	printf("Performed %zu tests: %zu errors\n", i, errors);
-/*	if (errors == 0)
-		printf("All tests passed\n");
-	else
-		printf("%zu errors\n", errors); */
 
 	return (errors > 0);
 }
