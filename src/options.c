@@ -25,6 +25,8 @@
 * THE SOFTWARE.
 */
 
+#define _XOPEN_SOURCE 700 /* expose getopt(3) in unistd.h */
+
 #include <stdio.h>
 #include <stdlib.h> /* exit */
 #include <unistd.h> /* getopt */

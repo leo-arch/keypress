@@ -25,6 +25,7 @@
 * THE SOFTWARE.
 */
 
+/* Expose PATH_MAX, and wcswidth */
 #define _XOPEN_SOURCE 700
 
 #include <stdio.h>
