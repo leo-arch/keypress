@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <unistd.h> /* getopt() */
 #include <string.h>
+#include <stdint.h> /* uint8_t */
 #include <termios.h>
 #include <locale.h>
 #include <ctype.h>
@@ -59,14 +60,15 @@
 #define KITTY_CLR_KEY(s, c) (*(s) == ESC_KEY && \
 	(c) == 'u' && strcmp((s) + 1, "[120;5") == 0)
 
-#define EXIT_KEY 0x03 /* Ctrl+C */
-#define CLR_KEY  0x18 /* Ctrl+X */
-#define ESC_KEY  0x1b /* Esc */
-#define DEL_KEY  0x7f /* Del */
-#define NBSP_KEY 0xa0 /* NBSP */
-#define SHY_KEY  0xad /* SHY */
+#define EXIT_KEY  0x03 /* Ctrl+C */
+#define CLR_KEY   0x18 /* Ctrl+X */
+#define ESC_KEY   0x1b /* Esc */
+#define DEL_KEY   0x7f /* Del */
+#define NBSP_KEY  0xa0 /* NBSP */
+#define SHY_KEY   0xad /* SHY */
+#define SPACE_KEY 0x20 /* Space */
 
-#define TABLE_WIDTH 24
+#define TABLE_WIDTH 35
 #define IS_CTRL_KEY(c)    ((c) >= 0 && (c) <= 31)
 #define IS_OCTAL_DIGIT(c) ((c) >= '0' && (c) <= '7')
 
@@ -310,55 +312,71 @@ print_header(void)
 {
 	CLEAR_SCREEN;
 	printf(" %s %s  (C-c: quit, C-x: clear)\n"
-		" ┌──────┬──────┬─────┬──────┐\n"
-		" │ Hex  │ Oct  │ Dec │ Sym  │\n"
-		" ├──────┼──────┼─────┼──────┤\n", PROG_NAME, VERSION);
+		" ┌──────┬──────┬─────┬──────────┬──────┐\n"
+		" │ Hex  │ Oct  │ Dec │   Bin    │ Sym  │\n"
+		" ├──────┼──────┼─────┼──────────┼──────┤\n", PROG_NAME, VERSION);
 }
 
 static void
 print_footer(char *buf, const int is_utf8, const int clear_screen)
 {
+	static int edge = TABLE_WIDTH + 5;
+
 	char *str = translate_key(buf);
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH - 1)
 		str[TABLE_WIDTH] = '\0';
 
+	printf(" ├──────┴──────┴─────┴──────────┴──────┤\n"
+		" │ %s\x1b[%dG│\n", str ? str : "?", edge);
 
-	printf(" ├──────┴──────┴─────┴──────┤\n");
-	printf(" │ %-*s │\n", TABLE_WIDTH + wlen, str ? str : "?");
 	if (clear_screen == 0)
-		printf(" ├──────────────────────────┤\n");
+		printf(" ├─────────────────────────────────────┤\n");
 	else
-		printf(" └──────────────────────────┘\n");
+		printf(" └─────────────────────────────────────┘\n");
 
 	memset(buf, '\0', BUF_SIZE);
 	free(str);
 }
 
+/* Return a pointer to a string holding the binary representation of the byte N. */
+static char *
+build_binary(const uint8_t n)
+{
+	static char bin[9] = {0};
+
+	for (int i = 0; i < 8; i++)
+		bin[7 - i] = (n & (1u << i)) ? '1' : '0';
+	bin[8] = '\0';
+
+	return bin;
+}
+
 static void
 print_row(const int c, const char *s)
 {
-	printf(" │ \\x%02x │ \\%03o │ %3d │ %*s │\n", c, c, c, 4, s);
+	printf(" │ \\x%02x │ \\%03o │ %3d │ %s │ %*s │\n",
+		c, c, c, build_binary((uint8_t)c), 4, s);
 }
 
 static void
 print_bottom_line(const int clear_screen)
 {
 	if (clear_screen == 0)
-		printf(" ├──────┼──────┼─────┼──────┤\n");
+		printf(" ├──────┼──────┼─────┼──────────┼──────┤\n");
 	else
-		printf(" └──────┴──────┴─────┴──────┘\n");
+		printf(" └──────┴──────┴─────┴──────────┴──────┘\n");
 }
 
 static char *
 get_ctrl_keysym(const int c)
 {
 	switch (c) {
-	case DEL_KEY: return "DEL";
-	case NBSP_KEY: return "NBSP";
-	case SHY_KEY: return "SHY";
-	case 0x20: return "SP";
-	default: return "";
+	case DEL_KEY:   return "DEL";
+	case NBSP_KEY:  return "NBSP";
+	case SHY_KEY:   return "SHY";
+	case SPACE_KEY: return "SP";
+	default:        return "";
 	}
 }
 
