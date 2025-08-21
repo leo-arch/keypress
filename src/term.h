@@ -34,6 +34,7 @@
 extern "C" {
 #endif
 
+#define CLEAR_SCREEN     fputs("\x1b[H\x1b[2J\x1b[3J", stdout)
 #define SET_KITTY_KEYS   fputs("\x1b[>1u", stdout);
 #define UNSET_KITTY_KEYS fputs("\x1b[<u", stdout);
 #define HIDE_CURSOR      fputs("\x1b[?25l", stdout)

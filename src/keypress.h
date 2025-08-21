@@ -46,7 +46,6 @@
 #define SHY_KEY   0xad /* SHY */
 #define SPACE_KEY 0x20 /* Space */
 
-#define TABLE_WIDTH 35
 #define IS_CTRL_KEY(c)    ((c) >= 0 && (c) <= 31)
 #define IS_OCTAL_DIGIT(c) ((c) >= '0' && (c) <= '7')
 
@@ -56,7 +55,5 @@
 
 /* 32 bytes to hold bytes of an escape sequence or a UTF-8 character */
 #define BUF_SIZE 32
-
-extern int g_kitty_keys;
 
 #endif /* KEYPRESS_H */

@@ -37,9 +37,10 @@
 
 #include "keypress.h"
 #include "options.h"
+#include "term.h" /* CLEAR_SCREEN */
 #include "translate_key.h"
 
-#define CLEAR_SCREEN fputs("\x1b[H\x1b[2J\x1b[3J", stdout)
+#define TABLE_WIDTH 35
 
 static size_t
 wc_xstrlen(const char *restrict str)
@@ -98,7 +99,8 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 	free(str);
 }
 
-// Return a pointer to a string holding the binary representation of the byte N.
+/* Return a pointer to a string holding the binary representation
+ * of the byte N. */
 static char *
 build_binary(const uint8_t n)
 {

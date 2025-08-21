@@ -34,7 +34,7 @@
 #include "options.h"
 #include "keypress.h"
 
-/* Global variables */
+/* Global options variable */
 struct opts_t g_options = {0};
 
 static void

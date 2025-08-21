@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h> /* read */
 #include <string.h>
-#include <ctype.h>
+#include <ctype.h>  /* isprint */
 #include <errno.h>  /* ENOMEM */
 #include <limits.h> /* CHAR_MIN, CHAR_MAX */
 
@@ -135,6 +135,24 @@ get_ctrl_keysym(const int c)
 	}
 }
 
+static int
+is_complete_escape_sequence(const char *buf, const int c)
+{
+	if (c == 0) /* NULL */
+		return 0;
+
+	if (IS_CTRL_KEY(c))
+		return 1;
+
+	if (buf[0] != ESC_KEY) /* Not an escape sequence */
+		return 0;
+
+	if (is_end_seq_char((const unsigned char)c))
+		return 1;
+
+	return 0;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -151,6 +169,7 @@ main(int argc, char **argv)
 
 	int utf8_bytes = 0; /* Number of bytes of a UTF-8 character. */
 	int utf8_count = 0; /* Number of printed bytes of a UTF-8 character. */
+	const int opts_clear_screen = g_options.clear_screen;
 
 	print_header();
 
@@ -174,7 +193,7 @@ main(int argc, char **argv)
 
 		if (IS_CTRL_KEY(c)) { /* Control characters */
 			print_row(c, keysym[c]);
-		} else if (isprint(c) && c != 0x20) { /* ASCII printable characters */
+		} else if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
 			char s[2] = {(char)c, 0};
 			print_row(c, s);
 		} else { /* Extended ASCII, Unicode */
@@ -192,29 +211,27 @@ main(int argc, char **argv)
 
 		if (c == ESC_KEY) {
 			*ptr++ = (char)c;
-		} else if (c > 0 && (IS_CTRL_KEY(c) || (buf[0] == ESC_KEY
-		&& (is_end_seq_char((unsigned char)c)
-		|| (!buf[1] && c != '[' && c != 'O'))))) {
+		} else if (is_complete_escape_sequence(buf, c)) {
 			/* Key combination involving modifier keys (Ctrl, Alt, Meta). */
 			*ptr++ = (char)c;
 			*ptr = '\0';
-			print_footer(buf, 0, g_options.clear_screen);
+			print_footer(buf, 0, opts_clear_screen);
 			ptr = buf;
 			clr_scr = g_options.clear_screen == 1;
 		} else if (utf8_bytes > 1 && utf8_count == utf8_bytes) {
 			/* A UTF-8 character. */
 			utf8_count = utf8_bytes = 0;
 			*ptr = '\0';
-			print_footer(buf, 1, g_options.clear_screen);
+			print_footer(buf, 1, opts_clear_screen);
 			ptr = buf;
-			clr_scr = g_options.clear_screen == 1;
+			clr_scr = opts_clear_screen == 1;
 		} else if (buf[0] == ESC_KEY) {
 			/* Append byte to the buffer only provided we are in the
 			 * middle of an escape sequence. */
 			*ptr++ = (char)c;
 		} else if (!IS_UTF8_CHAR(c)) {
-			/* Print a bottom line (ASCII characters only). */
-			clr_scr = g_options.clear_screen == 1;
+			/* Print a bottom line (for ASCII characters only). */
+			clr_scr = opts_clear_screen == 1;
 			print_bottom_line(clr_scr);
 		}
 	}
