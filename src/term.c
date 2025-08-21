@@ -31,6 +31,7 @@
 
 #include "term.h"
 #include "keypress.h"
+#include "options.h"
 
 struct termios orig_termios;
 
@@ -39,13 +40,13 @@ switch_to_alternate_buffer(void)
 {
 	SET_ALT_SCREEN;
 	HIDE_CURSOR;
-	if (g_kitty_keys == 1) SET_KITTY_KEYS;
+	if (g_options.kitty_keys == 1) SET_KITTY_KEYS;
 }
 
 static void
 switch_to_normal_buffer(void)
 {
-	if (g_kitty_keys == 1) UNSET_KITTY_KEYS;
+	if (g_options.kitty_keys == 1) UNSET_KITTY_KEYS;
 	UNHIDE_CURSOR;
 	UNSET_ALT_SCREEN;
 }

@@ -34,9 +34,8 @@
 #include "options.h"
 #include "keypress.h"
 
-struct color_t g_color = {0};
+/* Global variables */
 struct opts_t g_options = {0};
-int g_kitty_keys = 0;
 
 static void
 print_help(void)
@@ -86,11 +85,11 @@ print_help(void)
 static void
 set_colors(const int enabled)
 {
-	g_color.code = enabled == 1 ? CODE_COLOR : "";
-	g_color.header = enabled == 1 ? HEADER_COLOR : "";
-	g_color.symbol = enabled == 1 ? SYM_COLOR : "";
-	g_color.translation = enabled == 1 ? TRANS_COLOR : "";
-	g_color.reset = enabled == 1 ? RESET : "";
+	g_options.colors.code = enabled == 1 ? CODE_COLOR : "";
+	g_options.colors.header = enabled == 1 ? HEADER_COLOR : "";
+	g_options.colors.symbol = enabled == 1 ? SYM_COLOR : "";
+	g_options.colors.translation = enabled == 1 ? TRANS_COLOR : "";
+	g_options.colors.reset = enabled == 1 ? RESET : "";
 }
 
 static void
@@ -111,7 +110,7 @@ parse_cmdline_args(const int argc, char **argv)
 	while ((opt = getopt(argc, argv, "chknt:v")) != -1) {
 		switch (opt) {
 		case 'c': g_options.clear_screen = 1; break;
-		case 'k': g_options.kitty_keys = g_kitty_keys = 1; break;
+		case 'k': g_options.kitty_keys = 1; break;
 		case 'n': g_options.color = 0; break;
 		case 't': g_options.translate = optarg; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);

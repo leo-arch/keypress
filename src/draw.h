@@ -1,4 +1,4 @@
-/* config.h */
+/* draw.h */
 
 /*
  * Copyright (C) 2025, Leo Abramovich <leo.clifm@outlook.com>
@@ -25,15 +25,20 @@
 * THE SOFTWARE.
 */
 
-/* Default value for options */
-#define DEFAULT_CLEAR_SCREEN 0
-#define DEFAULT_COLOR 1
-#define DEFAULT_TRANSLATE NULL
-#define DEFAULT_KITTY_KEYS 0
+#ifndef DRAW_H
+#define DRAW_H
 
-/* Default colors */
-#define HEADER_COLOR "\x1b[32m" /* Header */
-#define CODE_COLOR   "\x1b[2m"  /* Code (hex, oct, dec) */
-#define SYM_COLOR    "\x1b[36m" /* Symbol */
-#define TRANS_COLOR  "\x1b[1m"  /* Translation */
-#define RESET        "\x1b[0m"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void print_header(void);
+void print_footer(char *buf, const int is_utf8, const int clear_screen);
+void print_row(const int c, const char *s);
+void print_bottom_line(const int clear_screen);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* DRAW_H */

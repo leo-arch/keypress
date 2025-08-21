@@ -25,19 +25,15 @@
 * THE SOFTWARE.
 */
 
-/* Expose PATH_MAX, and wcswidth */
-#define _XOPEN_SOURCE 700
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h> /* read */
 #include <string.h>
-#include <stdint.h> /* uint8_t */
 #include <ctype.h>
 #include <errno.h>  /* ENOMEM */
 #include <limits.h> /* CHAR_MIN, CHAR_MAX */
-#include <wchar.h>  /* wcswidth */
 
+#include "draw.h"
 #include "keypress.h" /* macros */
 #include "options.h" /* parse_cmdline_args */
 #include "translate_key.h" /* translate_key, is_end_seq_char */
@@ -58,21 +54,6 @@ utf8_char_bytes(unsigned char c)
     c &= 7;
 
 	return (c == 4) ? 2 : c - 3;
-}
-
-static size_t
-wc_xstrlen(const char *restrict str)
-{
-	wchar_t wbuf[PATH_MAX];
-	const size_t len = mbstowcs(wbuf, str, (size_t)PATH_MAX);
-	if (len == (size_t)-1) /* Invalid multi-byte sequence found */
-		return 0;
-
-	const int width = wcswidth(wbuf, len);
-	if (width != -1)
-		return (size_t)width;
-
-	return 0; /* A non-printable wide char was found */
 }
 
 /* Transform escape strings ("\\e", hex, and octal) in the string INPUT
@@ -140,79 +121,6 @@ run_translate_key(const char *arg)
 
 	fprintf(stderr, "%s: '%s': Unknown escape sequence\n", PROG_NAME, arg);
 	return EXIT_FAILURE;
-}
-
-static void
-print_header(void)
-{
-	CLEAR_SCREEN;
-
-	const char *bold = *g_color.header ? "\x1b[1m" : "";
-	printf(" %s%s%s %s  (%sC-c%s: quit, %sC-x%s: clear)\n"
-		" ┌──────┬──────┬─────┬──────────┬──────┐\n"
-		" │ %sHex%s  │ %sOct%s  │ %sDec%s │   %sBin%s    │ %sSym%s  │\n"
-		" ├──────┼──────┼─────┼──────────┼──────┤\n",
-		bold, PROG_NAME, g_color.reset, VERSION,
-		bold, g_color.reset, bold, g_color.reset,
-		g_color.header, g_color.reset, g_color.header, g_color.reset,
-		g_color.header, g_color.reset, g_color.header, g_color.reset,
-		g_color.header, g_color.reset);
-}
-
-static void
-print_footer(char *buf, const int is_utf8, const int clear_screen)
-{
-	static int edge = TABLE_WIDTH + 5;
-
-	char *str = translate_key(buf);
-	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
-	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH - 1)
-		str[TABLE_WIDTH] = '\0';
-
-	printf(" ├──────┴──────┴─────┴──────────┴──────┤\n"
-		" │ %s%s%s\x1b[%dG│\n", g_color.translation, str ? str : "?",
-		g_color.reset, edge);
-
-	if (clear_screen == 0)
-		printf(" ├─────────────────────────────────────┤\n");
-	else
-		printf(" └─────────────────────────────────────┘\n");
-
-	memset(buf, '\0', BUF_SIZE);
-	free(str);
-}
-
-/* Return a pointer to a string holding the binary representation of the byte N. */
-static char *
-build_binary(const uint8_t n)
-{
-	static char bin[9] = {0};
-
-	for (int i = 0; i < 8; i++)
-		bin[7 - i] = (n & (1u << i)) ? '1' : '0';
-	bin[8] = '\0';
-
-	return bin;
-}
-
-static void
-print_row(const int c, const char *s)
-{
-	printf(" │ %s\\x%02x%s │ %s\\%03o%s │ %s%3d%s │ %s%s%s │ %s%*s%s │\n",
-		g_color.code, c, g_color.reset,
-		g_color.code, c, g_color.reset,
-		g_color.code, c, g_color.reset,
-		g_color.code, build_binary((uint8_t)c), g_color.reset,
-		g_color.symbol, 4, s, g_color.reset);
-}
-
-static void
-print_bottom_line(const int clear_screen)
-{
-	if (clear_screen == 0)
-		printf(" ├──────┼──────┼─────┼──────────┼──────┤\n");
-	else
-		printf(" └──────┴──────┴─────┴──────────┴──────┘\n");
 }
 
 static char *

@@ -41,17 +41,15 @@ struct color_t {
 	char *translation;
 	char *reset;
 };
-extern struct color_t g_color;
 
 struct opts_t {
+	struct color_t colors;
 	char *translate;
 	int clear_screen;
 	int color;
 	int kitty_keys;
 };
 extern struct opts_t g_options;
-
-extern int g_kitty_keys;
 
 void parse_cmdline_args(const int argc, char **argv);
 

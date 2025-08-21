@@ -31,8 +31,6 @@
 #define PROG_NAME "keypress"
 #define VERSION   "0.3.3"
 
-#define CLEAR_SCREEN fputs("\x1b[H\x1b[2J\x1b[3J", stdout)
-
 /* Ctrl+C */
 #define KITTY_EXIT_KEY(s, c) (*(s) == ESC_KEY && \
 	(c) == 'u' && strcmp((s) + 1, "[99;5") == 0)
