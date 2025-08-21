@@ -449,8 +449,7 @@ get_ext_key_symbol(const int keycode)
 	static char keysym_str[2] = {0};
 
 	/* These are directly printable */
-	if (keycode > 32 && keycode < 256 && keycode != 127
-	&& keycode != 160 && keycode != 173) {
+	if (keycode > 32 && keycode <= 126) {
 		keysym_str[0] = (char)toupper(keycode);
 		return keysym_str;
 	}
@@ -461,7 +460,27 @@ get_ext_key_symbol(const int keycode)
 			return ext_key_map[i].name;
 	}
 
-	return "UNKNOWN";
+	/* Transform UTF-8 codepoint to a string of bytes. */
+	static char str[5] = "";
+	memset(str, 0, sizeof(str));
+
+	if (keycode <= 0x7ff) {
+		str[0] = 0xC0 | (keycode >> 6);
+		str[1] = 0x80 | (keycode & 0x3F);
+	} else if (keycode <= 0x7fff) {
+		str[0] = 0xE0 | (keycode >> 12);
+		str[1] = 0x80 | ((keycode >> 6) & 0x3F);
+		str[2] = 0x80 | (keycode & 0x3F);
+	} else if (keycode <= 0x10FFFF) {
+		str[0] = 0xF0 | (keycode >> 18);
+		str[1] = 0x80 | ((keycode >> 12) & 0x3F);
+		str[2] = 0x80 | ((keycode >> 6) & 0x3F);
+		str[3] = 0x80 | (keycode & 0x3F);
+	} else {
+		return "UNKNOWN";
+	}
+
+	return str;
 }
 
 /* Translate the modifier number MOD_NUM into human-readable form. */
