@@ -1,0 +1,51 @@
+/* term.h */
+
+/*
+ * Copyright (C) 2025, Leo Abramovich <leo.clifm@outlook.com>
+ * All rights reserved.
+
+* The MIT License (MIT)
+
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+* THE SOFTWARE.
+*/
+
+#ifndef TERM_H
+#define TERM_H
+
+#include <stdio.h> /* fputs */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define SET_KITTY_KEYS   fputs("\x1b[>1u", stdout);
+#define UNSET_KITTY_KEYS fputs("\x1b[<u", stdout);
+#define HIDE_CURSOR      fputs("\x1b[?25l", stdout)
+#define UNHIDE_CURSOR    fputs("\x1b[?25h", stdout)
+#define SET_ALT_SCREEN   fputs("\x1b[?1049h", stdout);
+#define UNSET_ALT_SCREEN fputs("\x1b[?1049l", stdout);
+
+void init_term(void);
+void deinit_term(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* TERM_H */
