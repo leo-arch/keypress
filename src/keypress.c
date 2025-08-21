@@ -160,7 +160,7 @@ print_help(void)
 
 #define HEADER_COLOR "\x1b[32m" /* Header */
 #define CODE_COLOR   "\x1b[2m"  /* Code (hex, oct, dec) */
-#define SYM_COLOR    "\x1b[2;36m" /* Symbol */
+#define SYM_COLOR    "\x1b[36m" /* Symbol */
 #define TRANS_COLOR  "\x1b[1m"  /* Translation */
 #define RESET        "\x1b[0m"
 
@@ -220,6 +220,9 @@ parse_args(const int argc, char **argv, struct opts_t *options)
 		}
 	}
 
+	const char *no_color = getenv("NO_COLOR");
+	if (no_color && *no_color)
+		options->color = 0;
 	set_colors(options->color);
 }
 
@@ -343,10 +346,14 @@ static void
 print_header(void)
 {
 	CLEAR_SCREEN;
-	printf(" %s %s  (C-c: quit, C-x: clear)\n"
+
+	const char *bold = *color.header ? "\x1b[1m" : "";
+	printf(" %s%s%s %s  (%sC-c%s: quit, %sC-x%s: clear)\n"
 		" ┌──────┬──────┬─────┬──────────┬──────┐\n"
 		" │ %sHex%s  │ %sOct%s  │ %sDec%s │   %sBin%s    │ %sSym%s  │\n"
-		" ├──────┼──────┼─────┼──────────┼──────┤\n", PROG_NAME, VERSION,
+		" ├──────┼──────┼─────┼──────────┼──────┤\n",
+		bold, PROG_NAME, color.reset, VERSION,
+		bold, color.reset, bold, color.reset,
 		color.header, color.reset, color.header, color.reset,
 		color.header, color.reset, color.header, color.reset,
 		color.header, color.reset);
