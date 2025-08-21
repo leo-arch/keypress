@@ -147,7 +147,10 @@ is_complete_escape_sequence(const char *buf, const int c)
 	if (buf[0] != ESC_KEY) /* Not an escape sequence */
 		return 0;
 
-	if (is_end_seq_char((const unsigned char)c))
+	if (is_end_seq_char((const unsigned char )c))
+		return 1;
+
+	if (!buf[1] && c != '[' && c != 'O') /* Alt */
 		return 1;
 
 	return 0;
@@ -193,7 +196,7 @@ main(int argc, char **argv)
 
 		if (IS_CTRL_KEY(c)) { /* Control characters */
 			print_row(c, keysym[c]);
-		} else if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
+		} else if (isprint(c) && c != 0x20) { /* ASCII printable characters */
 			char s[2] = {(char)c, 0};
 			print_row(c, s);
 		} else { /* Extended ASCII, Unicode */
