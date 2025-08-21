@@ -25,10 +25,10 @@
 * THE SOFTWARE.
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <limits.h> /* strtol() */
+#include <stdlib.h> /* malloc, free, strtol */
+#include <stdio.h>  /* snprintf */
+#include <string.h> /* strlen, strcmp, strchr, memcpy, memset */
+#include <limits.h> /* INT_MIN, INT_MAX */
 #include <ctype.h>  /* toupper() */
 #include <errno.h>  /* ENOMEM */
 

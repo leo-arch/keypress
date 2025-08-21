@@ -25,34 +25,34 @@
 * THE SOFTWARE.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h> /* EXIT_SUCCCESS, EXIT_FAILURE, malloc, free, strtol */
 #include <unistd.h> /* read */
-#include <string.h>
+#include <string.h> /* strcmp, strlen, memset */
 #include <ctype.h>  /* isprint */
 #include <errno.h>  /* ENOMEM */
 #include <limits.h> /* CHAR_MIN, CHAR_MAX */
 
-#include "draw.h"
+#include "draw.h" /* print_header, print_row, print_footer, print_bottom_line */
 #include "keypress.h" /* macros */
 #include "options.h" /* parse_cmdline_args */
 #include "translate_key.h" /* translate_key, is_end_seq_char */
 #include "term.h" /* init_term, deinit_term */
 
 /* Symbols for control characters */
-const char *const keysym[] = {
+const char *const keysym_table[] = {
 	"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
 	"BS", "HT", "LF", "VT", "FF", "CR", "SO", "SI", "DLE",
 	"DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN",
 	"EM", "SUB", "ESC", "FS", "GS", "RS", "US", "SP", NULL
 };
 
+/* Return the number of bytes of a character by inspecting
+ * its initial byte (C). */
 static int
 utf8_char_bytes(unsigned char c)
 {
     c >>= 4;
     c &= 7;
-
 	return (c == 4) ? 2 : c - 3;
 }
 
@@ -123,7 +123,7 @@ run_translate_key(const char *arg)
 	return EXIT_FAILURE;
 }
 
-static char *
+static const char *
 get_ctrl_keysym(const int c)
 {
 	switch (c) {
@@ -147,7 +147,7 @@ is_complete_escape_sequence(const char *buf, const int c)
 	if (buf[0] != ESC_KEY) /* Not an escape sequence */
 		return 0;
 
-	if (is_end_seq_char((const unsigned char )c))
+	if (is_end_seq_char((const unsigned char )c)) /* CSI or SS3 sequence */
 		return 1;
 
 	if (!buf[1] && c != '[' && c != 'O') /* Alt */
@@ -195,7 +195,7 @@ main(int argc, char **argv)
 		}
 
 		if (IS_CTRL_KEY(c)) { /* Control characters */
-			print_row(c, keysym[c]);
+			print_row(c, keysym_table[c]);
 		} else if (isprint(c) && c != 0x20) { /* ASCII printable characters */
 			char s[2] = {(char)c, 0};
 			print_row(c, s);

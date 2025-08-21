@@ -29,9 +29,8 @@
 #include <termios.h> /* tcgetattr, tcsetattr */
 #include <unistd.h>  /* STDIN_FILENO */
 
-#include "term.h"
-#include "keypress.h"
-#include "options.h"
+#include "term.h"    /* macros */
+#include "options.h" /* g_options */
 
 struct termios orig_termios;
 

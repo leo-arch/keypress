@@ -28,18 +28,18 @@
 /* Expose PATH_MAX, and wcswidth */
 #define _XOPEN_SOURCE 700
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <string.h> /* memset, strlen */
+#include <stdlib.h> /* mbstowcs, free */
 #include <stdint.h> /* uint8_t */
-#include <limits.h>
-#include <wchar.h> /* wcswidth */
+#include <limits.h> /* PATH_MAX */
+#include <wchar.h>  /* wcswidth */
 
-#include "keypress.h"
-#include "options.h"
+#include "keypress.h" /* BUF_SIZE, PROG_NAME, VERSION */
+#include "options.h" /* g_options */
 #include "term.h" /* CLEAR_SCREEN */
-#include "translate_key.h"
+#include "translate_key.h" /* translate_key */
 
+/* Lenght of the table, excluding borders. */
 #define TABLE_WIDTH 35
 
 static size_t

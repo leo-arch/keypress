@@ -27,12 +27,12 @@
 
 #define _XOPEN_SOURCE 700 /* expose getopt(3) in unistd.h */
 
-#include <stdio.h>
+#include <stdio.h>  /* puts, printf */
 #include <stdlib.h> /* exit */
 #include <unistd.h> /* getopt */
 
-#include "options.h"
-#include "keypress.h"
+#include "options.h"  /* g_options, default macros */
+#include "keypress.h" /* PROG_NAME, VERSION */
 
 /* Global options variable */
 struct opts_t g_options = {0};
