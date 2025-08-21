@@ -3,7 +3,7 @@
 keypress \- A program to translate keyboard inputs into byte representations
 
 .SH SYNOPSIS
-keypress [-c | -h | -t \fISEQ\fR | -v]
+keypress [-c | -h | -n |  -t \fISEQ\fR | -v]
 
 .SH DESCRIPTION
 \fBKeypress\fR is a command line utility that operates in two modes:
@@ -31,13 +31,13 @@ The byte values for the reserved key combinations are as follows:
 
 .TS
 left;
-l l l l.
-┌──────┬──────┬─────┬──────┐
-│ Hex  │ Oct  │ Dec │ Sym  │
-├──────┼──────┼─────┼──────┤
-│ \\x18 │ \\030 │  24 │ CAN  | (Ctrl+x)
-| \\x03 │ \\003 │   3 │ ETX  | (Ctrl+c)
-└──────┴──────┴─────┴──────┘
+l l l l l.
+┌──────┬──────┬─────┬──────────┬──────┐
+│ Hex  │ Oct  │ Dec │   Bin    │ Sym  │
+├──────┼──────┼─────┼──────────┼──────┤
+│ \\x18 │ \\030 │  24 │ 00011000 │  CAN │ (Ctrl+x)
+│ \\x03 │ \\003 │   3 │ 00000011 │  ETX │ (Ctrl+c)
+└──────┴──────┴─────┴──────────┴──────┘
 .TE
 
 .SH OPTIONS
@@ -52,6 +52,10 @@ Display the help message and exit.
 .TP
 .B -k
 Enable support for the Kitty keyboard protocol.
+
+.TP
+.B -n
+Disable colors.
 
 .TP
 .B -t \fISEQ\fR

@@ -121,6 +121,7 @@ print_help(void)
 		"          interactive mode.");
 	puts("  -h      Display this help and exit.");
 	puts("  -k      Enable support for the Kitty keyboard protocol.");
+	puts("  -n      Disable colors.");
 	puts("  -t SEQ  Run in translation mode: translate the escape sequence\n"
 		"          SEQ into its corresponding text/symbolic representation\n"
 		"          and exit.");
@@ -149,21 +150,38 @@ print_help(void)
 
 	puts("Reserved Key Combinations:\n"
 		 "  The byte values for these keys are:\n\n"
-		 "   ┌──────┬──────┬─────┬──────┐\n"
-		 "   │ Hex  │ Oct  │ Dec │ Sym  │\n"
-		 "   ├──────┼──────┼─────┼──────┤\n"
-		 "   │ \\x18 │ \\030 │  24 │  CAN │ (Ctrl+x)\n"
-		 "   │ \\x03 │ \\003 │   3 │  ETX │ (Ctrl+c)\n"
-		 "   └──────┴──────┴─────┴──────┘");
+		 "   ┌──────┬──────┬─────┬──────────┬──────┐\n"
+		 "   │ Hex  │ Oct  │ Dec │   Bin    │ Sym  │\n"
+		 "   ├──────┼──────┼─────┼──────────┼──────┤\n"
+		 "   │ \\x18 │ \\030 │  24 │ 00011000 │  CAN │ (Ctrl+x)\n"
+		 "   │ \\x03 │ \\003 │   3 │ 00000011 │  ETX │ (Ctrl+c)\n"
+		 "   └──────┴──────┴─────┴──────────┴──────┘");
 }
+
+#define HEADER_COLOR "\x1b[32m" /* Header */
+#define CODE_COLOR   "\x1b[2m"  /* Code (hex, oct, dec) */
+#define SYM_COLOR    "\x1b[2;36m" /* Symbol */
+#define TRANS_COLOR  "\x1b[1m"  /* Translation */
+#define RESET        "\x1b[0m"
+
+struct color_t {
+	char *header;
+	char *code;
+	char *symbol;
+	char *translation;
+	char *reset;
+};
+static struct color_t color = {0};
 
 struct opts_t {
 	char *translate;
 	int clear_screen;
+	int color;
 	int kitty_keys;
 };
 
 #define DEFAULT_CLEAR_SCREEN 0
+#define DEFAULT_COLOR 1
 #define DEFAULT_TRANSLATE NULL
 #define DEFAULT_KITTY_KEYS 0
 
@@ -171,24 +189,38 @@ static void
 init_default_options(struct opts_t *options)
 {
 	options->clear_screen = DEFAULT_CLEAR_SCREEN;
+	options->color        = DEFAULT_COLOR;
 	options->translate    = DEFAULT_TRANSLATE;
 	options->kitty_keys   = DEFAULT_KITTY_KEYS;
+}
+
+static void
+set_colors(const int enabled)
+{
+	color.code = enabled == 1 ? CODE_COLOR : "";
+	color.header = enabled == 1 ? HEADER_COLOR : "";
+	color.symbol = enabled == 1 ? SYM_COLOR : "";
+	color.translation = enabled == 1 ? TRANS_COLOR : "";
+	color.reset = enabled == 1 ? RESET : "";
 }
 
 static void
 parse_args(const int argc, char **argv, struct opts_t *options)
 {
 	int opt;
-	while ((opt = getopt(argc, argv, "chkt:v")) != -1) {
+	while ((opt = getopt(argc, argv, "chknt:v")) != -1) {
 		switch (opt) {
 		case 'c': options->clear_screen = 1; break;
 		case 'k': options->kitty_keys = g_kitty_keys = 1; break;
+		case 'n': options->color = 0; break;
 		case 't': options->translate = optarg; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);
 		case 'h': /* fallthrough */
 		default: print_help(); exit(EXIT_SUCCESS);
 		}
 	}
+
+	set_colors(options->color);
 }
 
 /* Transform escape strings ("\\e", hex, and octal) in the string INPUT
@@ -313,8 +345,11 @@ print_header(void)
 	CLEAR_SCREEN;
 	printf(" %s %s  (C-c: quit, C-x: clear)\n"
 		" ┌──────┬──────┬─────┬──────────┬──────┐\n"
-		" │ Hex  │ Oct  │ Dec │   Bin    │ Sym  │\n"
-		" ├──────┼──────┼─────┼──────────┼──────┤\n", PROG_NAME, VERSION);
+		" │ %sHex%s  │ %sOct%s  │ %sDec%s │   %sBin%s    │ %sSym%s  │\n"
+		" ├──────┼──────┼─────┼──────────┼──────┤\n", PROG_NAME, VERSION,
+		color.header, color.reset, color.header, color.reset,
+		color.header, color.reset, color.header, color.reset,
+		color.header, color.reset);
 }
 
 static void
@@ -328,7 +363,8 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 		str[TABLE_WIDTH] = '\0';
 
 	printf(" ├──────┴──────┴─────┴──────────┴──────┤\n"
-		" │ %s\x1b[%dG│\n", str ? str : "?", edge);
+		" │ %s%s%s\x1b[%dG│\n", color.translation, str ? str : "?",
+		color.reset, edge);
 
 	if (clear_screen == 0)
 		printf(" ├─────────────────────────────────────┤\n");
@@ -355,8 +391,12 @@ build_binary(const uint8_t n)
 static void
 print_row(const int c, const char *s)
 {
-	printf(" │ \\x%02x │ \\%03o │ %3d │ %s │ %*s │\n",
-		c, c, c, build_binary((uint8_t)c), 4, s);
+	printf(" │ %s\\x%02x%s │ %s\\%03o%s │ %s%3d%s │ %s%s%s │ %s%*s%s │\n",
+		color.code, c, color.reset,
+		color.code, c, color.reset,
+		color.code, c, color.reset,
+		color.code, build_binary((uint8_t)c), color.reset,
+		color.symbol, 4, s, color.reset);
 }
 
 static void
