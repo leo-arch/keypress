@@ -42,7 +42,7 @@
 #include "translate_key.h" /* translate_key(), is_end_seq_char() */
 
 #define PROG_NAME "keypress"
-#define VERSION   "0.3.2"
+#define VERSION   "0.3.3"
 
 /* Some escape sequences */
 #define CLEAR_SCREEN     fputs("\x1b[H\x1b[2J\x1b[3J", stdout)
