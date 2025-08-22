@@ -3,7 +3,7 @@
 ### A raw keyboard input reader
 ---
 
-<img src="https://i.postimg.cc/CMCph7cV/keypress.png" alt="Keypress" width="400" height="500">
+<img src="https://i.postimg.cc/X7XfFntH/keypress.png" alt="Keypress" width="400" height="500">
 
 ### 1. Description
 
