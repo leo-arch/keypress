@@ -19,8 +19,7 @@ $(BIN): $(OBJECTS)
 build: $(BIN)
 
 clean:
-	$(RM) -- $(BIN)
-	$(RM) -- $(DEPS)
+	$(RM) -- $(BIN) src/*.o src/*.d
 
 install: $(BIN)
 	$(INSTALL) -m 0755 -d $(DESTDIR)$(BINDIR)
