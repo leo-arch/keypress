@@ -45,6 +45,7 @@ print_help(void)
 		"          interactive mode.");
 	puts("  -h      Display this help and exit.");
 	puts("  -k      Enable support for the Kitty keyboard protocol.");
+	puts("  -K      Enable support for the Kitty keyboard protocol (full mode).");
 	puts("  -n      Disable colors.");
 	puts("  -t SEQ  Run in translation mode: translate the escape sequence\n"
 		"          SEQ into its corresponding text/symbolic representation\n"
@@ -107,10 +108,11 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "chknt:v")) != -1) {
+	while ((opt = getopt(argc, argv, "chkKnt:v")) != -1) {
 		switch (opt) {
 		case 'c': g_options.clear_screen = 1; break;
 		case 'k': g_options.kitty_keys = 1; break;
+		case 'K': g_options.kitty_keys = 2; break;
 		case 'n': g_options.color = 0; break;
 		case 't': g_options.translate = optarg; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);

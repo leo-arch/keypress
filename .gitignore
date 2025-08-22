@@ -1,4 +1,6 @@
 # Binary
 keypress
+*.o
+*.d
 
 TODO

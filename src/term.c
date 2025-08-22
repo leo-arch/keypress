@@ -39,13 +39,15 @@ switch_to_alternate_buffer(void)
 {
 	SET_ALT_SCREEN;
 	HIDE_CURSOR;
-	if (g_options.kitty_keys == 1) SET_KITTY_KEYS;
+	if (g_options.kitty_keys > 0)
+		SET_KITTY_KEYS((g_options.kitty_keys > 1));
 }
 
 static void
 switch_to_normal_buffer(void)
 {
-	if (g_options.kitty_keys == 1) UNSET_KITTY_KEYS;
+	if (g_options.kitty_keys > 0)
+		UNSET_KITTY_KEYS((g_options.kitty_keys > 1));
 	UNHIDE_CURSOR;
 	UNSET_ALT_SCREEN;
 }
