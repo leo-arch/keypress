@@ -64,6 +64,9 @@
 
 #define ESC_KEY 0x1b
 
+#define CSI_INTRODUCER 0x5b /* [ */
+#define SS3_INTRODUCER 0x4f /* O */
+
 /* Values for modifier keys.
  * See https://en.wikipedia.org/wiki/ANSI_escape_code*/
 #define SHIFT_VAL 1
@@ -256,7 +259,7 @@ int
 is_end_seq_char(unsigned char c)
 {
 	return (c != 0x1b /* First byte of an escape sequence */
-		&& c != '[' && c != 'O' /* CSI and SS3 introducers */
+		&& c != CSI_INTRODUCER && c != SS3_INTRODUCER
 		&& ((c >= 0x40 && c <= 0x7e) /* ECMA-48 terminating bytes */
 		|| c == '$')); /* Rxvt uses this (E.g. "CSI 24$" for Shift+F12) */
 }
@@ -309,7 +312,7 @@ set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
 	if (s) {
 		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	} else {
-		if (*str == 'O') /* Contour (SS3 mod key) */
+		if (*str == SS3_INTRODUCER) /* Contour (SS3 mod key) */
 			str++;
 		*mod_key += *str ? xatoi(str) - 1 : 0;
 	}
@@ -337,13 +340,13 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 		str[end] = '\0';
 		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	} else if (IS_LOWER_ARROW_CHAR(str[end])) { /* Rxvt */
-		if (*str == 'O')
+		if (*str == SS3_INTRODUCER)
 			*mod_key += CTRL_VAL;
 		else
 			(*mod_key)++;
 	} else if (IS_UPPER_ARROW_CHAR(str[end])) {
 		str[end] = '\0';
-		if (*str == 'O')
+		if (*str == SS3_INTRODUCER)
 			str++;
 		if (IS_DIGIT(*str))
 			*mod_key += xatoi(str) - 1;
@@ -477,7 +480,7 @@ get_ext_key_symbol(const int keycode)
 		str[2] = 0x80 | ((keycode >> 6) & 0x3f);
 		str[3] = 0x80 | (keycode & 0x3f);
 	} else {
-		return "UNKNOWN";
+		return "Unknown";
 	}
 
 	return str;
@@ -591,8 +594,8 @@ translate_key(char *str)
 	if (buf)
 		return buf;
 
-	const int csi_seq = str[1] == '[';
-	str += str[1] == '[' ? 2 : 1;
+	const int csi_seq = str[1] == CSI_INTRODUCER;
+	str += str[1] == CSI_INTRODUCER ? 2 : 1;
 
 	buf = check_single_key(str, csi_seq);
 	if (buf)

@@ -150,7 +150,7 @@ is_complete_escape_sequence(const char *buf, const int c)
 	if (is_end_seq_char((const unsigned char)c)) /* CSI or SS3 sequence */
 		return 1;
 
-	if (!buf[1] && c != '[' && c != 'O') /* Alt */
+	if (!buf[1] && c != CSI_INTRODUCER && c != SS3_INTRODUCER) /* Alt */
 		return 1;
 
 	return 0;
