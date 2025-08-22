@@ -77,7 +77,13 @@ transform_esc_seq(const char *input, char *output)
 			const int hex = ptr[1] == 'x';
 			const long n = strtol(ptr + (hex ? 2 : 1), NULL, hex ? 16 : 8);
 			if (n < CHAR_MIN || n > CHAR_MAX) {
-				ptr++;
+				if (n == ALT_CSI) {
+					*out_ptr++ = ESC_KEY;
+					*out_ptr++ = CSI_INTRODUCER;
+					ptr += 4;
+				} else {
+					ptr++;
+				}
 			} else {
 				*out_ptr++ = (char)n;
 				ptr += 4;

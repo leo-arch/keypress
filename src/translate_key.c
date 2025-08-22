@@ -60,10 +60,11 @@
 	((c) >= 'E' && (c) <= 'H') || \
 	((c) >= 'P' && (c) <= 'S') || \
 	((c) >= 'j' && (c) <= 'y') || \
-	(c) == 'M')
+	(c) == 'M' || (c) == 'X')
 
 #define ESC_KEY 0x1b
 
+#define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
 #define CSI_INTRODUCER 0x5b /* [ */
 #define SS3_INTRODUCER 0x4f /* O */
 
@@ -116,11 +117,12 @@ static const char *key_table[256] = {
 
 	/* Rxvt */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
-	['j'] = "KP_Multiply", ['k'] = "KP_Add", ['m'] = "KP_Subtract",
-	['M'] = "KP_Enter", ['n'] = "KP_Del", ['o'] = "KP_Divide",
-	['p'] = "KP_Ins", ['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3",
+	['j'] = "KP_Multiply", ['k'] = "KP_Add", ['l'] = "KP_Comma",
+	['m'] = "KP_Subtract",
+	['M'] = "KP_Enter", ['n'] = "KP_0", ['o'] = "KP_Divide",
+	['p'] = "KP_Period", ['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3",
 	['t'] = "KP_4", ['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7",
-	['x'] = "KP_8", ['y'] = "KP_9",
+	['x'] = "KP_8", ['y'] = "KP_9", ['X'] = "KP_Equal",
 
 	/* Xterm */
 	['E'] = "KP_5", ['F'] = "End", ['G'] = "KP_5", ['H'] = "Home",
@@ -194,7 +196,7 @@ static const struct ext_key_map_t ext_key_map[] = {
 	{57404, "KP_5"}, {57405, "KP_6"}, {57406, "KP_7"}, {57407, "KP_8"},
 	{57408, "KP_9"}, {57409, "KP_Decimal"}, {57410, "KP_Divide"},
 	{57411, "KP_Multiply"}, {57412, "KP_Subtract"}, {57413, "KP_Add"},
-	{57414, "KP_Enter"}, {57415, "KP_Equals"}, {57416, "KP_Separator"},
+	{57414, "KP_Enter"}, {57415, "KP_Equal"}, {57416, "KP_Separator"},
 	{57417, "KP_Left"}, {57418, "KP_Right"}, {57419, "KP_Up"},
 	{57420, "KP_Down"}, {57421, "KP_PgUp"}, {57422, "KP_PgDn"},
 	{57423, "KP_Home"}, {57424, "KP_End"}, {57425, "KP_Insert"},
@@ -587,14 +589,15 @@ translate_key(char *str)
 	if (!str || !*str)
 		return NULL;
 
-	if (*str != ESC_KEY)
+	if (*str != ESC_KEY && (unsigned char)*str != ALT_CSI)
 		return print_non_esc_seq(str);
 
 	char *buf = check_exceptions(str);
 	if (buf)
 		return buf;
 
-	const int csi_seq = str[1] == CSI_INTRODUCER;
+	const int csi_seq =
+		(str[1] == CSI_INTRODUCER || (unsigned char)*str == ALT_CSI);
 	str += str[1] == CSI_INTRODUCER ? 2 : 1;
 
 	buf = check_single_key(str, csi_seq);

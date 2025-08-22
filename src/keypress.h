@@ -39,6 +39,7 @@
 #define SHY_KEY   0xad /* SHY */
 #define SPACE_KEY 0x20 /* Space */
 
+#define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
 #define CSI_INTRODUCER 0x5b /* [ */
 #define SS3_INTRODUCER 0x4f /* O */
 
