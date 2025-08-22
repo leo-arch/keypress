@@ -9,7 +9,7 @@
 
 #### 1.a. Interactive mode
 
-By default, **keypress** runs in interactive mode. In this mode, it generates a byte-by-byte representation of keyboard inputs as the user types, whether for individual keys or key combinations. This representation includes the following formats: **hexadecimal**, **octal**, **decimal**, and the corresponding **symbols**.
+By default, **keypress** runs in interactive mode. In this mode, it generates a byte-by-byte representation of keyboard inputs as the user types, whether for individual keys or key combinations. This representation includes the following formats: **hexadecimal**, **octal**, **decimal**, **binary**, and the corresponding **symbols**.
 
 Why? Have you ever developed a terminal program dealing with keyboard input? That is why.
 
