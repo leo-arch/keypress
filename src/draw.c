@@ -57,6 +57,20 @@ wc_xstrlen(const char *restrict str)
 	return 0; /* A non-printable wide char was found */
 }
 
+/* Return a pointer to a string holding the binary representation
+ * of the byte N. */
+static char *
+build_binary(const uint8_t n)
+{
+	static char bin[9] = {0};
+
+	for (int i = 0; i < 8; i++)
+		bin[7 - i] = (n & (1u << i)) ? '1' : '0';
+	bin[8] = '\0';
+
+	return bin;
+}
+
 void
 print_header(void)
 {
@@ -91,26 +105,12 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 		g_options.colors.reset, edge);
 
 	if (clear_screen == 0)
-		printf(" ├─────────────────────────────────────┤\n");
+		puts(" ├─────────────────────────────────────┤");
 	else
-		printf(" └─────────────────────────────────────┘\n");
+		puts(" └─────────────────────────────────────┘");
 
 	memset(buf, '\0', BUF_SIZE);
 	free(str);
-}
-
-/* Return a pointer to a string holding the binary representation
- * of the byte N. */
-static char *
-build_binary(const uint8_t n)
-{
-	static char bin[9] = {0};
-
-	for (int i = 0; i < 8; i++)
-		bin[7 - i] = (n & (1u << i)) ? '1' : '0';
-	bin[8] = '\0';
-
-	return bin;
 }
 
 void
@@ -128,7 +128,7 @@ void
 print_bottom_line(const int clear_screen)
 {
 	if (clear_screen == 0)
-		printf(" ├──────┼──────┼─────┼──────────┼──────┤\n");
+		puts(" ├──────┼──────┼─────┼──────────┼──────┤");
 	else
-		printf(" └──────┴──────┴─────┴──────────┴──────┘\n");
+		puts(" └──────┴──────┴─────┴──────────┴──────┘");
 }

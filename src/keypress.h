@@ -31,13 +31,6 @@
 #define PROG_NAME "keypress"
 #define VERSION   "0.3.3"
 
-/* Ctrl+C */
-#define KITTY_EXIT_KEY(s, c) (*(s) == ESC_KEY && \
-	(c) == 'u' && strcmp((s) + 1, "[99;5") == 0)
-/* Ctrl+X */
-#define KITTY_CLR_KEY(s, c) (*(s) == ESC_KEY && \
-	(c) == 'u' && strcmp((s) + 1, "[120;5") == 0)
-
 #define EXIT_KEY  0x03 /* Ctrl+C */
 #define CLR_KEY   0x18 /* Ctrl+X */
 #define ESC_KEY   0x1b /* Esc */
@@ -55,5 +48,12 @@
 
 /* 32 bytes to hold bytes of an escape sequence or a UTF-8 character */
 #define BUF_SIZE 32
+
+/* Ctrl+C */
+#define KITTY_EXIT_KEY(s, c) (*(s) == ESC_KEY && \
+	(c) == 'u' && strcmp((s) + 1, "[99;5") == 0)
+/* Ctrl+X */
+#define KITTY_CLR_KEY(s, c) (*(s) == ESC_KEY && \
+	(c) == 'u' && strcmp((s) + 1, "[120;5") == 0)
 
 #endif /* KEYPRESS_H */
