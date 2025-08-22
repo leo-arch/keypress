@@ -147,7 +147,7 @@ is_complete_escape_sequence(const char *buf, const int c)
 	if (buf[0] != ESC_KEY) /* Not an escape sequence */
 		return 0;
 
-	if (is_end_seq_char((const unsigned char )c)) /* CSI or SS3 sequence */
+	if (is_end_seq_char((const unsigned char)c)) /* CSI or SS3 sequence */
 		return 1;
 
 	if (!buf[1] && c != '[' && c != 'O') /* Alt */
@@ -215,7 +215,7 @@ main(int argc, char **argv)
 		if (c == ESC_KEY) {
 			*ptr++ = (char)c;
 		} else if (is_complete_escape_sequence(buf, c)) {
-			/* Key combination involving modifier keys (Ctrl, Alt, Meta). */
+			/* Key combination involving modifier keys (Ctrl, Alt, Super). */
 			*ptr++ = (char)c;
 			*ptr = '\0';
 			print_footer(buf, 0, opts_clear_screen);

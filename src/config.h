@@ -27,13 +27,13 @@
 
 /* Default value for options */
 #define DEFAULT_CLEAR_SCREEN 0
-#define DEFAULT_COLOR 1
-#define DEFAULT_TRANSLATE NULL
-#define DEFAULT_KITTY_KEYS 0
+#define DEFAULT_COLOR        1
+#define DEFAULT_TRANSLATE    NULL
+#define DEFAULT_KITTY_KEYS   0 /* 1: enable, 2: full. */
 
 /* Default colors */
-#define HEADER_COLOR "\x1b[32m" /* Header */
-#define CODE_COLOR   "\x1b[2m"  /* Code (hex, oct, dec) */
-#define SYM_COLOR    "\x1b[36m" /* Symbol */
-#define TRANS_COLOR  "\x1b[1m"  /* Translation */
+#define HEADER_COLOR "\x1b[32m" /* Header: dim */
+#define CODE_COLOR   "\x1b[2m"  /* Code (hex, oct, dec): dim */
+#define SYM_COLOR    "\x1b[36m" /* Symbol: cyan */
+#define TRANS_COLOR  "\x1b[1m"  /* Translation: bold */
 #define RESET        "\x1b[0m"

@@ -35,11 +35,11 @@ extern "C" {
 #endif
 
 struct color_t {
-	char *header;
 	char *code;
+	char *header;
+	char *reset;
 	char *symbol;
 	char *translation;
-	char *reset;
 };
 
 struct opts_t {
