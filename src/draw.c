@@ -145,10 +145,10 @@ static char *
 build_utf8_codepoint(const char *buf)
 {
 	uint32_t cp = 0;
-	const int ret = utf8_decode((const unsigned char *)buf, &cp);
-	if (ret != 0)
+	if (utf8_decode((const unsigned char *)buf, &cp) != 0)
 		return "";
 
+	/* The largest valid Unicode code point is U+10FFFF, so 32 bytes is enough */
 	static char str[32];
 	snprintf(str, sizeof(str), " (U+%X)", cp);
 	return str;
