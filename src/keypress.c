@@ -78,6 +78,7 @@ transform_esc_seq(const char *input, char *output)
 			const long n = strtol(ptr + (hex ? 2 : 1), NULL, hex ? 16 : 8);
 			if (n < CHAR_MIN || n > CHAR_MAX) {
 				if (n == ALT_CSI) {
+					/* Translate 0x9b into "ESC [" */
 					*out_ptr++ = ESC_KEY;
 					*out_ptr++ = CSI_INTRODUCER;
 					ptr += 4;
@@ -130,13 +131,14 @@ run_translate_key(const char *arg)
 }
 
 static const char *
-get_ctrl_keysym(const int c)
+get_ctrl_keysym(const int c, const int utf8)
 {
 	switch (c) {
 	case DEL_KEY:   return "DEL";
 	case NBSP_KEY:  return "NBSP";
 	case SHY_KEY:   return "SHY";
 	case SPACE_KEY: return "SP";
+	case ALT_CSI:   return (utf8 ? "" : "CSI");
 	default:        return "";
 	}
 }
@@ -150,8 +152,8 @@ is_complete_escape_sequence(const char *buf, const int c)
 	if (IS_CTRL_KEY(c))
 		return 1;
 
-	if (buf[0] != ESC_KEY) /* Not an escape sequence */
-		return 0;
+	if (buf[0] != ESC_KEY && (unsigned char)buf[0] != ALT_CSI)
+		return 0; /* Not an escape sequence */
 
 	if (is_end_seq_char((const unsigned char)c)) /* CSI or SS3 sequence */
 		return 1;
@@ -202,12 +204,10 @@ main(int argc, char **argv)
 
 		if (IS_CTRL_KEY(c)) { /* Control characters */
 			print_row(c, keysym_table[c]);
-		} else if (isprint(c) && c != 0x20) { /* ASCII printable characters */
+		} else if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
 			char s[2] = {(char)c, 0};
 			print_row(c, s);
 		} else { /* Extended ASCII, Unicode */
-			print_row(c, get_ctrl_keysym(c));
-
 			if (IS_UTF8_CHAR(c)) {
 				utf8_count++;
 				*ptr++ = (char)c;
@@ -216,9 +216,10 @@ main(int argc, char **argv)
 				if (bytes > 1)
 					utf8_bytes = bytes;
 			}
+			print_row(c, get_ctrl_keysym(c, utf8_bytes));
 		}
 
-		if (c == ESC_KEY) {
+		if (c == ESC_KEY || (c == ALT_CSI && utf8_bytes == 0)) {
 			*ptr++ = (char)c;
 		} else if (is_complete_escape_sequence(buf, c)) {
 			/* Key combination involving modifier keys (Ctrl, Alt, Super). */
@@ -234,7 +235,7 @@ main(int argc, char **argv)
 			print_footer(buf, 1, opts_clear_screen);
 			ptr = buf;
 			clr_scr = opts_clear_screen == 1;
-		} else if (buf[0] == ESC_KEY) {
+		} else if (buf[0] == ESC_KEY || (unsigned char)buf[0] == ALT_CSI) {
 			/* Append byte to the buffer only provided we are in the
 			 * middle of an escape sequence. */
 			*ptr++ = (char)c;

@@ -599,6 +599,8 @@ translate_key(char *str)
 	const int csi_seq =
 		(str[1] == CSI_INTRODUCER || (unsigned char)*str == ALT_CSI);
 	str += str[1] == CSI_INTRODUCER ? 2 : 1;
+	while ((unsigned char)*str == ALT_CSI)
+		str++;
 
 	buf = check_single_key(str, csi_seq);
 	if (buf)
