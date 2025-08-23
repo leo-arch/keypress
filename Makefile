@@ -24,6 +24,7 @@ clean:
 
 install: $(BIN)
 	$(INSTALL) -m 0755 -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 0755 -d $(DESTDIR)$(MANDIR)/man1
 	$(INSTALL) -m 0755 $(BIN) $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 0644 $(BIN).1 $(DESTDIR)$(MANDIR)/man1
 	@printf "Successfully installed $(BIN)\n"

@@ -29,7 +29,7 @@
 #define KEYPRESS_H
 
 #define PROG_NAME "keypress"
-#define VERSION   "0.3.3"
+#define VERSION   "0.3.4"
 
 #define EXIT_KEY  0x03 /* Ctrl+C */
 #define CLR_KEY   0x18 /* Ctrl+X */
