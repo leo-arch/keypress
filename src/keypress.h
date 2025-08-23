@@ -39,10 +39,6 @@
 #define SHY_KEY   0xad /* SHY */
 #define SPACE_KEY 0x20 /* Space */
 
-#define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
-#define CSI_INTRODUCER 0x5b /* [ */
-#define SS3_INTRODUCER 0x4f /* O */
-
 #define IS_CTRL_KEY(c)    ((c) >= 0 && (c) <= 31)
 #define IS_OCTAL_DIGIT(c) ((c) >= '0' && (c) <= '7')
 

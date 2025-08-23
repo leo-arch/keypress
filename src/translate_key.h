@@ -28,6 +28,10 @@
 #ifndef TRANSLATE_KEY_H
 #define TRANSLATE_KEY_H
 
+#define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
+#define CSI_INTRODUCER 0x5b /* [ */
+#define SS3_INTRODUCER 0x4f /* O */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

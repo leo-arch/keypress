@@ -32,6 +32,8 @@
 #include <ctype.h>  /* toupper() */
 #include <errno.h>  /* ENOMEM */
 
+#include "translate_key.h"
+
 /* When it comes to keyboard escape sequences, we have three kind of
  * terminating characters:
  *
@@ -63,10 +65,6 @@
 	(c) == 'M' || (c) == 'X')
 
 #define ESC_KEY 0x1b
-
-#define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
-#define CSI_INTRODUCER 0x5b /* [ */
-#define SS3_INTRODUCER 0x4f /* O */
 
 /* Values for modifier keys.
  * See https://en.wikipedia.org/wiki/ANSI_escape_code*/
