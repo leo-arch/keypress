@@ -71,6 +71,87 @@ build_binary(const uint8_t n)
 	return bin;
 }
 
+/* Return the number of bytes of a character by inspecting
+ * its initial byte (C). */
+int
+utf8_char_bytes(unsigned char c)
+{
+	if (c < 0x80) return 1;           /* ASCII */
+	if ((c & 0xE0) == 0xC0) return 2; /* 110xxxxx */
+	if ((c & 0xF0) == 0xE0) return 3; /* 1110xxxx */
+	if ((c & 0xF8) == 0xF0) return 4; /* 11110xxx */
+	return 0;                         /* Continuation (10xxxxxx) or invalid */
+}
+
+static int
+utf8_decode(const unsigned char *s, uint32_t *cp_out)
+{
+	unsigned char b0 = s[0];
+
+	const int bytes = utf8_char_bytes(b0);
+	if (bytes == 0)
+		return 1;
+
+	if (bytes == 1) { /* 1-byte ASCII */
+		*cp_out = b0;
+		return 0;
+	}
+
+	if (bytes == 2 && s[1]) {
+		unsigned char b1 = s[1];
+		if ((b1 & 0xc0) != 0x80)
+			return 1;
+		uint32_t cp = (uint32_t)(((b0 & 0x1f) << 6) | (b1 & 0x3f));
+		/* Reject overlong encodings: minimal value for 2-byte is 0x80 */
+		if (cp < 0x80)
+			return 1;
+		*cp_out = cp;
+		return 0;
+	}
+
+	if (bytes == 3 && s[1] && s[2]) {
+		unsigned char b1 = s[1], b2 = s[2];
+		if ((b1 & 0xc0) != 0x80 || (b2 & 0xc0) != 0x80)
+			return 1;
+		uint32_t cp = (uint32_t)(((b0 & 0x0f) << 12) | ((b1 & 0x3f) << 6)
+			| (b2 & 0x3f));
+		/* Reject overlongs (min 0x800) and surrogates (D800-dfff) */
+		if (cp < 0x800 || (cp >= 0xd800 && cp <= 0xdfff))
+			return 1;
+		*cp_out = cp;
+		return 0;
+	}
+
+	if (bytes == 4 && s[1] && s[2] && s[3]) {
+		unsigned char b1 = s[1], b2 = s[2], b3 = s[3];
+		if ((b1 & 0xc0) != 0x80 || (b2 & 0xc0) != 0x80 || (b3 & 0xc0) != 0x80)
+			return 1;
+		uint32_t cp = (uint32_t)(((b0 & 0x07) << 18) | ((b1 & 0x3f) << 12)
+			| ((b2 & 0x3f) << 6) | (b3 & 0x3f));
+		/* Reject overlongs (min 0x10000) and values > U+10FFFF */
+		if (cp < 0x10000 || cp > 0x10ffff)
+			return 1;
+		*cp_out = cp;
+		return 0;
+	}
+
+	/* Continuation or invalid leading byte */
+	return 1;
+}
+
+static char *
+build_utf8_codepoint(const char *buf)
+{
+	uint32_t cp = 0;
+	const int ret = utf8_decode((const unsigned char *)buf, &cp);
+	if (ret != 0)
+		return "";
+
+	static char str[32];
+	snprintf(str, sizeof(str), " (U+%X)", cp);
+	return str;
+}
+
 void
 print_header(void)
 {
@@ -100,9 +181,12 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH - 1)
 		str[TABLE_WIDTH] = '\0';
 
+	const char *color = is_utf8 == 1 ? "" : g_options.colors.translation;
+	const char *utf8_cp = is_utf8 == 1 ? build_utf8_codepoint(buf) : "";
+
 	printf(" ├──────┴──────┴─────┴──────────┴──────┤\n"
-		" │ %s%s%s\x1b[%dG│\n", g_options.colors.translation, str ? str : "?",
-		g_options.colors.reset, edge);
+		" │ %s%s%s%s\x1b[%dG│\n", color, str ? str : "?",
+		utf8_cp, g_options.colors.reset, edge);
 
 	if (clear_screen == 0)
 		puts(" ├─────────────────────────────────────┤");

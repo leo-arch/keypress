@@ -46,16 +46,6 @@ const char *const keysym_table[] = {
 	"EM", "SUB", "ESC", "FS", "GS", "RS", "US", "SP", NULL
 };
 
-/* Return the number of bytes of a character by inspecting
- * its initial byte (C). */
-static int
-utf8_char_bytes(unsigned char c)
-{
-    c >>= 4;
-    c &= 7;
-	return (c == 4) ? 2 : c - 3;
-}
-
 /* Transform escape strings ("\\e", hex, and octal) in the string INPUT
  * into the corresponding integer byte. The converted string is copied
  * into the OUTPUT buffer. */
@@ -202,10 +192,6 @@ main(int argc, char **argv)
 				continue; /* Ctrl+X: do not print info about this key.  */
 		}
 
-		/* Avoid writing past the end of the buffer. */
-		if (ptr >= buf + (sizeof(buf) - 1))
-			ptr = buf;
-
 		if (IS_CTRL_KEY(c)) { /* Control characters */
 			print_row(c, keysym_table[c]);
 		} else if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
@@ -213,8 +199,8 @@ main(int argc, char **argv)
 			print_row(c, s);
 		} else { /* Extended ASCII, Unicode */
 			if (IS_UTF8_CHAR(c)) {
-				utf8_count++;
 				*ptr++ = (char)c;
+				utf8_count++;
 				int bytes = IS_UTF8_LEAD_BYTE(c)
 					? utf8_char_bytes((unsigned char)c) : 0;
 				if (bytes > 1)
@@ -222,6 +208,10 @@ main(int argc, char **argv)
 			}
 			print_row(c, get_ctrl_keysym(c, utf8_bytes));
 		}
+
+		/* Avoid writing past the end of the buffer. */
+		if (ptr >= buf + (sizeof(buf) - 1))
+			ptr = buf;
 
 		if (c == ESC_KEY || (c == ALT_CSI && utf8_bytes == 0)) {
 			*ptr++ = (char)c;

@@ -470,17 +470,17 @@ get_ext_key_symbol(const int keycode)
 	memset(str, 0, sizeof(str));
 
 	if (keycode <= 0x7ff) {
-		str[0] = 0xc0 | (keycode >> 6);
-		str[1] = 0x80 | (keycode & 0x3f);
+		str[0] = (char)(0xc0 | (keycode >> 6));
+		str[1] = (char)(0x80 | (keycode & 0x3f));
 	} else if (keycode <= 0x7fff) {
-		str[0] = 0xe0 | (keycode >> 12);
-		str[1] = 0x80 | ((keycode >> 6) & 0x3f);
-		str[2] = 0x80 | (keycode & 0x3f);
+		str[0] = (char)(0xe0 | (keycode >> 12));
+		str[1] = (char)(0x80 | ((keycode >> 6) & 0x3f));
+		str[2] = (char)(0x80 | (keycode & 0x3f));
 	} else if (keycode <= 0x10ffff) {
-		str[0] = 0xf0 | (keycode >> 18);
-		str[1] = 0x80 | ((keycode >> 12) & 0x3f);
-		str[2] = 0x80 | ((keycode >> 6) & 0x3f);
-		str[3] = 0x80 | (keycode & 0x3f);
+		str[0] = (char)(0xf0 | (keycode >> 18));
+		str[1] = (char)(0x80 | ((keycode >> 12) & 0x3f));
+		str[2] = (char)(0x80 | ((keycode >> 6) & 0x3f));
+		str[3] = (char)(0x80 | (keycode & 0x3f));
 	} else {
 		return "Unknown";
 	}
