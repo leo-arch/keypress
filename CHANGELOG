@@ -1,3 +1,18 @@
+0.3.3 (Aug 23, 2025)
+
+BUGS:
+* UTF-8 mangles right edge of table.
+* Stack smash when pressing Esc 32 or more times.
+* UTF-8 sequences not working in translation mode (-t)
+
+IMPROVEMENTS:
+* Add binary column.
+* Add color support (disable with -n).
+* Translate Kitty UTF-8 codepoints.
+* Support for 8-bit CSI sequences (rare).
+* Display codepoint next to UTF-8 characters.
+* Run in kitty full mode with -K.
+
 0.3.2 (Aug 20, 2025)
 
 BUG FIXES

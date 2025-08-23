@@ -63,10 +63,10 @@ enable_raw_mode(void)
 {
 	tcgetattr(STDIN_FILENO, &orig_termios);
 	struct termios raw = orig_termios;
-	raw.c_iflag &= ~(ICRNL | ISTRIP | IXON | IXOFF | INLCR);
-	raw.c_iflag &= ~(INPCK | PARMRK | IGNPAR | IGNBRK | BRKINT);
-	raw.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN);
-	raw.c_cflag &= ~(PARENB | PARODD);
+	raw.c_iflag &= (tcflag_t)~(ICRNL | ISTRIP | IXON | IXOFF | INLCR);
+	raw.c_iflag &= (tcflag_t)~(INPCK | PARMRK | IGNPAR | IGNBRK | BRKINT);
+	raw.c_lflag &= (tcflag_t)~(ICANON | ECHO | ISIG | IEXTEN);
+	raw.c_cflag &= (tcflag_t)~(PARENB | PARODD);
 	raw.c_cflag |= CS8;
 	raw.c_cc[VMIN] = 1;
 	raw.c_cc[VTIME] = 0;
