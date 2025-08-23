@@ -862,6 +862,13 @@ struct keys_t keys[] = {
 	/* Contour */
 	{"\x1b[O6P", "Ctrl+Shift+F1"},
 
+	/* UTF-8 */
+	{"\xf0\x9f\x98\x80", "😀"}, {"\xf0\x9f\x8c\x80", "🌀"},
+	{"\xf0\x9f\x91\xa6", "👦"},
+
+	/* 8-bit CSI */
+	{"\x9b\x41", "Up"},
+
 	/* cons25 uses \e[M-\e[X for F1-F12 keys. */
 
 	{NULL, NULL},
