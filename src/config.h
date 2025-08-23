@@ -32,7 +32,7 @@
 #define DEFAULT_KITTY_KEYS   0 /* 1: enable, 2: full. */
 
 /* Default colors */
-#define HEADER_COLOR "\x1b[32m" /* Header: dim */
+#define HEADER_COLOR "\x1b[32m" /* Header: green */
 #define CODE_COLOR   "\x1b[2m"  /* Code (hex, oct, dec): dim */
 #define SYM_COLOR    "\x1b[36m" /* Symbol: cyan */
 #define TRANS_COLOR  "\x1b[1m"  /* Translation: bold */

@@ -83,6 +83,8 @@ utf8_char_bytes(unsigned char c)
 	return 0;                         /* Continuation (10xxxxxx) or invalid */
 }
 
+/* Set CP_OUT to the codepoint corresponding to the UTF-8 character S.
+ * Returns 1 on success or 0 on failure. */
 static int
 utf8_decode(const unsigned char *s, uint32_t *cp_out)
 {
