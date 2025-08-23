@@ -202,6 +202,10 @@ main(int argc, char **argv)
 				continue; /* Ctrl+X: do not print info about this key.  */
 		}
 
+		/* Avoid writing past the end of the buffer. */
+		if (ptr >= buf + (sizeof(buf) - 1))
+			ptr = buf;
+
 		if (IS_CTRL_KEY(c)) { /* Control characters */
 			print_row(c, keysym_table[c]);
 		} else if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
