@@ -203,7 +203,7 @@ print_byte_info(struct state_t *state, const int c)
 	}
 
 	if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
-		char s[2] = {(char)c, 0};
+		const char s[2] = {(char)c, 0};
 		print_row(c, s);
 		return;
 	}
