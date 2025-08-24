@@ -143,6 +143,130 @@ is_complete_escape_sequence(const char *buf, const int c)
 	return 0;
 }
 
+#define CTRL_KEY_EXIT 1
+#define CTRL_KEY_CONT 2
+
+struct state_t {
+	char buf[BUF_SIZE];
+	char *buf_ptr;
+	int utf8_bytes;
+	int utf8_count;
+	int clear_screen;
+	int exit;
+};
+
+static void
+handle_ctrl_keys(struct state_t *state, const int c)
+{
+	state->exit = 0;
+
+	if (c == EXIT_KEY || KITTY_EXIT_KEY(state->buf, c)) { /* Ctrl+C */
+		state->exit = CTRL_KEY_EXIT;
+		return;
+	}
+
+	if (KITTY_CLR_KEY(state->buf, c)) { /* Ctrl+X (kitty protocol) */
+		state->clear_screen = 0;
+		print_header();
+		memset(state->buf, 0, BUF_SIZE);
+		state->buf_ptr = state->buf;
+		state->exit = CTRL_KEY_CONT;
+		return;
+	}
+
+	if (c == CLR_KEY || state->clear_screen == 1) { /* Ctrl+X */
+		state->clear_screen = 0;
+		print_header();
+
+		if (c == CLR_KEY) /* Ctrl+X: do not print info about this key. */
+			state->exit = CTRL_KEY_CONT;
+	}
+}
+
+static void
+update_utf8_info(struct state_t *state, const int c)
+{
+	*state->buf_ptr++ = (char)c;
+	state->utf8_count++;
+	const int bytes = IS_UTF8_LEAD_BYTE(c)
+		? utf8_char_bytes((unsigned char)c) : 0;
+	if (bytes > 1)
+		state->utf8_bytes = bytes;
+}
+
+static void
+print_byte_info(struct state_t *state, const int c)
+{
+	if (IS_CTRL_KEY(c)) { /* Control characters */
+		print_row(c, keysym_table[c]);
+		return;
+	}
+
+	if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
+		char s[2] = {(char)c, 0};
+		print_row(c, s);
+		return;
+	}
+
+	/* Extended ASCII, Unicode */
+	if (IS_UTF8_CHAR(c))
+		update_utf8_info(state, c);
+
+	print_row(c, get_ctrl_keysym(c, state->utf8_bytes));
+}
+
+static void
+print_sequence(struct state_t *state, const int is_utf8, const int c)
+{
+	if (is_utf8 == 0)
+		*state->buf_ptr++ = (char)c;
+	else
+		state->utf8_count = state->utf8_bytes = 0;
+
+	*state->buf_ptr = '\0';
+	print_footer(state->buf, is_utf8, g_options.clear_screen);
+	state->buf_ptr = state->buf;
+	state->clear_screen = g_options.clear_screen == 1;
+}
+
+static void
+update_buffer(struct state_t *state, const int c)
+{
+	/* Avoid writing past the end of the buffer. */
+	if (state->buf_ptr >= state->buf + (BUF_SIZE - 1))
+		state->buf_ptr = state->buf;
+
+	if (c == ESC_KEY || (c == ALT_CSI && state->utf8_bytes == 0)) {
+		*state->buf_ptr++ = (char)c;
+		return;
+	}
+
+	if (is_complete_escape_sequence(state->buf, c)) {
+		/* Key combination involving modifier keys (Ctrl, Alt, Super). */
+		print_sequence(state, 0, c);
+		return;
+	}
+
+	if (state->utf8_bytes > 1 && state->utf8_count == state->utf8_bytes) {
+		/* A UTF-8 character. */
+		print_sequence(state, 1, 0);
+		return;
+	}
+
+	if (state->buf[0] == ESC_KEY || (unsigned char)state->buf[0] == ALT_CSI) {
+		/* Append byte to the buffer only provided we are in the
+		 * middle of an escape sequence. */
+		*state->buf_ptr++ = (char)c;
+		return;
+	}
+
+	if (!IS_UTF8_CHAR(c)) {
+		/* Print a bottom line (for ASCII characters only). */
+		state->clear_screen = g_options.clear_screen == 1;
+		print_bottom_line(state->clear_screen);
+	}
+}
+
 int
 main(int argc, char **argv)
 {
@@ -153,80 +277,32 @@ main(int argc, char **argv)
 
 	init_term();
 
-	char buf[BUF_SIZE] = "";
-	char *ptr = buf;
-	int clr_scr = 0;
-
-	int utf8_bytes = 0; /* Number of bytes of a UTF-8 character. */
-	int utf8_count = 0; /* Number of printed bytes of a UTF-8 character. */
-	const int opts_clear_screen = g_options.clear_screen;
+	struct state_t state = {0};
+	state.buf_ptr = state.buf;
 
 	print_header();
 
 	unsigned char ch = 0;
-	while (read(STDIN_FILENO, &ch, sizeof(ch)) == sizeof(ch)) {
+	while (1) {
+		const ssize_t bytes_read = read(STDIN_FILENO, &ch, sizeof(ch));
+		if (bytes_read == -1) {
+			perror("Error reading input");
+			break;
+		} else if (bytes_read == 0) {
+			break; /* EOF reached */
+		}
+
 		const int c = (int)ch;
 
-		if (c == EXIT_KEY || KITTY_EXIT_KEY(buf, c)) /* Ctrl+C */
+		handle_ctrl_keys(&state, c);
+		if (state.exit == CTRL_KEY_CONT)
+			continue;
+		if (state.exit == CTRL_KEY_EXIT)
 			break;
 
-		if (KITTY_CLR_KEY(buf, c)) { /* Ctrl+X (kitty protocol) */
-			clr_scr = 0; print_header();
-			memset(buf, 0, sizeof(buf)); ptr = buf;
-			continue;
-		} else if (c == CLR_KEY /* Ctrl+X */
-		|| clr_scr == 1) {
-			clr_scr = 0; print_header();
-			if (c == CLR_KEY)
-				continue; /* Ctrl+X: do not print info about this key.  */
-		}
+		print_byte_info(&state, c);
 
-		if (IS_CTRL_KEY(c)) { /* Control characters */
-			print_row(c, keysym_table[c]);
-		} else if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
-			char s[2] = {(char)c, 0};
-			print_row(c, s);
-		} else { /* Extended ASCII, Unicode */
-			if (IS_UTF8_CHAR(c)) {
-				*ptr++ = (char)c;
-				utf8_count++;
-				int bytes = IS_UTF8_LEAD_BYTE(c)
-					? utf8_char_bytes((unsigned char)c) : 0;
-				if (bytes > 1)
-					utf8_bytes = bytes;
-			}
-			print_row(c, get_ctrl_keysym(c, utf8_bytes));
-		}
-
-		/* Avoid writing past the end of the buffer. */
-		if (ptr >= buf + (sizeof(buf) - 1))
-			ptr = buf;
-
-		if (c == ESC_KEY || (c == ALT_CSI && utf8_bytes == 0)) {
-			*ptr++ = (char)c;
-		} else if (is_complete_escape_sequence(buf, c)) {
-			/* Key combination involving modifier keys (Ctrl, Alt, Super). */
-			*ptr++ = (char)c;
-			*ptr = '\0';
-			print_footer(buf, 0, opts_clear_screen);
-			ptr = buf;
-			clr_scr = g_options.clear_screen == 1;
-		} else if (utf8_bytes > 1 && utf8_count == utf8_bytes) {
-			/* A UTF-8 character. */
-			utf8_count = utf8_bytes = 0;
-			*ptr = '\0';
-			print_footer(buf, 1, opts_clear_screen);
-			ptr = buf;
-			clr_scr = opts_clear_screen == 1;
-		} else if (buf[0] == ESC_KEY || (unsigned char)buf[0] == ALT_CSI) {
-			/* Append byte to the buffer only provided we are in the
-			 * middle of an escape sequence. */
-			*ptr++ = (char)c;
-		} else if (!IS_UTF8_CHAR(c)) {
-			/* Print a bottom line (for ASCII characters only). */
-			clr_scr = opts_clear_screen == 1;
-			print_bottom_line(clr_scr);
-		}
+		update_buffer(&state, c);
 	}
 
 	deinit_term();
