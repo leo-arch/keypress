@@ -49,10 +49,17 @@
 /* 32 bytes to hold bytes of an escape sequence or a UTF-8 character */
 #define BUF_SIZE 32
 
-/* Ctrl+C */
+/* Ctrl+c */
+#define XTERM_MOK_EXIT_KEY(s, c) (*(s) == ESC_KEY && \
+	(c) == '~' && strcmp((s) + 1, "[27;5;99") == 0)
+/* Ctrl+x */
+#define XTERM_MOK_CLR_KEY(s, c) (*(s) == ESC_KEY && \
+	(c) == '~' && strcmp((s) + 1, "[27;5;120") == 0)
+
+/* Ctrl+c */
 #define KITTY_EXIT_KEY(s, c) (*(s) == ESC_KEY && \
 	(c) == 'u' && strcmp((s) + 1, "[99;5") == 0)
-/* Ctrl+X */
+/* Ctrl+x */
 #define KITTY_CLR_KEY(s, c) (*(s) == ESC_KEY && \
 	(c) == 'u' && strcmp((s) + 1, "[120;5") == 0)
 

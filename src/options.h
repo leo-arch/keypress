@@ -48,6 +48,7 @@ struct opts_t {
 	int clear_screen;
 	int color;
 	int kitty_keys;
+	int xterm_mok;
 };
 extern struct opts_t g_options;
 

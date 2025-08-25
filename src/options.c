@@ -51,6 +51,7 @@ print_help(void)
 		"          SEQ into its corresponding text/symbolic representation\n"
 		"          and exit.");
 	puts("  -v      Display version information and exit.");
+	puts("  -x      Enable Xterm's modifyOtherKeys feature.");
 
 	printf("\nBy default, %s runs in interactive mode: it generates a\n"
 		"byte-by-byte representation of keyboard inputs, whether for\n"
@@ -100,6 +101,7 @@ init_default_options(void)
 	g_options.color        = DEFAULT_COLOR;
 	g_options.translate    = DEFAULT_TRANSLATE;
 	g_options.kitty_keys   = DEFAULT_KITTY_KEYS;
+	g_options.xterm_mok    = DEFAULT_XTERM_MOK;
 }
 
 void
@@ -108,7 +110,7 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "chkKnt:v")) != -1) {
+	while ((opt = getopt(argc, argv, "chkKnt:vx")) != -1) {
 		switch (opt) {
 		case 'c': g_options.clear_screen = 1; break;
 		case 'k': g_options.kitty_keys = 1; break;
@@ -116,6 +118,7 @@ parse_cmdline_args(const int argc, char **argv)
 		case 'n': g_options.color = 0; break;
 		case 't': g_options.translate = optarg; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);
+		case 'x': g_options.xterm_mok = 1; break;
 		case 'h': /* fallthrough */
 		default: print_help(); exit(EXIT_SUCCESS);
 		}

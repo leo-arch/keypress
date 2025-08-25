@@ -39,15 +39,23 @@ switch_to_alternate_buffer(void)
 {
 	SET_ALT_SCREEN;
 	HIDE_CURSOR;
-	if (g_options.kitty_keys > 0)
+
+	if (g_options.kitty_keys > 0) {
 		SET_KITTY_KEYS((g_options.kitty_keys > 1));
+	} else if (g_options.xterm_mok == 1) {
+		SET_XTERM_MOK;
+	}
 }
 
 static void
 switch_to_normal_buffer(void)
 {
-	if (g_options.kitty_keys > 0)
+	if (g_options.kitty_keys > 0) {
 		UNSET_KITTY_KEYS((g_options.kitty_keys > 1));
+	} else if (g_options.xterm_mok == 1) {
+		UNSET_XTERM_MOK;
+	}
+
 	UNHIDE_CURSOR;
 	UNSET_ALT_SCREEN;
 }

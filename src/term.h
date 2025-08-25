@@ -41,6 +41,8 @@ extern "C" {
 #define UNHIDE_CURSOR       fputs("\x1b[?25h", stdout)
 #define SET_ALT_SCREEN      fputs("\x1b[?1049h", stdout);
 #define UNSET_ALT_SCREEN    fputs("\x1b[?1049l", stdout);
+#define SET_XTERM_MOK       fputs("\x1b[>4;2m", stdout);
+#define UNSET_XTERM_MOK     fputs("\x1b[>4;0m", stdout);
 
 void init_term(void);
 void deinit_term(void);

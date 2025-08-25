@@ -30,6 +30,7 @@
 #define DEFAULT_COLOR        1
 #define DEFAULT_TRANSLATE    NULL
 #define DEFAULT_KITTY_KEYS   0 /* 1: enable, 2: full. */
+#define DEFAULT_XTERM_MOK    0
 
 /* Default colors */
 #define HEADER_COLOR "\x1b[32m" /* Header: green */

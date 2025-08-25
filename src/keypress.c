@@ -160,12 +160,16 @@ handle_ctrl_keys(struct state_t *state, const int c)
 {
 	state->exit = 0;
 
-	if (c == EXIT_KEY || KITTY_EXIT_KEY(state->buf, c)) { /* Ctrl+C */
+	/* Ctrl+C */
+	if (c == EXIT_KEY || KITTY_EXIT_KEY(state->buf, c)
+	|| XTERM_MOK_EXIT_KEY(state->buf, c)) {
 		state->exit = CTRL_KEY_EXIT;
 		return;
 	}
 
-	if (KITTY_CLR_KEY(state->buf, c)) { /* Ctrl+X (kitty protocol) */
+	/* Ctrl+X (kitty and Xterm with modifyOtherKeys) */
+	if (KITTY_CLR_KEY(state->buf, c)
+	|| XTERM_MOK_CLR_KEY(state->buf, c)) {
 		state->clear_screen = 0;
 		print_header();
 		memset(state->buf, 0, BUF_SIZE);
@@ -281,6 +285,7 @@ main(int argc, char **argv)
 	state.buf_ptr = state.buf;
 
 	print_header();
+	fflush(stdout);
 
 	unsigned char ch = 0;
 	while (1) {

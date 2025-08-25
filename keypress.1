@@ -1,9 +1,9 @@
-.TH KEYPRESS 1 "Aug 23, 2025" "0.3.4" "Keypress Manual"
+.TH KEYPRESS 1 "Aug 23, 2025" "0.3.5" "Keypress Manual"
 .SH NAME
 keypress \- A program to translate keyboard inputs into byte representations
 
 .SH SYNOPSIS
-keypress [-c | -h | -k | -K | -n |  -t \fISEQ\fR | -v]
+keypress [-c | -h | -k | -K | -n |  -t \fISEQ\fR | -v | -x]
 
 .SH DESCRIPTION
 \fBKeypress\fR is a command line utility that operates in two modes:
@@ -68,6 +68,10 @@ Display the text/symbolic representation for the key sequence SEQ and exit.
 .TP
 .B -v
 Display version information and exit.
+
+.TP
+.B -x
+Enable Xterm's modifyOtherKeys feature (request extended modifier reporting for printable keys).
 
 .SH EXAMPLES
 To translate an escape sequence:
