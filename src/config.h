@@ -30,12 +30,23 @@
 #define DEFAULT_CLEAR_SCREEN 0
 #define DEFAULT_COLOR        1
 #define DEFAULT_KITTY_KEYS   0 /* 1: enable, 2: full. */
+#define DEFAULT_LIGHT_THEME  0
 #define DEFAULT_TRANSLATE    NULL
 #define DEFAULT_XTERM_MOK    0
 
 /* Default colors */
-#define HEADER_COLOR "\x1b[32m" /* Header: green */
-#define CODE_COLOR   "\x1b[2m"  /* Code (hex, oct, dec): dim */
-#define SYM_COLOR    "\x1b[36m" /* Symbol: cyan */
-#define TRANS_COLOR  "\x1b[1m"  /* Translation: bold */
-#define RESET        "\x1b[0m"
+/* Dark background */
+#define CODE_COLOR   "\x1b[36m"  /* Code (hex, oct, dec): cyan */
+#define HEADER_COLOR "\x1b[32m"  /* Header: green */
+#define SYM_COLOR    "\x1b[33m"  /* Symbol: yellow */
+#define TABLE_COLOR  "\x1b[2m"   /* Table: dim */
+#define TRANS_COLOR  "\x1b[1m"   /* Translation: bold */
+
+/* Light background (-l) */
+#define CODE_COLOR_LIGHT   "\x1b[2;35m"   /* Code (hex, oct, dec): dimmed magenta */
+#define HEADER_COLOR_LIGHT "\x1b[34m"  /* Header: blue */
+#define SYM_COLOR_LIGHT    "\x1b[31m"  /* Symbol: red */
+#define TABLE_COLOR_LIGHT  "\x1b[2m"   /* Table: dim */
+#define TRANS_COLOR_LIGHT  "\x1b[1m"   /* Translation: bold */
+
+#define RESET "\x1b[0m"   /* Reset attributes */

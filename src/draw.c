@@ -185,20 +185,25 @@ print_header(void)
 		base = g_options.ascii_draw ? HEADER_BASE_A : HEADER_BASE_U;
 	}
 
+	const char *header_color = g_options.colors.header;
+	const char *reset_color = g_options.colors.reset;
+	const char *table_color = g_options.colors.table;
+
 	const char *bold = *g_options.colors.header ? "\x1b[1m" : "";
 	printf(" %s%s%s %s  (%sC-c%s: quit, %sC-x%s: clear)\n"
-		" %s\n"
-		" %s %sHex%s  %s %sOct%s  %s %sDec%s %s   %sBin%s    %s %sSym%s  %s\n"
-		" %s\n",
-		bold, PROG_NAME, g_options.colors.reset, VERSION,
-		bold, g_options.colors.reset, bold, g_options.colors.reset,
-		top,
-		sep, g_options.colors.header, g_options.colors.reset,
-		sep, g_options.colors.header, g_options.colors.reset,
-		sep, g_options.colors.header, g_options.colors.reset,
-		sep, g_options.colors.header, g_options.colors.reset,
-		sep, g_options.colors.header, g_options.colors.reset,
-		sep, base);
+		" %s%s\n"
+		" %s%s %sHex%s  %s%s%s %sOct%s  %s%s%s %sDec%s %s%s%s   %sBin%s    "
+		"%s%s%s %sSym%s  %s%s\n"
+		" %s%s\n",
+		bold, PROG_NAME, reset_color, VERSION,
+		bold, reset_color, bold, reset_color,
+		table_color, top,
+		sep, reset_color, header_color, reset_color,
+		table_color, sep, reset_color, header_color, reset_color,
+		table_color, sep, reset_color, header_color, reset_color,
+		table_color, sep, reset_color, header_color, reset_color,
+		table_color, sep, reset_color, header_color, reset_color,
+		table_color, sep, base, reset_color);
 }
 
 void
@@ -214,19 +219,23 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 	const char *color = is_utf8 == 1 ? "" : g_options.colors.translation;
 	const char *utf8_cp = is_utf8 == 1 ? build_utf8_codepoint(buf) : "";
 	const int ascii = g_options.ascii_draw;
+	const char *table_color = g_options.colors.table;
+	const char *reset_color = g_options.colors.reset;
 
-	printf(" %s\n"
-		" %s %s%s%s%s\x1b[%dG%s\n",
-		ascii ? FOOTER_TOP_A : FOOTER_TOP_U,
-		ascii ? SEP_A : SEP_U,
+	printf(" %s%s\n"
+		" %s%s %s%s%s%s\x1b[%dG%s%s%s\n",
+		table_color, ascii ? FOOTER_TOP_A : FOOTER_TOP_U,
+		ascii ? SEP_A : SEP_U, reset_color,
 		color, str ? str : "?",
-		utf8_cp, g_options.colors.reset, edge,
-		ascii ? SEP_A : SEP_U);
+		utf8_cp, reset_color, edge,
+		table_color, ascii ? SEP_A : SEP_U, reset_color);
 
 	if (clear_screen == 0)
-		printf(" %s\n", ascii ? FOOTER_BASE_NO_CLR_A : FOOTER_BASE_NO_CLR_U);
+		printf(" %s%s%s\n", table_color,
+			ascii ? FOOTER_BASE_NO_CLR_A : FOOTER_BASE_NO_CLR_U, reset_color);
 	else
-		printf(" %s\n", ascii ? FOOTER_BASE_CLR_A : FOOTER_BASE_CLR_U);
+		printf(" %s%s%s\n", table_color,
+			ascii ? FOOTER_BASE_CLR_A : FOOTER_BASE_CLR_U, reset_color);
 
 	memset(buf, '\0', BUF_SIZE);
 	free(str);
@@ -238,21 +247,33 @@ print_row(const int c, const char *s)
 	static char *sep = NULL;
 	if (!sep)
 		sep = g_options.ascii_draw ? SEP_A : SEP_U;
+	const char *code_color = g_options.colors.code;
+	const char *reset_color = g_options.colors.reset;
+	const char *table_color = g_options.colors.table;
 
-	printf(" %s %s\\x%02x%s %s %s\\%03o%s %s %s%3d%s %s %s%s%s %s %s%*s%s %s\n",
-		sep, g_options.colors.code, c, g_options.colors.reset,
-		sep, g_options.colors.code, c, g_options.colors.reset,
-		sep, g_options.colors.code, c, g_options.colors.reset,
-		sep, g_options.colors.code, build_binary((uint8_t)c), g_options.colors.reset,
-		sep, g_options.colors.symbol, 4, s, g_options.colors.reset, sep);
+	printf(" %s%s%s %s\\x%02x%s %s%s%s %s\\%03o%s %s%s%s %s%3d%s %s%s%s "
+		"%s%s%s %s%s%s %s%*s%s %s%s%s\n",
+		table_color, sep, reset_color, code_color, c, reset_color,
+		table_color, sep, reset_color, code_color, c, reset_color,
+		table_color, sep, reset_color, code_color, c, reset_color,
+		table_color, sep, reset_color, code_color, build_binary((uint8_t)c),
+		reset_color,
+		table_color, sep, reset_color,
+		g_options.colors.symbol, 4, s, reset_color, table_color, sep,
+		reset_color);
 }
 
 void
 print_bottom_line(const int clear_screen)
 {
 	const int ascii = g_options.ascii_draw;
+	const char *table_color = g_options.colors.table;
+	const char *reset_color = g_options.colors.reset;
+
 	if (clear_screen == 0)
-		printf(" %s\n", ascii ? BOTTOM_NO_CLR_A : BOTTOM_NO_CLR_U);
+		printf(" %s%s%s\n", table_color,
+			ascii ? BOTTOM_NO_CLR_A : BOTTOM_NO_CLR_U, reset_color);
 	else
-		printf(" %s\n", ascii ? BOTTOM_CLR_A : BOTTOM_CLR_U);
+		printf(" %s%s%s\n", table_color,
+			ascii ? BOTTOM_CLR_A : BOTTOM_CLR_U, reset_color);
 }

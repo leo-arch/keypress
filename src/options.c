@@ -47,6 +47,7 @@ print_help(void)
 	puts("  -i      Use ASCII characters to draw the table.");
 	puts("  -k      Enable support for the Kitty keyboard protocol.");
 	puts("  -K      Enable support for the Kitty keyboard protocol (full mode).");
+	puts("  -l      Use a light color scheme.");
 	puts("  -n      Disable colors.");
 	puts("  -t SEQ  Run in translation mode: translate the escape sequence\n"
 		"          SEQ into its corresponding text/symbolic representation\n"
@@ -88,11 +89,21 @@ print_help(void)
 static void
 set_colors(const int enabled)
 {
-	g_options.colors.code = enabled == 1 ? CODE_COLOR : "";
-	g_options.colors.header = enabled == 1 ? HEADER_COLOR : "";
-	g_options.colors.symbol = enabled == 1 ? SYM_COLOR : "";
-	g_options.colors.translation = enabled == 1 ? TRANS_COLOR : "";
-	g_options.colors.reset = enabled == 1 ? RESET : "";
+	if (g_options.light_theme == 1) {
+		g_options.colors.code = enabled == 1 ? CODE_COLOR_LIGHT : "";
+		g_options.colors.header = enabled == 1 ? HEADER_COLOR_LIGHT : "";
+		g_options.colors.reset = enabled == 1 ? RESET : "";
+		g_options.colors.symbol = enabled == 1 ? SYM_COLOR_LIGHT : "";
+		g_options.colors.table = enabled == 1 ? TABLE_COLOR_LIGHT : "";
+		g_options.colors.translation = enabled == 1 ? TRANS_COLOR_LIGHT : "";
+	} else {
+		g_options.colors.code = enabled == 1 ? CODE_COLOR : "";
+		g_options.colors.header = enabled == 1 ? HEADER_COLOR : "";
+		g_options.colors.reset = enabled == 1 ? RESET : "";
+		g_options.colors.symbol = enabled == 1 ? SYM_COLOR : "";
+		g_options.colors.table = enabled == 1 ? TABLE_COLOR : "";
+		g_options.colors.translation = enabled == 1 ? TRANS_COLOR : "";
+	}
 }
 
 static void
@@ -101,8 +112,9 @@ init_default_options(void)
 	g_options.ascii_draw   = DEFAULT_ASCII_DRAW;
 	g_options.clear_screen = DEFAULT_CLEAR_SCREEN;
 	g_options.color        = DEFAULT_COLOR;
-	g_options.translate    = DEFAULT_TRANSLATE;
 	g_options.kitty_keys   = DEFAULT_KITTY_KEYS;
+	g_options.light_theme  = DEFAULT_LIGHT_THEME;
+	g_options.translate    = DEFAULT_TRANSLATE;
 	g_options.xterm_mok    = DEFAULT_XTERM_MOK;
 }
 
@@ -112,12 +124,13 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "chikKnt:vx")) != -1) {
+	while ((opt = getopt(argc, argv, "chikKlnt:vx")) != -1) {
 		switch (opt) {
 		case 'c': g_options.clear_screen = 1; break;
 		case 'i': g_options.ascii_draw = 1; break;
 		case 'k': g_options.kitty_keys = 1; break;
 		case 'K': g_options.kitty_keys = 2; break;
+		case 'l': g_options.light_theme = 1; break;
 		case 'n': g_options.color = 0; break;
 		case 't': g_options.translate = optarg; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);

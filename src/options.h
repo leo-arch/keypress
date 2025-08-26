@@ -39,6 +39,7 @@ struct color_t {
 	char *header;
 	char *reset;
 	char *symbol;
+	char *table;
 	char *translation;
 };
 
@@ -49,6 +50,7 @@ struct opts_t {
 	int clear_screen;
 	int color;
 	int kitty_keys;
+	int light_theme;
 	int xterm_mok;
 };
 extern struct opts_t g_options;
