@@ -45,7 +45,8 @@
  *
  * 3. Raw sequence terminator. E.g. 'CSI 15;3~', where '~' simply
  * ends the sequence, '15' is the pressed key (F5), and '3' the modifier
- * key (Alt). */
+ * key (Alt). Under this category we also find Xterm's MOK (modifyOtherKeys)
+ * and the Kitty keyboard protocol. */
 
 #define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
 #define IS_LOWER_ARROW_CHAR(c) ((c) >= 'a' && (c) <= 'd')
@@ -113,6 +114,8 @@ static const char *key_table[256] = {
 	 * See https://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod#Escape_Sequences */
 	[25] = "F13", [26] = "F14", [28] = "F15", [29]= "F16", [31] = "F17",
 	[32] = "F18", [33] = "F19", [34] = "F20",
+	/* 42-63 = F21-F42
+	 * See https://invisible-island.net/ncurses/terminfo.src.html#tic-xterm-new */
 
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
 
@@ -162,7 +165,7 @@ static const struct exceptions_t exceptions[] = {
 	{"\x1b[2J", "Shift+Home"}, {"\x1b[K", "Shift+End"},
 	{"\x1b[2K", "Shift+Del"}, {"\x1b[J", "Ctrl+End"},
 	{"\x1b[4l", "Shift+Ins"},
-	/* This is F1 in Kitty, forget about it.
+	/* This one is F1 in Kitty, forget about it.
 	{"\x1b[P", "Del"}, */
 	{NULL, NULL}
 };
@@ -299,7 +302,8 @@ set_end_char_is_generic(char *str, const size_t end, int *keycode, int *mod_key)
 	} else {
 		char *s = strchr(str, ';');
 		if (s) *s = '\0';
-		*keycode = xatoi(str);
+		/* "CSI >1;key;mod~" = Xterm with modifyFunctionKeys:3 */
+		*keycode = xatoi(str + (*str == '>'));
 		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	}
 }
@@ -549,6 +553,8 @@ write_kitty_keys(char *str, const size_t end)
 }
 
 /* An Xterm MOK (modifyOtherKeys) sequence is "CSI 27;mod;key~"
+ * Note that, if formatOtherKeys is set to 2, "CSI u" sequences are used
+ * instead, in which case they are covered by the kitty functions.
  * See https://xterm.dev/manpage-xterm/#VT100-Widget-Resources:modifyOtherKeys */
 static char *
 write_xterm_mok_seq(char *str, const size_t end)
