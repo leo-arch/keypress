@@ -125,8 +125,8 @@ static const char *key_table[256] = {
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
 	['j'] = "KP_Multiply", ['k'] = "KP_Add", ['l'] = "KP_Comma",
 	['m'] = "KP_Subtract",
-	['M'] = "KP_Enter", ['n'] = "KP_0", ['o'] = "KP_Divide",
-	['p'] = "KP_Period", ['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3",
+	['M'] = "KP_Enter", ['n'] = "KP_Period", ['o'] = "KP_Divide",
+	['p'] = "KP_0", ['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3",
 	['t'] = "KP_4", ['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7",
 	['x'] = "KP_8", ['y'] = "KP_9", ['X'] = "KP_Equal",
 
