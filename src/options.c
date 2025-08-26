@@ -44,6 +44,7 @@ print_help(void)
 	puts("  -c      Clear the screen before printing key information in\n"
 		"          interactive mode.");
 	puts("  -h      Display this help and exit.");
+	puts("  -i      Use ASCII characters to draw the table.");
 	puts("  -k      Enable support for the Kitty keyboard protocol.");
 	puts("  -K      Enable support for the Kitty keyboard protocol (full mode).");
 	puts("  -n      Disable colors.");
@@ -97,6 +98,7 @@ set_colors(const int enabled)
 static void
 init_default_options(void)
 {
+	g_options.ascii_draw   = DEFAULT_ASCII_DRAW;
 	g_options.clear_screen = DEFAULT_CLEAR_SCREEN;
 	g_options.color        = DEFAULT_COLOR;
 	g_options.translate    = DEFAULT_TRANSLATE;
@@ -110,9 +112,10 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "chkKnt:vx")) != -1) {
+	while ((opt = getopt(argc, argv, "chikKnt:vx")) != -1) {
 		switch (opt) {
 		case 'c': g_options.clear_screen = 1; break;
+		case 'i': g_options.ascii_draw = 1; break;
 		case 'k': g_options.kitty_keys = 1; break;
 		case 'K': g_options.kitty_keys = 2; break;
 		case 'n': g_options.color = 0; break;

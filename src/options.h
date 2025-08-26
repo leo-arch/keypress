@@ -45,6 +45,7 @@ struct color_t {
 struct opts_t {
 	struct color_t colors;
 	char *translate;
+	int ascii_draw;
 	int clear_screen;
 	int color;
 	int kitty_keys;

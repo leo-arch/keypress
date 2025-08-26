@@ -154,23 +154,51 @@ build_utf8_codepoint(const char *buf)
 	return str;
 }
 
+#define SEP_U "│"
+#define SEP_A "|"
+
+#define BOTTOM_CLR_U    "└──────┴──────┴─────┴──────────┴──────┘"
+#define BOTTOM_NO_CLR_U "├──────┼──────┼─────┼──────────┼──────┤"
+#define BOTTOM_CLR_A    "+------+------+-----+----------+------+"
+#define BOTTOM_NO_CLR_A "+------+------+-----+----------+------+"
+
+#define HEADER_TOP_U  "┌──────┬──────┬─────┬──────────┬──────┐"
+#define HEADER_BASE_U "├──────┼──────┼─────┼──────────┼──────┤"
+#define HEADER_TOP_A  "+-------------------------------------+"
+#define HEADER_BASE_A "+------+------+-----+----------+------+"
+
+#define FOOTER_TOP_U         "├──────┴──────┴─────┴──────────┴──────┤"
+#define FOOTER_BASE_CLR_U    "└─────────────────────────────────────┘"
+#define FOOTER_BASE_NO_CLR_U "├─────────────────────────────────────┤"
+#define FOOTER_TOP_A         "+-------------------------------------+"
+#define FOOTER_BASE_CLR_A    "+-------------------------------------+"
+#define FOOTER_BASE_NO_CLR_A "+-------------------------------------+"
+
 void
 print_header(void)
 {
 	CLEAR_SCREEN;
+	static char *sep = NULL, *top = NULL, *base;
+	if (!sep){
+		sep = g_options.ascii_draw ? SEP_A : SEP_U;
+		top = g_options.ascii_draw ? HEADER_TOP_A : HEADER_TOP_U;
+		base = g_options.ascii_draw ? HEADER_BASE_A : HEADER_BASE_U;
+	}
 
 	const char *bold = *g_options.colors.header ? "\x1b[1m" : "";
 	printf(" %s%s%s %s  (%sC-c%s: quit, %sC-x%s: clear)\n"
-		" ┌──────┬──────┬─────┬──────────┬──────┐\n"
-		" │ %sHex%s  │ %sOct%s  │ %sDec%s │   %sBin%s    │ %sSym%s  │\n"
-		" ├──────┼──────┼─────┼──────────┼──────┤\n",
+		" %s\n"
+		" %s %sHex%s  %s %sOct%s  %s %sDec%s %s   %sBin%s    %s %sSym%s  %s\n"
+		" %s\n",
 		bold, PROG_NAME, g_options.colors.reset, VERSION,
 		bold, g_options.colors.reset, bold, g_options.colors.reset,
-		g_options.colors.header, g_options.colors.reset,
-		g_options.colors.header, g_options.colors.reset,
-		g_options.colors.header, g_options.colors.reset,
-		g_options.colors.header, g_options.colors.reset,
-		g_options.colors.header, g_options.colors.reset);
+		top,
+		sep, g_options.colors.header, g_options.colors.reset,
+		sep, g_options.colors.header, g_options.colors.reset,
+		sep, g_options.colors.header, g_options.colors.reset,
+		sep, g_options.colors.header, g_options.colors.reset,
+		sep, g_options.colors.header, g_options.colors.reset,
+		sep, base);
 }
 
 void
@@ -185,15 +213,20 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 
 	const char *color = is_utf8 == 1 ? "" : g_options.colors.translation;
 	const char *utf8_cp = is_utf8 == 1 ? build_utf8_codepoint(buf) : "";
+	const int ascii = g_options.ascii_draw;
 
-	printf(" ├──────┴──────┴─────┴──────────┴──────┤\n"
-		" │ %s%s%s%s\x1b[%dG│\n", color, str ? str : "?",
-		utf8_cp, g_options.colors.reset, edge);
+	printf(" %s\n"
+		" %s %s%s%s%s\x1b[%dG%s\n",
+		ascii ? FOOTER_TOP_A : FOOTER_TOP_U,
+		ascii ? SEP_A : SEP_U,
+		color, str ? str : "?",
+		utf8_cp, g_options.colors.reset, edge,
+		ascii ? SEP_A : SEP_U);
 
 	if (clear_screen == 0)
-		puts(" ├─────────────────────────────────────┤");
+		printf(" %s\n", ascii ? FOOTER_BASE_NO_CLR_A : FOOTER_BASE_NO_CLR_U);
 	else
-		puts(" └─────────────────────────────────────┘");
+		printf(" %s\n", ascii ? FOOTER_BASE_CLR_A : FOOTER_BASE_CLR_U);
 
 	memset(buf, '\0', BUF_SIZE);
 	free(str);
@@ -202,19 +235,24 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 void
 print_row(const int c, const char *s)
 {
-	printf(" │ %s\\x%02x%s │ %s\\%03o%s │ %s%3d%s │ %s%s%s │ %s%*s%s │\n",
-		g_options.colors.code, c, g_options.colors.reset,
-		g_options.colors.code, c, g_options.colors.reset,
-		g_options.colors.code, c, g_options.colors.reset,
-		g_options.colors.code, build_binary((uint8_t)c), g_options.colors.reset,
-		g_options.colors.symbol, 4, s, g_options.colors.reset);
+	static char *sep = NULL;
+	if (!sep)
+		sep = g_options.ascii_draw ? SEP_A : SEP_U;
+
+	printf(" %s %s\\x%02x%s %s %s\\%03o%s %s %s%3d%s %s %s%s%s %s %s%*s%s %s\n",
+		sep, g_options.colors.code, c, g_options.colors.reset,
+		sep, g_options.colors.code, c, g_options.colors.reset,
+		sep, g_options.colors.code, c, g_options.colors.reset,
+		sep, g_options.colors.code, build_binary((uint8_t)c), g_options.colors.reset,
+		sep, g_options.colors.symbol, 4, s, g_options.colors.reset, sep);
 }
 
 void
 print_bottom_line(const int clear_screen)
 {
+	const int ascii = g_options.ascii_draw;
 	if (clear_screen == 0)
-		puts(" ├──────┼──────┼─────┼──────────┼──────┤");
+		printf(" %s\n", ascii ? BOTTOM_NO_CLR_A : BOTTOM_NO_CLR_U);
 	else
-		puts(" └──────┴──────┴─────┴──────────┴──────┘");
+		printf(" %s\n", ascii ? BOTTOM_CLR_A : BOTTOM_CLR_U);
 }

@@ -26,10 +26,11 @@
 */
 
 /* Default value for options */
+#define DEFAULT_ASCII_DRAW   0
 #define DEFAULT_CLEAR_SCREEN 0
 #define DEFAULT_COLOR        1
-#define DEFAULT_TRANSLATE    NULL
 #define DEFAULT_KITTY_KEYS   0 /* 1: enable, 2: full. */
+#define DEFAULT_TRANSLATE    NULL
 #define DEFAULT_XTERM_MOK    0
 
 /* Default colors */
