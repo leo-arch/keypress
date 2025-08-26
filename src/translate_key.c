@@ -114,6 +114,8 @@ static const char *key_table[256] = {
 	 * See https://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod#Escape_Sequences */
 	[25] = "F13", [26] = "F14", [28] = "F15", [29]= "F16", [31] = "F17",
 	[32] = "F18", [33] = "F19", [34] = "F20",
+	/* Seen in Xterm with legacy keyboard emulation (CSI ?1060h) */
+	[42] = "F21", [43] = "F22",
 	/* 42-63 = F21-F42
 	 * See https://invisible-island.net/ncurses/terminfo.src.html#tic-xterm-new */
 
