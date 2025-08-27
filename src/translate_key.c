@@ -199,8 +199,8 @@ static const struct ext_key_map_t ext_key_map[] = {
 	{57453, "ISO_Level3_Shift"}, {57454, "ISO_Level5_Shift"},
 
 	/* Foot */
-	{65421, "KP_Enter"},
-	{65450, "KP_Multiply"}, {65451, "KP_Add"}, {65453, "KP_Subtract"},
+	{65421, "KP_Enter"}, {65450, "KP_Multiply"}, {65451, "KP_Add"},
+	{65452, "KP_Separator"}, {65453, "KP_Subtract"},
 	{65454, "KP_Delete"}, {65455, "KP_Divide"}, {65456, "KP_Insert"},
 	{65457, "KP_End"}, {65458, "KP_Down"}, {65459, "KP_PgDn"},
 	{65460, "KP_Left"}, {65461, "KP_5"}, {65462, "KP_Right"},
