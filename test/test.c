@@ -254,6 +254,7 @@ struct keys_t keys[] = {
 	/* Kitty protocol */
 	{"\x1b[57425u", "KP_Insert"}, {"\x1b[118;3u", "Alt+v"},
 	{"\x1b[106;7u", "Ctrl+Alt+j"},
+	{"\x1b[106;144u", "NumLock+Super+Ctrl+Alt+Shift+j"},
 
 	/* Xterm  (with modifyOtherKeys enabled) */
 	{"\x1b[27;5;13~", "Ctrl+Enter"}, {"\x1b[27;5;49~", "Ctrl+1"},
