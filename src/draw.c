@@ -213,22 +213,24 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 
 	char *str = translate_key(buf);
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
-	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH - 1)
-		str[TABLE_WIDTH] = '\0';
+	int overlong = 0;
+	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH)
+		overlong = 1;
 
 	const char *color = is_utf8 == 1 ? "" : g_options.colors.translation;
 	const char *utf8_cp = is_utf8 == 1 ? build_utf8_codepoint(buf) : "";
 	const int ascii = g_options.ascii_draw;
 	const char *table_color = g_options.colors.table;
 	const char *reset_color = g_options.colors.reset;
+	const char *sep = ascii ? SEP_A : SEP_U;
 
 	printf(" %s%s\n"
 		" %s%s %s%s%s%s\x1b[%dG%s%s%s\n",
 		table_color, ascii ? FOOTER_TOP_A : FOOTER_TOP_U,
-		ascii ? SEP_A : SEP_U, reset_color,
+		sep, reset_color,
 		color, str ? str : "?",
 		utf8_cp, reset_color, edge,
-		table_color, ascii ? SEP_A : SEP_U, reset_color);
+		table_color, overlong == 0 ? sep : "", reset_color);
 
 	if (clear_screen == 0)
 		printf(" %s%s%s\n", table_color,
