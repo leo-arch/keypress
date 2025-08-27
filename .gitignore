@@ -3,4 +3,6 @@ keypress
 *.o
 *.d
 
+test/test
+
 TODO
