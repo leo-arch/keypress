@@ -25,12 +25,13 @@
 
 /* test.c */
 
-#include <stdio.h>  // printf & co
-#include <stdlib.h> // malloc
-#include <string.h> // strlen
-#include <errno.h>  // ENOMEM
+#include <stdio.h>  /* printf & co */
+#include <stdlib.h> /* malloc */
+#include <string.h> /* strlen */
+#include <ctype.h>  /* isprint */
+#include <errno.h>  /* ENOMEM */
 
-#include "../src/translate_key.h" // translate_key
+#include "../src/translate_key.h" /* translate_key */
 
 struct keys_t {
 	char *key;
@@ -273,7 +274,6 @@ struct keys_t keys[] = {
 	{NULL, NULL},
 };
 
-#define ESC_KEY 0x27
 int
 main(int argc, char **argv)
 {
@@ -295,10 +295,11 @@ main(int argc, char **argv)
 		if (!ret || strcmp(ret, keys[i].translation) != 0) {
 			errors++;
 			for (size_t j = 0; keys[i].key[j]; j++) {
-				if (keys[i].key[j] < 0x31)
-					printf("%d", keys[i].key[j]);
+				const unsigned char ch = (unsigned char)keys[i].key[j];
+				if (!isprint(ch))
+					printf("\\x%02x", ch);
 				else
-					printf("%c", keys[i].key[j]);
+					printf("%c", ch);
 			}
 
 			if (!ret)
