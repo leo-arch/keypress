@@ -83,7 +83,7 @@ static const char *ctrl_keys[256] = {
 	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape",
 };
 
-static const char *key_table[256] = {
+static const char *key_map[256] = {
 	[1] = "Home", [2] = "Ins", [3] = "Del", [4] = "End",
 	[5] = "PgUp", [6] = "PgDn", [7] = "Home", [8] = "End",
 	[10] = "F0", [11] = "F1", [12] = "F2", [13] = "F3",
@@ -121,36 +121,6 @@ static const char *key_table[256] = {
 	[222] = "PgDn",
 	[224] = "F1", [225] = "F2", [226] = "F3", [227] = "F4", [228] = "F5",
 	[229] = "F6", [230] = "F7", [231] = "F8", [232] = "F9", [233] = "F10"
-};
-
-struct exceptions_t {
-	const char *key;
-	const char *name;
-};
-
-/* A list of escape sequences missed by our identifying algorithms, mostly
- * because they deviate from Xterm and Rxvt protocols. */
-static const struct exceptions_t exceptions[] = {
-	/* Linux console */
-	/* Using A-D (almost universally used for arrow keys) for function keys
-	 * is confusing, to say the least. */
-	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
-	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
-
-	/* St
-	 * Keycodes and modifiers are not used consistently. For example,
-	 * "CSI 2J" is Shift+Home: '2' for Shift and 'J' for Home. But,
-	 * "CSI J" is Ctrl+End: no modifier (it should be '5') and 'J' is not
-	 * Home anymore, but Del.
-	 * Also, while "CSI P", is Del, "CSI 2K" is Shift+Del and "CSI K" is Shift+End.
-	 * Also, while "CSI L" is Ctrl+Ins, "CSI 4l" is Shift+Ins. */
-	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
-	{"\x1b[2J", "Shift+Home"}, {"\x1b[K", "Shift+End"},
-	{"\x1b[2K", "Shift+Del"}, {"\x1b[J", "Ctrl+End"},
-	{"\x1b[4l", "Shift+Ins"},
-	/* This one is F1 in Kitty, forget about it.
-	{"\x1b[P", "Del"}, */
-	{NULL, NULL}
 };
 
 struct ext_key_map_t {
@@ -207,6 +177,36 @@ static const struct ext_key_map_t ext_key_map[] = {
 	{65463, "KP_Home"}, {65464, "KP_Up"}, {65465, "KP_PgUp"},
 
 	{0, NULL}
+};
+
+struct exceptions_t {
+	const char *key;
+	const char *name;
+};
+
+/* A list of escape sequences missed by our identifying algorithms, mostly
+ * because they do not seem to follow any recognizable pattern. */
+static const struct exceptions_t exceptions[] = {
+	/* Linux console */
+	/* Using A-D (almost universally used for arrow keys) for function keys
+	 * is confusing, to say the least. */
+	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
+	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
+
+	/* St
+	 * Keycodes and modifiers are not used consistently. For example,
+	 * "CSI 2J" is Shift+Home: '2' for Shift and 'J' for Home. But,
+	 * "CSI J" is Ctrl+End: no modifier (it should be '5') and 'J' is not
+	 * Home anymore, but Del.
+	 * Also, while "CSI P", is Del, "CSI 2K" is Shift+Del and "CSI K" is Shift+End.
+	 * Also, while "CSI L" is Ctrl+Ins, "CSI 4l" is Shift+Ins. */
+	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
+	{"\x1b[2J", "Shift+Home"}, {"\x1b[K", "Shift+End"},
+	{"\x1b[2K", "Shift+Del"}, {"\x1b[J", "Ctrl+End"},
+	{"\x1b[4l", "Shift+Ins"},
+	/* This one is F1 in Kitty, forget about it.
+	{"\x1b[P", "Del"}, */
+	{NULL, NULL}
 };
 
 /* A safe atoi */
@@ -455,7 +455,7 @@ get_ext_key_symbol(const int keycode)
 	return str;
 }
 
-/* Translate the modifier number MOD_NUM into human-readable form. */
+/* Translate the modifier number MOD_key into human-readable form. */
 static const char *
 get_mod_symbol(const int mod_key)
 {
@@ -471,13 +471,13 @@ get_mod_symbol(const int mod_key)
 	int l = 0;
 
 	if (m & 128) l += snprintf(mod + l, s - (size_t)l, "NumLock+");
-	if (m & 64) l += snprintf(mod + l, s - (size_t)l, "CapsLock+");
-	if (m & 32) l += snprintf(mod + l, s - (size_t)l, "Meta+");
-	if (m & 16) l += snprintf(mod + l, s - (size_t)l, "Hyper+");
-	if (m & 8) l += snprintf(mod + l, s - (size_t)l, "Super+");
-	if (m & 4) l += snprintf(mod + l, s - (size_t)l, "Ctrl+");
-	if (m & 2) l += snprintf(mod + l, s - (size_t)l, "Alt+");
-	if (m & 1) l += snprintf(mod + l, s - (size_t)l, "Shift+");
+	if (m & 64)  l += snprintf(mod + l, s - (size_t)l, "CapsLock+");
+	if (m & 32)  l += snprintf(mod + l, s - (size_t)l, "Meta+");
+	if (m & 16)  l += snprintf(mod + l, s - (size_t)l, "Hyper+");
+	if (m & 8)   l += snprintf(mod + l, s - (size_t)l, "Super+");
+	if (m & 4)   l += snprintf(mod + l, s - (size_t)l, "Ctrl+");
+	if (m & 2)   l += snprintf(mod + l, s - (size_t)l, "Alt+");
+	if (m & 1)   l += snprintf(mod + l, s - (size_t)l, "Shift+");
 
 	return mod;
 }
@@ -547,7 +547,7 @@ static char *
 write_translation(const int keycode, const int mod_key)
 {
 	const char *k = (keycode >= 0 && keycode <= 255)
-		? key_table[(unsigned char)keycode] : NULL;
+		? key_map[(unsigned char)keycode] : NULL;
 	const char *m = (mod_key >= 0 && mod_key <= 255)
 		? get_mod_symbol((int)mod_key) : NULL;
 
