@@ -83,25 +83,6 @@ static const char *ctrl_keys[256] = {
 	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape",
 };
 
-/* The Super key is usually mapped to the Win/logo key (Mod4), for example,
- * on Wayland and Kitty. Mod1 is typically Alt, while Mod2 is NumLock, and
- * Mod5 AltGr (Right Alt). Mod3 is normally left unassigned. */
-static const char *mod_table[256] = {
-	[SHIFT_VAL] = "Shift",
-	[ALT_VAL] = "Alt",
-	[CTRL_VAL] = "Ctrl",
-	[SUPER_VAL] = "Super",
-	[ALT_VAL + SHIFT_VAL] = "Alt+Shift",
-	[CTRL_VAL + SHIFT_VAL] = "Ctrl+Shift",
-	[CTRL_VAL + ALT_VAL] = "Ctrl+Alt",
-	[CTRL_VAL + ALT_VAL + SHIFT_VAL] = "Ctrl+Alt+Shift",
-	[SUPER_VAL + SHIFT_VAL] = "Super+Shift",
-	[SUPER_VAL + ALT_VAL] = "Super+Alt",
-	[SUPER_VAL + CTRL_VAL] = "Super+Ctrl",
-	[SUPER_VAL + CTRL_VAL + ALT_VAL] = "Super+Ctrl+Alt",
-	[SUPER_VAL + CTRL_VAL + ALT_VAL + SHIFT_VAL] = "Super+Ctrl+Alt+Shift"
-};
-
 static const char *key_table[256] = {
 	[1] = "Home", [2] = "Ins", [3] = "Del", [4] = "End",
 	[5] = "PgUp", [6] = "PgDn", [7] = "Home", [8] = "End",
@@ -218,9 +199,12 @@ static const struct ext_key_map_t ext_key_map[] = {
 	{57453, "ISO_Level3_Shift"}, {57454, "ISO_Level5_Shift"},
 
 	/* Foot */
+	{65421, "KP_Enter"},
 	{65450, "KP_Multiply"}, {65451, "KP_Add"}, {65453, "KP_Subtract"},
 	{65454, "KP_Delete"}, {65455, "KP_Divide"}, {65456, "KP_Insert"},
-	{65457, "KP_End"}, {65465, "KP_PgUp"},
+	{65457, "KP_End"}, {65458, "KP_Down"}, {65459, "KP_PgDn"},
+	{65460, "KP_Left"}, {65461, "KP_5"}, {65462, "KP_Right"},
+	{65463, "KP_Home"}, {65464, "KP_Up"}, {65465, "KP_PgUp"},
 
 	{0, NULL}
 };
@@ -431,30 +415,6 @@ check_single_key(char *str, const int csi_seq)
 }
 #undef MAX_BUF
 
-static char *
-write_translation(const int keycode, const int mod_key)
-{
-	const char *k = (keycode >= 0 && keycode <= 255)
-		? key_table[(unsigned char)keycode] : NULL;
-	const char *m = (mod_key >= 0 && mod_key <= 255)
-		? mod_table[(unsigned char)mod_key] : NULL;
-
-	if (!k)
-		return NULL;
-
-	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 2;
-	char *buf = malloc(len * sizeof(char));
-	if (!buf)
-		return NULL;
-
-	if (m)
-		snprintf(buf, len, "%s+%s", m, k);
-	else
-		snprintf(buf, len, "%s", k);
-
-	return buf;
-}
-
 static const char *
 get_ext_key_symbol(const int keycode)
 {
@@ -497,7 +457,7 @@ get_ext_key_symbol(const int keycode)
 
 /* Translate the modifier number MOD_NUM into human-readable form. */
 static const char *
-get_kitty_mod_symbol(const int mod_key)
+get_mod_symbol(const int mod_key)
 {
 	/* The biggest value mod_key can take is 255 (since
 	 * 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 = 255). In this case, the modifier
@@ -510,14 +470,14 @@ get_kitty_mod_symbol(const int mod_key)
 	const size_t s = sizeof(mod);
 	int l = 0;
 
+	if (m & 128) l += snprintf(mod + l, s - (size_t)l, "NumLock+");
+	if (m & 64) l += snprintf(mod + l, s - (size_t)l, "CapsLock+");
+	if (m & 32) l += snprintf(mod + l, s - (size_t)l, "Meta+");
+	if (m & 16) l += snprintf(mod + l, s - (size_t)l, "Hyper+");
+	if (m & 8) l += snprintf(mod + l, s - (size_t)l, "Super+");
 	if (m & 4) l += snprintf(mod + l, s - (size_t)l, "Ctrl+");
 	if (m & 2) l += snprintf(mod + l, s - (size_t)l, "Alt+");
 	if (m & 1) l += snprintf(mod + l, s - (size_t)l, "Shift+");
-	if (m & 8) l += snprintf(mod + l, s - (size_t)l, "Super+");
-	if (m & 16) l += snprintf(mod + l, s - (size_t)l, "Hyper+");
-	if (m & 32) l += snprintf(mod + l, s - (size_t)l, "Meta+");
-	if (m & 64) l += snprintf(mod + l, s - (size_t)l, "CapsLock+");
-	if (m & 128) snprintf(mod + l, s - (size_t)l, "NumLock+");
 
 	return mod;
 }
@@ -540,7 +500,7 @@ write_kitty_keys(char *str, const size_t end)
 	}
 
 	const char *k = keycode != -1 ? get_ext_key_symbol(keycode) : NULL;
-	const char *m = mod_key != 0 ? get_kitty_mod_symbol(mod_key) : NULL;
+	const char *m = mod_key != 0 ? get_mod_symbol(mod_key) : NULL;
 
 	if (!k)
 		return NULL;
@@ -572,14 +532,38 @@ write_xterm_mok_seq(char *str, const size_t end)
 	const int keycode = xatoi(s + 1);
 	const char *k = get_ext_key_symbol(keycode);
 	const char *m = (mod_key >= 0 && mod_key <= 255)
-		? mod_table[(unsigned char)mod_key] : NULL;
+		? get_mod_symbol((int)mod_key) : NULL;
 
 	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 2;
 	char *buf = malloc(len * sizeof(char));
 	if (!buf)
 		return NULL;
 
-	snprintf(buf, len, "%s%s%s", m ? m : "", m ? "+" : "", k);
+	snprintf(buf, len, "%s%s", m ? m : "", k);
+	return buf;
+}
+
+static char *
+write_translation(const int keycode, const int mod_key)
+{
+	const char *k = (keycode >= 0 && keycode <= 255)
+		? key_table[(unsigned char)keycode] : NULL;
+	const char *m = (mod_key >= 0 && mod_key <= 255)
+		? get_mod_symbol((int)mod_key) : NULL;
+
+	if (!k)
+		return NULL;
+
+	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 2;
+	char *buf = malloc(len * sizeof(char));
+	if (!buf)
+		return NULL;
+
+	if (m)
+		snprintf(buf, len, "%s%s", m, k);
+	else
+		snprintf(buf, len, "%s", k);
+
 	return buf;
 }
 
