@@ -85,11 +85,6 @@ run_translate_key(const char *arg)
 		return EXIT_FAILURE;
 	}
 
-#ifdef TK_TEST
-	if (strcmp(arg, "test") == 0)
-		return key_test();
-#endif
-
 	char *str = malloc((strlen(arg) + 1) * sizeof(char));
 	if (!str)
 		return ENOMEM;
