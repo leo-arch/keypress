@@ -84,7 +84,8 @@ static const char *ctrl_keys[256] = {
 };
 
 static const char *key_map[256] = {
-	[1] = "Home", [2] = "Ins", [3] = "Del", [4] = "End",
+	/* According to Rxvt docs: 1: Find, 3:Execute (but also Delete), 4:Select*/
+	[1] = "Find", [2] = "Ins", [3] = "Del", [4] = "Select",
 	[5] = "PgUp", [6] = "PgDn", [7] = "Home", [8] = "End",
 	[10] = "F0", [11] = "F1", [12] = "F2", [13] = "F3",
 	[14] = "F4", [15] = "F5", [17] = "F6", [18] = "F7",
@@ -95,18 +96,22 @@ static const char *key_map[256] = {
 	 * See https://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod#Escape_Sequences */
 	[25] = "F13", [26] = "F14", [28] = "F15", [29]= "F16", [31] = "F17",
 	[32] = "F18", [33] = "F19", [34] = "F20",
-	/* Seen in Xterm with legacy keyboard emulation (CSI ?1060h) */
-	[42] = "F21", [43] = "F22",
-	/* 42-63 = F21-F42
-	 * See https://invisible-island.net/ncurses/terminfo.src.html#tic-xterm-new */
+
+	[42] = "F21", [43] = "F22", [44] = "F23", [45] = "F24", [46] = "F25",
+	[47] = "F26", [48] = "F27", [49] = "F28", [50] = "F29", [51] = "F30",
+	[52] = "F31", [53] = "F32", [54] = "F33", [55] = "F34", [56] = "F35",
+	[57] = "F36", [58] = "F37", [59] = "F38", [60] = "F39", [61] = "F40",
+	[62] = "F41", [63] = "F42",
+	/* See https://invisible-island.net/ncurses/terminfo.src.html#tic-xterm-new */
 
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
 
 	/* Rxvt */
+	/* See https://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
-	['j'] = "KP_Multiply", ['k'] = "KP_Add", ['l'] = "KP_Comma",
+	['j'] = "KP_Multiply", ['k'] = "KP_Add", ['l'] = "KP_Separator",
 	['m'] = "KP_Subtract",
-	['M'] = "KP_Enter", ['n'] = "KP_Period", ['o'] = "KP_Divide",
+	['M'] = "KP_Enter", ['n'] = "KP_Decimal", ['o'] = "KP_Divide",
 	['p'] = "KP_0", ['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3",
 	['t'] = "KP_4", ['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7",
 	['x'] = "KP_8", ['y'] = "KP_9", ['X'] = "KP_Equal",
@@ -116,7 +121,15 @@ static const char *key_map[256] = {
 	['P'] = "F1", ['Q'] = "F2", ['R'] = "F3", ['S'] = "F4",
 
 	/* Sun/Solaris */
-	[192] = "F11", [193] = "F12",
+	[192] = "F11", [193] = "F12", [194] = "F13", [195] = "F14", [196] = "F15",
+	[198] = "F17", [199] = "F18", [200] = "F19", [201] = "F20",
+	[208] = "F31", [209] = "F32", [210] = "F33", [211] = "F34", [212] = "F35",
+	[213] = "F36",
+	[215] = "F38", [217] = "F40", [219] = "F42", [221] = "F44",
+	[234] = "F46", [235] = "F47",
+	[197] = "Copy",
+/*  These ones conflict with the above function keys
+ * 	[195] = "Undo", [196] = "Help", [200] = "Find", */
 	[214] = "Home", [216] = "PgUp", [218] = "KP_5", [220] = "End",
 	[222] = "PgDn",
 	[224] = "F1", [225] = "F2", [226] = "F3", [227] = "F4", [228] = "F5",
@@ -192,6 +205,25 @@ static const struct exceptions_t exceptions[] = {
 	 * is confusing, to say the least. */
 	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
 	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
+
+	/* Xterm high function keys: I just cannot find any clear pattern. */
+	{"\x1b[1;2P", "F13"}, {"\x1b[1;2Q", "F14"}, {"\x1b[1;2R", "F15"},
+	{"\x1b[1;2S", "F16"}, {"\x1b[15;2~", "F17"}, {"\x1b[17;2~", "F18"},
+	{"\x1b[18;2~", "F19"}, {"\x1b[19;2~", "F20"}, {"\x1b[20;2~", "F21"},
+	{"\x1b[21;2~", "F22"}, {"\x1b[23;2~", "F23"}, {"\x1b[24;2~", "F24"},
+	{"\x1b[1;5P", "F25"}, {"\x1b[1;5Q", "F26"}, {"\x1b[1;5R", "F27"},
+	{"\x1b[1;5S", "F28"}, {"\x1b[15;5~", "F29"}, {"\x1b[17;5~", "F30"},
+	{"\x1b[18;5~", "F31"}, {"\x1b[19;5~", "F32"}, {"\x1b[20;5~", "F33"},
+	{"\x1b[21;5~", "F34"}, {"\x1b[23;5~", "F35"}, {"\x1b[24;5~", "F36"},
+	{"\x1b[1;6P", "F37"}, {"\x1b[1;6Q", "F38"}, {"\x1b[1;6R", "F39"},
+	{"\x1b[1;6S", "F40"}, {"\x1b[15;6~", "F41"}, {"\x1b[17;6~", "F42"},
+	{"\x1b[18;6~", "F43"}, {"\x1b[19;6~", "F44"}, {"\x1b[20;6~", "F45"},
+	{"\x1b[21;6~", "F46"}, {"\x1b[23;6~", "F47"}, {"\x1b[24;6~", "F48"},
+	{"\x1b[1;3P", "F49"}, {"\x1b[1;3Q", "F50"}, {"\x1b[1;3R", "F51"},
+	{"\x1b[1;3S", "F52"}, {"\x1b[15;3~", "F53"}, {"\x1b[17;3~", "F54"},
+	{"\x1b[18;3~", "F55"}, {"\x1b[19;3~", "F56"}, {"\x1b[20;3~", "F57"},
+	{"\x1b[21;3~", "F58"}, {"\x1b[23;3~", "F59"}, {"\x1b[24;3~", "F60"},
+	{"\x1b[1;4P", "F61"}, {"\x1b[1;4Q", "F62"}, {"\x1b[1;4R", "F63"},
 
 	/* St
 	 * Keycodes and modifiers are not used consistently. For example,
