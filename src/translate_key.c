@@ -269,7 +269,7 @@ set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
 
 	if (*str == ESC_KEY) { /* Rxvt */
 		*mod_key += ALT_VAL;
-		str += 2;
+		str += 2; /* Skip "ESC [" */
 	}
 
 	*keycode = xatoi(str);
@@ -305,6 +305,10 @@ set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
 	if (s) {
 		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	} else {
+		if (*str == ESC_KEY) { /* Rxvt */
+			*mod_key += ALT_VAL;
+			str++;
+		}
 		if (*str == SS3_INTRODUCER) /* Contour (SS3 mod key) */
 			str++;
 		*mod_key += *str ? xatoi(str) - 1 : 0;
