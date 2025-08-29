@@ -116,11 +116,11 @@ static const char *key_map[256] = {
 	/* See https://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
 	['j'] = "KP_Multiply", ['k'] = "KP_Add", ['l'] = "KP_Separator",
-	['m'] = "KP_Subtract", ['M'] = "KP_Enter", ['n'] = "KP_Decimal",
+	['m'] = "KP_Subtract", ['M'] = "KP_Enter", ['n'] = "KP_Delete",
 	['o'] = "KP_Divide",
-	['p'] = "KP_0", ['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3",
-	['t'] = "KP_4", ['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7",
-	['x'] = "KP_8", ['y'] = "KP_9", ['X'] = "KP_Equal",
+	['p'] = "KP_Insert", ['q'] = "KP_End", ['r'] = "KP_Down", ['s'] = "KP_PgDn",
+	['t'] = "KP_Left", ['u'] = "KP_Begin", ['v'] = "KP_Right", ['w'] = "KP_Home",
+	['x'] = "KP_Up", ['y'] = "KP_PgUp", ['X'] = "KP_Equal",
 
 	/* Xterm */
 	['E'] = "Begin", ['F'] = "End", ['H'] = "Home",
