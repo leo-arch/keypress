@@ -210,12 +210,6 @@ struct exceptions_t {
 /* A list of escape sequences missed by our identifying algorithms, mostly
  * because they do not seem to follow any recognizable pattern. */
 static const struct exceptions_t exceptions[] = {
-	/* Linux console */
-	/* Using A-D (almost universally used for arrow keys) for function keys
-	 * is confusing, to say the least. */
-	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
-	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
-
 	/* St
 	 * Keycodes and modifiers are not used consistently. For example,
 	 * "CSI 2J" is Shift+Home: '2' for Shift and 'J' for Home. But,
@@ -594,6 +588,27 @@ write_translation(const int keycode, const int mod_key)
 	return buf;
 }
 
+static int
+normalize_seq(char **seq)
+{
+	char *s = *seq;
+
+	const int csi_seq =
+		(s[1] == CSI_INTRODUCER || (unsigned char)*s == ALT_CSI);
+	s += s[1] == CSI_INTRODUCER ? 2 : 1;
+
+	while ((unsigned char)*s == ALT_CSI) /* Skip extra 0x9b */
+		s++;
+
+	/* Skip extra '['. The Linux console, for example, is known to emit
+	 * a double CSI introducer for arrow keys ("ESC [[A" for Up). */
+	while ((unsigned char)*s == CSI_INTRODUCER)
+		s++;
+
+	*seq = s;
+	return csi_seq;
+}
+
 /* Translate the escape sequence STR into the corresponding symbolic value.
  * E.g. "\x1b[1;7D" will return "Ctrl+Alt+Left". If no symbolic value is
  * found, NULL is returned.
@@ -604,48 +619,44 @@ write_translation(const int keycode, const int mod_key)
  * reading terminal input in raw mode. User suplied input, therefore, will
  * return false positives. */
 char *
-translate_key(char *str)
+translate_key(char *seq)
 {
-	if (!str || !*str)
+	if (!seq || !*seq)
 		return NULL;
 
-	if (*str != ESC_KEY && (unsigned char)*str != ALT_CSI)
-		return print_non_esc_seq(str);
+	if (*seq != ESC_KEY && (unsigned char)*seq != ALT_CSI)
+		return print_non_esc_seq(seq);
 
-	char *buf = check_exceptions(str);
+	char *buf = check_exceptions(seq);
 	if (buf)
 		return buf;
 
-	const int csi_seq =
-		(str[1] == CSI_INTRODUCER || (unsigned char)*str == ALT_CSI);
-	str += str[1] == CSI_INTRODUCER ? 2 : 1;
-	while ((unsigned char)*str == ALT_CSI)
-		str++;
+	const int csi_seq = normalize_seq(&seq);
 
-	buf = check_single_key(str, csi_seq);
+	buf = check_single_key(seq, csi_seq);
 	if (buf)
 		return buf;
 
 	int keycode = -1;
 	int mod_key = 0;
 
-	const size_t len = strlen(str);
+	const size_t len = strlen(seq);
 	const size_t end = len > 0 ? len - 1 : len;
 
-	const char end_char = str[end];
+	const char end_char = seq[end];
 
 	if (IS_KITTY_END_CHAR(end_char) && csi_seq == 1)
-		return write_kitty_keys(str, end);
+		return write_kitty_keys(seq, end);
 
-	if (IS_XTERM_MOK_SEQ(str, end_char) && csi_seq == 1)
-		return write_xterm_mok_seq(str, end);
+	if (IS_XTERM_MOK_SEQ(seq, end_char) && csi_seq == 1)
+		return write_xterm_mok_seq(seq, end);
 
 	else if (IS_MODKEY_END_CHAR(end_char))
-		set_end_char_is_mod_key(str, end, &keycode, &mod_key);
+		set_end_char_is_mod_key(seq, end, &keycode, &mod_key);
 	else if (IS_KEYCODE_END_CHAR(end_char))
-		set_end_char_is_keycode(str, end, &keycode, &mod_key);
+		set_end_char_is_keycode(seq, end, &keycode, &mod_key);
 	else if (IS_GENERIC_END_CHAR(end_char))
-		set_end_char_is_generic(str, end, &keycode, &mod_key);
+		set_end_char_is_generic(seq, end, &keycode, &mod_key);
 	else
 		return NULL;
 
