@@ -84,12 +84,18 @@ static const char *ctrl_keys[256] = {
 };
 
 static const char *key_map[256] = {
-	/* According to Rxvt docs: 1: Find, 3:Execute (but also Delete), 4:Select*/
-	[1] = "Find", [2] = "Ins", [3] = "Del", [4] = "Select",
+	/* According to Rxvt docs: 1:Find, 3:Execute (but also Delete), 4:Select
+	 * However, 4 is End and 1 is Home in the Linux console. */
+	[1] = "Home", [4] = "End",
+
+	[2] = "Ins", [3] = "Del",
 	[5] = "PgUp", [6] = "PgDn", [7] = "Home", [8] = "End",
-	[10] = "F0", [11] = "F1", [12] = "F2", [13] = "F3",
-	[14] = "F4", [15] = "F5", [17] = "F6", [18] = "F7",
-	[19] = "F8", [20] = "F9", [21] = "F10", [23]= "F11", [24] = "F12",
+	/* 9 and 10 are normally not used. Some mappings found (on rare/old terms):
+	9: F0, F3, F33, F34, and Clear
+	10: F4, F10, F34, and F35 */
+	[11] = "F1", [12] = "F2", [13] = "F3",  [14] = "F4", [15] = "F5",
+	[17] = "F6", [18] = "F7", [19] = "F8", [20] = "F9", [21] = "F10",
+	[23]= "F11", [24] = "F12",
 
 	/* In Rxvt, these integers are mapped to either a function key above
 	 * F12, or to the shifted number - 10. E.g., 25 is both F13 and Shift+F3.
@@ -110,15 +116,18 @@ static const char *key_map[256] = {
 	/* See https://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod */
 	['a'] = "Up", ['b'] = "Down", ['c'] = "Right", ['d'] = "Left",
 	['j'] = "KP_Multiply", ['k'] = "KP_Add", ['l'] = "KP_Separator",
-	['m'] = "KP_Subtract",
-	['M'] = "KP_Enter", ['n'] = "KP_Decimal", ['o'] = "KP_Divide",
+	['m'] = "KP_Subtract", ['M'] = "KP_Enter", ['n'] = "KP_Decimal",
+	['o'] = "KP_Divide",
 	['p'] = "KP_0", ['q'] = "KP_1", ['r'] = "KP_2", ['s'] = "KP_3",
 	['t'] = "KP_4", ['u'] = "KP_5", ['v'] = "KP_6", ['w'] = "KP_7",
 	['x'] = "KP_8", ['y'] = "KP_9", ['X'] = "KP_Equal",
 
 	/* Xterm */
-	['E'] = "KP_5", ['F'] = "End", ['G'] = "KP_5", ['H'] = "Home",
+	['E'] = "Begin", ['F'] = "End", ['H'] = "Home",
 	['P'] = "F1", ['Q'] = "F2", ['R'] = "F3", ['S'] = "F4",
+
+	/* Linux console */
+	['G'] = "Begin",
 
 	/* Sun/Solaris */
 	[192] = "F11", [193] = "F12", [194] = "F13", [195] = "F14", [196] = "F15",
@@ -127,10 +136,11 @@ static const char *key_map[256] = {
 	[213] = "F36",
 	[215] = "F38", [217] = "F40", [219] = "F42", [221] = "F44",
 	[234] = "F46", [235] = "F47",
+	/* According to terminfo, kcpy is "CSI 197z", while kf16 is "CSI 29~" */
 	[197] = "Copy",
 /*  These ones conflict with the above function keys
  * 	[195] = "Undo", [196] = "Help", [200] = "Find", */
-	[214] = "Home", [216] = "PgUp", [218] = "KP_5", [220] = "End",
+	[214] = "Home", [216] = "PgUp", [218] = "Begin", [220] = "End",
 	[222] = "PgDn",
 	[224] = "F1", [225] = "F2", [226] = "F3", [227] = "F4", [228] = "F5",
 	[229] = "F6", [230] = "F7", [231] = "F8", [232] = "F9", [233] = "F10"
