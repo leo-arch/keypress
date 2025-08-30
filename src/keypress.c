@@ -91,7 +91,9 @@ run_translate_key(const char *arg)
 
 	transform_esc_seq(arg, str);
 
-	char *key_sym = translate_key(str);
+	const int term_type =
+		g_options.legacy_keys ? TK_TERM_LEGACY : TK_TERM_GENERIC;
+	char *key_sym = translate_key(str, term_type);
 	free(str);
 
 	if (key_sym) {

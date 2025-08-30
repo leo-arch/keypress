@@ -211,7 +211,10 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 {
 	static int edge = TABLE_WIDTH + 5;
 
-	char *str = translate_key(buf);
+	const int term_type =
+		g_options.legacy_keys ? TK_TERM_LEGACY : TK_TERM_GENERIC;
+	char *str = translate_key(buf, term_type);
+
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	int overlong = 0;
 	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH)

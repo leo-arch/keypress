@@ -28,6 +28,12 @@
 #ifndef TRANSLATE_KEY_H
 #define TRANSLATE_KEY_H
 
+/* For the time being we support only two terminal types: legacy, for old VT100
+ * mappings, and generic (basically term agnostic).
+ * In the future we can add more values to support term-specific translations. */
+#define TK_TERM_GENERIC 0
+#define TK_TERM_LEGACY  1
+
 #define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
 #define CSI_INTRODUCER 0x5b /* [ */
 #define SS3_INTRODUCER 0x4f /* O */
@@ -36,10 +42,7 @@
 extern "C" {
 #endif
 
-char *translate_key(char *str);
-#ifdef TK_TEST
-int key_test(void);
-#endif
+char *translate_key(char *str, const int term_type);
 int is_end_seq_char(unsigned char c);
 
 #ifdef __cplusplus

@@ -83,6 +83,42 @@ static const char *ctrl_keys[256] = {
 	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape",
 };
 
+/* These sequences predates ANSI X3.64 and ECMA-48, just as Xterm and Rxvrt
+ * standardized sequences. They're emitted by the FreeBSD console and cons25
+ * (DragonFly, for example).
+ *
+ * Legacy terminals do not encode modifier keys in any way. Instead, they
+ * hardcode the final CSI byte to a specific modifier sequence.
+ * See https://github.com/freebsd/freebsd-src/blob/fb37e38fbe99039a479520b4b596f4bfc04e2a88/usr.sbin/kbdcontrol/kbdcontrol.c
+ * and keyboard(4) in FreeBSD/Dragonfly. */
+static const char *key_map_legacy[256] = {
+	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
+
+	['E'] = "Begin", ['F'] = "End", ['G'] = "PgDn", ['H'] = "Home",
+	['I'] = "PgUp", ['L'] = "Ins",
+	['J'] = "LSuper", ['~'] = "RSuper", ['}'] = "Menu",
+
+	['M'] = "F1", ['N'] = "F2", ['O'] = "F3", ['P'] = "F4", ['Q'] = "F5",
+	['R'] = "F6", ['S'] = "F7", ['T'] = "F8", ['U'] = "F9", ['V'] = "F10",
+	['W'] = "F11", ['X'] = "F12",
+
+	['Y'] = "Shift+F1", ['Z'] = "Shift+F2", ['a'] = "Shift+F3",
+	['b'] = "Shift+F4", ['c'] = "Shift+F5", ['d'] = "Shift+F6",
+	['e'] = "Shift+F7", ['f'] = "Shift+F8", ['g'] = "Shift+F9",
+	['h'] = "Shift+F10", ['i'] = "Shift+F11", ['j'] = "Shift+F12",
+
+	['k'] = "Ctrl+F1", ['l'] = "Ctrl+F2", ['m'] = "Ctrl+F3",
+	['n'] = "Ctrl+F4", ['o'] = "Ctrl+F5", ['p'] = "Ctrl+F6",
+	['q'] = "Ctrl+F7", ['r'] = "Ctrl+F8", ['s'] = "Ctrl+F9",
+	['t'] = "Ctrl+F10", ['u'] = "Ctrl+F11",  ['v'] = "Ctrl+F12",
+
+	['w'] = "Ctrl+Shift+F1", ['x'] = "Ctrl+Shift+F2", ['y'] = "Ctrl+Shift+F3",
+	['z'] = "Ctrl+Shift+F4", ['@'] = "Ctrl+Shift+F5", ['['] = "Ctrl+Shift+F6",
+	['\\'] = "Ctrl+Shift+F7", [']'] = "Ctrl+Shift+F8", ['^'] = "Ctrl+Shift+F9",
+	['_'] = "Ctrl+Shift+F10", ['`'] = "Ctrl+Shift+F11",
+	['{'] = "Ctrl+Shift+F12",
+};
+
 static const char *key_map[256] = {
 	/* According to Rxvt docs: 1:Find, 3:Execute (but also Delete), 4:Select
 	 * However, 4 is End and 1 is Home in the Linux console and tmux/screen. */
@@ -333,7 +369,10 @@ set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
 }
 
 /* The terminating character desginates the key pressed. Mostly arrow keys
- * (e.g. CSI D) for the Left key. */
+ * (e.g. CSI D) for the Left key.
+ * Note: When set to application mode (CSI ?1h - DECCKM) arrow keys are
+ * transmitted as SS3 sequences (otherwise, as CSI sequences, most of the time).
+ * However, we don't care about this: we can parse both sequences equally well. */
 static void
 set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 {
@@ -399,7 +438,7 @@ print_non_esc_seq(const char *str)
 }
 
 static char *
-check_single_key(char *str, const int csi_seq)
+check_single_key(char *str, const int csi_seq, const int legacy)
 {
 	char *buf = malloc(MAX_BUF * sizeof(char));
 	if (!buf)
@@ -418,7 +457,7 @@ check_single_key(char *str, const int csi_seq)
 		return NULL;
 	}
 
-	if (*str == 'Z' && csi_seq == 1) {
+	if (*str == 'Z' && csi_seq == 1 && legacy == 0) {
 		snprintf(buf, MAX_BUF, "%s", "Shift+Tab");
 		return buf;
 	}
@@ -456,7 +495,7 @@ get_ext_key_symbol(const int keycode)
 			return ext_key_map[i].name;
 	}
 
-	/* Transform a UTF-8 codepoint to a string of bytes. */
+	/* Transform a UTF-8 codepoint into a string of bytes. */
 	static char str[5] = "";
 	memset(str, 0, sizeof(str));
 
@@ -568,10 +607,11 @@ write_xterm_mok_seq(char *str, const size_t end)
 }
 
 static char *
-write_translation(const int keycode, const int mod_key)
+write_translation(const int keycode, const int mod_key, const int legacy)
 {
+	const char **keymap = legacy == 1 ? key_map_legacy : key_map;
 	const char *k = (keycode >= 0 && keycode <= 255)
-		? key_map[(unsigned char)keycode] : NULL;
+		? keymap[(unsigned char)keycode] : NULL;
 	const char *m = (mod_key >= 0 && mod_key <= 255)
 		? get_mod_symbol((int)mod_key) : NULL;
 
@@ -618,11 +658,15 @@ normalize_seq(char **seq)
  * The returned value, if not NULL, is dinamically allocated and must be
  * free'd by the caller.
  *
+ * For the time being, TERM_TYPE is either TK_TERM_GENERIC or TK_TERM_LEGACY.
+ * In the latter case, keycodes are translated using a different table
+ * with legacy values.
+ *
  * NOTE: This function assumes STR comes directly from the terminal, i.e. by
  * reading terminal input in raw mode. User suplied input, therefore, will
  * return false positives. */
 char *
-translate_key(char *seq)
+translate_key(char *seq, const int term_type)
 {
 	if (!seq || !*seq)
 		return NULL;
@@ -630,13 +674,13 @@ translate_key(char *seq)
 	if (*seq != ESC_KEY && (unsigned char)*seq != ALT_CSI)
 		return print_non_esc_seq(seq);
 
-	char *buf = check_exceptions(seq);
+	char *buf = term_type != TK_TERM_LEGACY ? check_exceptions(seq) : NULL;
 	if (buf)
 		return buf;
 
 	const int csi_seq = normalize_seq(&seq);
 
-	buf = check_single_key(seq, csi_seq);
+	buf = check_single_key(seq, csi_seq, term_type == TK_TERM_LEGACY);
 	if (buf)
 		return buf;
 
@@ -647,6 +691,10 @@ translate_key(char *seq)
 	const size_t end = len > 0 ? len - 1 : len;
 
 	const char end_char = seq[end];
+
+	if (term_type == TK_TERM_LEGACY && (end_char != '~'
+	|| (end > 0 && seq[end - 1] == CSI_INTRODUCER)))
+		return write_translation(end_char, 0, 1);
 
 	if (IS_KITTY_END_CHAR(end_char) && csi_seq == 1)
 		return write_kitty_keys(seq, end);
@@ -663,5 +711,5 @@ translate_key(char *seq)
 	else
 		return NULL;
 
-	return write_translation(keycode, mod_key);
+	return write_translation(keycode, mod_key, 0);
 }

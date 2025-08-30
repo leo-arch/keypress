@@ -50,6 +50,7 @@ struct opts_t {
 	int clear_screen;
 	int color;
 	int kitty_keys;
+	int legacy_keys;
 	int light_theme;
 	int xterm_mok;
 };
