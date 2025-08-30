@@ -85,7 +85,7 @@ static const char *ctrl_keys[256] = {
 
 static const char *key_map[256] = {
 	/* According to Rxvt docs: 1:Find, 3:Execute (but also Delete), 4:Select
-	 * However, 4 is End and 1 is Home in the Linux console. */
+	 * However, 4 is End and 1 is Home in the Linux console and tmux/screen. */
 	[1] = "Home", [4] = "End",
 
 	[2] = "Ins", [3] = "Del",
@@ -357,7 +357,7 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 		if (*str == SS3_INTRODUCER)
 			*mod_key += CTRL_VAL;
 		else
-			(*mod_key)++;
+			*mod_key += SHIFT_VAL;
 	} else if (IS_UPPER_ARROW_CHAR(str[end])) {
 		str[end] = '\0';
 		if (*str == SS3_INTRODUCER)
@@ -405,6 +405,9 @@ check_single_key(char *str, const int csi_seq)
 	if (!buf)
 		return NULL;
 
+	while (*str == ESC_KEY) /* Skip extra leading 0x1b */
+		str++;
+
 	if (!*str) {
 		snprintf(buf, MAX_BUF, "%s", ctrl_keys[(unsigned char)ESC_KEY]);
 		return buf;
@@ -415,7 +418,7 @@ check_single_key(char *str, const int csi_seq)
 		return NULL;
 	}
 
-	if (*str == 'Z') {
+	if (*str == 'Z' && csi_seq == 1) {
 		snprintf(buf, MAX_BUF, "%s", "Shift+Tab");
 		return buf;
 	}
@@ -453,7 +456,7 @@ get_ext_key_symbol(const int keycode)
 			return ext_key_map[i].name;
 	}
 
-	/* Transform UTF-8 codepoint to a string of bytes. */
+	/* Transform a UTF-8 codepoint to a string of bytes. */
 	static char str[5] = "";
 	memset(str, 0, sizeof(str));
 

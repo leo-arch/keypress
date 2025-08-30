@@ -34,15 +34,15 @@
 extern "C" {
 #endif
 
-#define CLEAR_SCREEN        fputs("\x1b[H\x1b[2J\x1b[3J", stdout)
-#define SET_KITTY_KEYS(n)   fprintf(stdout, "\x1b[>%du", (n) == 1 ? 8 : 1);
-#define UNSET_KITTY_KEYS(n) fprintf(stdout, "\x1b[<%du", (n) == 1 ? 8 : 1);
+#define CLEAR_SCREEN        fputs("\x1b[H\x1b[2J", stdout)
+#define SET_KITTY_KEYS(n)   fprintf(stdout, "\x1b[>%du", (n) == 1 ? 8 : 1)
+#define UNSET_KITTY_KEYS(n) fprintf(stdout, "\x1b[<%du", (n) == 1 ? 8 : 1)
 #define HIDE_CURSOR         fputs("\x1b[?25l", stdout)
 #define UNHIDE_CURSOR       fputs("\x1b[?25h", stdout)
-#define SET_ALT_SCREEN      fputs("\x1b[?1049h", stdout);
-#define UNSET_ALT_SCREEN    fputs("\x1b[?1049l", stdout);
-#define SET_XTERM_MOK       fputs("\x1b[>4;2m", stdout);
-#define UNSET_XTERM_MOK     fputs("\x1b[>4;0m", stdout);
+#define SET_ALT_SCREEN      fputs("\x1b[?1049h", stdout)
+#define UNSET_ALT_SCREEN    fputs("\x1b[?1049l", stdout)
+#define SET_XTERM_MOK       fputs("\x1b[>4;2m", stdout)
+#define UNSET_XTERM_MOK     fputs("\x1b[>4;0m", stdout)
 
 void init_term(void);
 void deinit_term(void);
