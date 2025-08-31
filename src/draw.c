@@ -34,7 +34,7 @@
 #include <limits.h> /* PATH_MAX */
 #include <wchar.h>  /* wcswidth */
 
-#include "keypress.h" /* BUF_SIZE, PROG_NAME, VERSION */
+#include "keypress.h" /* BUF_SIZE, PROG_NAME, VERSION, get_term_type */
 #include "options.h" /* g_options */
 #include "term.h" /* CLEAR_SCREEN */
 #include "translate_key.h" /* translate_key */
@@ -211,9 +211,7 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 {
 	static int edge = TABLE_WIDTH + 5;
 
-	const int term_type =
-		g_options.legacy_keys ? TK_TERM_LEGACY : TK_TERM_GENERIC;
-	char *str = translate_key(buf, term_type);
+	char *str = translate_key(buf, get_term_type());
 
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	int overlong = 0;

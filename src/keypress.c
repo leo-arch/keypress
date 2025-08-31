@@ -76,6 +76,16 @@ transform_esc_seq(const char *input, char *output)
 	*out_ptr = '\0';
 }
 
+int
+get_term_type(void)
+{
+	if (g_options.legacy_keys == 1)
+		return TK_TERM_LEGACY;
+	if (g_options.kitty_keys > 0)
+		return TK_TERM_KITTY;
+	return TK_TERM_GENERIC;
+}
+
 static int
 run_translate_key(const char *arg)
 {
@@ -91,9 +101,7 @@ run_translate_key(const char *arg)
 
 	transform_esc_seq(arg, str);
 
-	const int term_type =
-		g_options.legacy_keys ? TK_TERM_LEGACY : TK_TERM_GENERIC;
-	char *key_sym = translate_key(str, term_type);
+	char *key_sym = translate_key(str, get_term_type());
 	free(str);
 
 	if (key_sym) {

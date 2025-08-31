@@ -60,6 +60,7 @@
 #define IS_KITTY_END_CHAR(c)   ((c) == 'u')
 
 #define IS_MODKEY_END_CHAR(c)  ((c) == '^' || (c) == '$' || (c) == '@')
+/* ~: Xterm & others, z: SUN. */
 #define IS_GENERIC_END_CHAR(c) ((c) == '~' || (c) == 'z')
 #define IS_KEYCODE_END_CHAR(c) (  \
 	IS_ARROW_CHAR((c))         || \
@@ -92,6 +93,7 @@ static const char *ctrl_keys[256] = {
  *
  * See https://github.com/freebsd/freebsd-src/blob/fb37e38fbe99039a479520b4b596f4bfc04e2a88/usr.sbin/kbdcontrol/kbdcontrol.c
  *     https://vt100.net/docs/vt510-rm/chapter6.html
+ *     https://www.invisible-island.net/xterm/xterm-function-keys.html
  * and keyboard(4) in FreeBSD/Dragonfly. */
 static const char *key_map_legacy[256] = {
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
@@ -258,9 +260,7 @@ static const struct exceptions_t exceptions[] = {
 	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
 	{"\x1b[2J", "Shift+Home"}, {"\x1b[K", "Shift+End"},
 	{"\x1b[2K", "Shift+Del"}, {"\x1b[J", "Ctrl+End"},
-	{"\x1b[4l", "Shift+Ins"},
-	/* This one is F1 in Kitty, forget about it.
-	{"\x1b[P", "Del"}, */
+	{"\x1b[4l", "Shift+Ins"}, {"\x1b[P", "Del"},
 	{NULL, NULL}
 };
 
@@ -285,10 +285,15 @@ xatoi(const char *str)
 /* Return the translated key for the escape sequence STR looking in the
  * exceptions list. If none is found, NULL is returned. */
 static char *
-check_exceptions(const char *str, const int legacy)
+check_exceptions(char *str, const int term_type)
 {
-	if (legacy == 1)
+	if (term_type == TK_TERM_LEGACY)
 		return NULL;
+
+	/* Fix conflict with st: 'CSI P' is F1 in Kitty and Del in st. */
+	if (term_type == TK_TERM_KITTY && *str == ESC_KEY
+	&& str[1] == CSI_INTRODUCER && str[2] == 'P' && !str[3])
+		str[1] = SS3_INTRODUCER;
 
 	for (size_t i = 0; exceptions[i].key; i++) {
 		if (strcmp(exceptions[i].key, str) == 0) {
@@ -443,7 +448,7 @@ print_non_esc_seq(const char *str)
 }
 
 static char *
-check_single_key(char *str, const int csi_seq, const int legacy)
+check_single_key(char *str, const int csi_seq, const int term_type)
 {
 	char *buf = malloc(MAX_BUF * sizeof(char));
 	if (!buf)
@@ -462,7 +467,7 @@ check_single_key(char *str, const int csi_seq, const int legacy)
 		return NULL;
 	}
 
-	if (*str == 'Z' && csi_seq == 1 && legacy == 0) {
+	if (*str == 'Z' && csi_seq == 1 && term_type != TK_TERM_LEGACY) {
 		snprintf(buf, MAX_BUF, "%s", "Shift+Tab");
 		return buf;
 	}
@@ -637,7 +642,7 @@ write_translation(const int keycode, const int mod_key, const int legacy)
 }
 
 static int
-normalize_seq(char **seq, const int legacy)
+normalize_seq(char **seq, const int term_type)
 {
 	char *s = *seq;
 
@@ -650,7 +655,7 @@ normalize_seq(char **seq, const int legacy)
 
 	/* Skip extra '['. The Linux console, for example, is known to emit
 	 * a double CSI introducer for arrow keys ("ESC [[A" for Up). */
-	while ((unsigned char)*s == CSI_INTRODUCER && legacy == 0)
+	while ((unsigned char)*s == CSI_INTRODUCER && term_type != TK_TERM_LEGACY)
 		s++;
 
 	*seq = s;
@@ -679,14 +684,13 @@ translate_key(char *seq, const int term_type)
 	if (*seq != ESC_KEY && (unsigned char)*seq != ALT_CSI)
 		return print_non_esc_seq(seq);
 
-	const int legacy = term_type == TK_TERM_LEGACY;
-	char *buf = check_exceptions(seq, legacy);
+	char *buf = check_exceptions(seq, term_type);
 	if (buf)
 		return buf;
 
-	const int csi_seq = normalize_seq(&seq, legacy);
+	const int csi_seq = normalize_seq(&seq, term_type);
 
-	buf = check_single_key(seq, csi_seq, legacy);
+	buf = check_single_key(seq, csi_seq, term_type);
 	if (buf)
 		return buf;
 
@@ -698,7 +702,7 @@ translate_key(char *seq, const int term_type)
 
 	const char end_char = seq[end];
 
-	if (legacy == 1 && csi_seq == 1 && (end_char != '~'
+	if (term_type == TK_TERM_LEGACY && csi_seq == 1 && (end_char != '~'
 	|| (end > 0 && seq[end - 1] == CSI_INTRODUCER)))
 		return write_translation(end_char, 0, 1);
 

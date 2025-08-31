@@ -28,6 +28,10 @@
 #ifndef KEYPRESS_H
 #define KEYPRESS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PROG_NAME "keypress"
 #define VERSION   "0.3.5"
 
@@ -62,5 +66,11 @@
 /* Ctrl+x */
 #define KITTY_CLR_KEY(s, c) (*(s) == ESC_KEY && \
 	(c) == 'u' && strcmp((s) + 1, "[120;5") == 0)
+
+int get_term_type(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* KEYPRESS_H */
