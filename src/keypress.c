@@ -309,16 +309,20 @@ main(int argc, char **argv)
 		const int c = (int)ch;
 
 		handle_ctrl_keys(&state, c);
-		if (state.exit == CTRL_KEY_CONT)
+		if (state.exit == CTRL_KEY_CONT) {
+			fflush(stdout);
 			continue;
+		}
 		if (state.exit == CTRL_KEY_EXIT)
 			break;
 
 		print_byte_info(&state, c);
-
 		update_buffer(&state, c);
+
+		fflush(stdout);
 	}
 
+	fflush(stdout);
 	deinit_term();
 	return EXIT_SUCCESS;
 }

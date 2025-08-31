@@ -78,7 +78,9 @@ enable_raw_mode(void)
 	raw.c_cflag |= CS8;
 	raw.c_cc[VMIN] = 1;
 	raw.c_cc[VTIME] = 0;
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+	tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+
+	setvbuf(stdout, NULL, _IOFBF, BUFSIZ);
 }
 
 void
@@ -92,6 +94,6 @@ void
 init_term(void)
 {
 	setlocale(LC_ALL, "");
-	switch_to_alternate_buffer();
 	enable_raw_mode();
+	switch_to_alternate_buffer();
 }
