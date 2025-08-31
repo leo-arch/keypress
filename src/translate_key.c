@@ -285,7 +285,7 @@ xatoi(const char *str)
 /* Return the translated key for the escape sequence STR looking in the
  * exceptions list. If none is found, NULL is returned. */
 static char *
-check_exceptions(char *str, const int term_type)
+check_exceptions(const char *str, const int term_type)
 {
 	if (term_type == TK_TERM_LEGACY)
 		return NULL;
@@ -293,7 +293,7 @@ check_exceptions(char *str, const int term_type)
 	/* Fix conflict with st: 'CSI P' is F1 in Kitty and Del in st. */
 	if (term_type == TK_TERM_KITTY && *str == ESC_KEY
 	&& str[1] == CSI_INTRODUCER && str[2] == 'P' && !str[3])
-		str[1] = SS3_INTRODUCER;
+		return NULL;
 
 	for (size_t i = 0; exceptions[i].key; i++) {
 		if (strcmp(exceptions[i].key, str) == 0) {
