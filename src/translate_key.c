@@ -236,7 +236,7 @@ static const struct ext_key_map_t ext_key_map[] = {
 	{65452, "KP_Separator"}, {65453, "KP_Subtract"},
 	{65454, "KP_Delete"}, {65455, "KP_Divide"}, {65456, "KP_Insert"},
 	{65457, "KP_End"}, {65458, "KP_Down"}, {65459, "KP_PgDn"},
-	{65460, "KP_Left"}, {65461, "KP_5"}, {65462, "KP_Right"},
+	{65460, "KP_Left"}, {65461, "KP_Begin"}, {65462, "KP_Right"},
 	{65463, "KP_Home"}, {65464, "KP_Up"}, {65465, "KP_PgUp"},
 
 	{0, NULL}
@@ -345,16 +345,22 @@ static void
 set_end_char_is_generic(char *str, const size_t end, int *keycode, int *mod_key)
 {
 	str[end] = '\0';
-	if (*str == ESC_KEY) { /* Rxvt */
-		*mod_key += ALT_VAL;
-		*keycode = xatoi(str + 2);
-	} else {
-		char *s = strchr(str, ';');
-		if (s) *s = '\0';
-		/* "CSI >1;key;mod~" = Xterm with modifyFunctionKeys:3 */
-		*keycode = xatoi(str + (*str == '>'));
-		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
+	char *s = strchr(str, ';');
+
+	if (*str == ESC_KEY) {
+		if (!s) { /* Rxvt */
+			*mod_key += ALT_VAL;
+			*keycode = xatoi(str + 2);
+			return;
+		}
+		/* Skip 0x1b and '[' (if any) */
+		str += str[1] == CSI_INTRODUCER ? 2 : 1;
 	}
+
+	if (s) *s = '\0';
+	/* "CSI >1;key;mod~" = Xterm with modifyFunctionKeys:3 */
+	*keycode = xatoi(str + (*str == '>'));
+	*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 }
 
 static void
@@ -392,13 +398,14 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 	}
 
 	*keycode = str[end];
-	if (*str == ESC_KEY) { /* Rxvt */
+	char *s = strchr(str, ';');
+
+	if (*str == ESC_KEY && !s) { /* Rxvt */
 		*mod_key += ALT_VAL;
 		str++;
 		end--;
 	}
 
-	char *s = strchr(str, ';');
 	if (s) {
 		str[end] = '\0';
 		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
@@ -628,7 +635,7 @@ write_translation(const int keycode, const int mod_key, const int legacy)
 	if (!k)
 		return NULL;
 
-	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 2;
+	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 1;
 	char *buf = malloc(len * sizeof(char));
 	if (!buf)
 		return NULL;
@@ -654,7 +661,7 @@ normalize_seq(char **seq, const int term_type)
 		s++;
 
 	/* Skip extra '['. The Linux console, for example, is known to emit
-	 * a double CSI introducer for arrow keys ("ESC [[A" for Up). */
+	 * a double CSI introducer for arrow keys (e.g. "ESC [[A" for Up). */
 	while ((unsigned char)*s == CSI_INTRODUCER && term_type != TK_TERM_LEGACY)
 		s++;
 
