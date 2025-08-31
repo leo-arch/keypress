@@ -283,8 +283,11 @@ xatoi(const char *str)
 /* Return the translated key for the escape sequence STR looking in the
  * exceptions list. If none is found, NULL is returned. */
 static char *
-check_exceptions(const char *str)
+check_exceptions(const char *str, const int legacy)
 {
+	if (legacy == 1)
+		return NULL;
+
 	for (size_t i = 0; exceptions[i].key; i++) {
 		if (strcmp(exceptions[i].key, str) == 0) {
 			const size_t len = strlen(exceptions[i].name);
@@ -674,13 +677,14 @@ translate_key(char *seq, const int term_type)
 	if (*seq != ESC_KEY && (unsigned char)*seq != ALT_CSI)
 		return print_non_esc_seq(seq);
 
-	char *buf = term_type != TK_TERM_LEGACY ? check_exceptions(seq) : NULL;
+	const int legacy = term_type == TK_TERM_LEGACY;
+	char *buf = check_exceptions(seq, legacy);
 	if (buf)
 		return buf;
 
 	const int csi_seq = normalize_seq(&seq);
 
-	buf = check_single_key(seq, csi_seq, term_type == TK_TERM_LEGACY);
+	buf = check_single_key(seq, csi_seq, legacy);
 	if (buf)
 		return buf;
 
@@ -692,7 +696,7 @@ translate_key(char *seq, const int term_type)
 
 	const char end_char = seq[end];
 
-	if (term_type == TK_TERM_LEGACY && (end_char != '~'
+	if (legacy && (end_char != '~'
 	|| (end > 0 && seq[end - 1] == CSI_INTRODUCER)))
 		return write_translation(end_char, 0, 1);
 
