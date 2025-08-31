@@ -83,13 +83,15 @@ static const char *ctrl_keys[256] = {
 	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape",
 };
 
-/* These sequences predates ANSI X3.64 and ECMA-48, just as Xterm and Rxvrt
+/* VT100/SCO sequences predates ANSI X3.64 and ECMA-48, just as Xterm and Rxvrt
  * standardized sequences. They're emitted by the FreeBSD console and cons25
- * (DragonFly, for example).
+ * (DragonFly, for example). The format is: CSI n, where n is a single byte.
  *
- * Legacy terminals do not encode modifier keys in any way. Instead, they
- * hardcode the final CSI byte to a specific modifier sequence.
+ * Modifier keys are not encoded in any way. Instead, the final CSI byte
+ * represents both the key and the modifier.
+ *
  * See https://github.com/freebsd/freebsd-src/blob/fb37e38fbe99039a479520b4b596f4bfc04e2a88/usr.sbin/kbdcontrol/kbdcontrol.c
+ *     https://vt100.net/docs/vt510-rm/chapter6.html
  * and keyboard(4) in FreeBSD/Dragonfly. */
 static const char *key_map_legacy[256] = {
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
@@ -635,7 +637,7 @@ write_translation(const int keycode, const int mod_key, const int legacy)
 }
 
 static int
-normalize_seq(char **seq)
+normalize_seq(char **seq, const int legacy)
 {
 	char *s = *seq;
 
@@ -648,7 +650,7 @@ normalize_seq(char **seq)
 
 	/* Skip extra '['. The Linux console, for example, is known to emit
 	 * a double CSI introducer for arrow keys ("ESC [[A" for Up). */
-	while ((unsigned char)*s == CSI_INTRODUCER)
+	while ((unsigned char)*s == CSI_INTRODUCER && legacy == 0)
 		s++;
 
 	*seq = s;
@@ -682,7 +684,7 @@ translate_key(char *seq, const int term_type)
 	if (buf)
 		return buf;
 
-	const int csi_seq = normalize_seq(&seq);
+	const int csi_seq = normalize_seq(&seq, legacy);
 
 	buf = check_single_key(seq, csi_seq, legacy);
 	if (buf)
@@ -696,7 +698,7 @@ translate_key(char *seq, const int term_type)
 
 	const char end_char = seq[end];
 
-	if (legacy && (end_char != '~'
+	if (legacy == 1 && csi_seq == 1 && (end_char != '~'
 	|| (end > 0 && seq[end - 1] == CSI_INTRODUCER)))
 		return write_translation(end_char, 0, 1);
 

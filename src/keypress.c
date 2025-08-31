@@ -131,6 +131,10 @@ is_complete_escape_sequence(const char *buf, const int c)
 	if (buf[0] != ESC_KEY && (unsigned char)buf[0] != ALT_CSI)
 		return 0; /* Not an escape sequence */
 
+	if (g_options.legacy_keys == 1 && buf[0] == ESC_KEY
+	&& buf[1] == CSI_INTRODUCER) /* VT100/SCO sequence */
+		return 1;
+
 	if (is_end_seq_char((const unsigned char)c)) /* CSI or SS3 sequence */
 		return 1;
 
