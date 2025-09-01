@@ -298,7 +298,7 @@ main(int argc, char **argv)
 
 	unsigned char ch = 0;
 	while (1) {
-		const ssize_t bytes_read = read(STDIN_FILENO, &ch, sizeof(ch));
+		const ssize_t bytes_read = read(STDIN_FILENO, &ch, sizeof(ch)); /* flawfinder: ignore */
 		if (bytes_read == -1) {
 			perror("Error reading input");
 			break;

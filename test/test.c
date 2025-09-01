@@ -286,7 +286,7 @@ main(int argc, char **argv)
 	size_t i;
 
 	for (i = 0; keys[i].key; i++) {
-		const size_t key_len = strlen(keys[i].key);
+		const size_t key_len = strlen(keys[i].key); /* flawfinder: ignore */
 		char *s = malloc((key_len + 1) * sizeof(char));
 		if (!s)
 			return -ENOMEM;

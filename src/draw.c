@@ -215,7 +215,7 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	int overlong = 0;
-	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH)
+	if (wlen == 0 && str && strlen(str) > TABLE_WIDTH) /* flawfinder: ignore */
 		overlong = 1;
 
 	const char *color = is_utf8 == 1 ? "" : g_options.colors.translation;

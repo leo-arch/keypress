@@ -302,7 +302,7 @@ check_exceptions(const char *str, const int term_type)
 
 	for (size_t i = 0; exceptions[i].key; i++) {
 		if (strcmp(exceptions[i].key, str) == 0) {
-			const size_t len = strlen(exceptions[i].name);
+			const size_t len = strlen(exceptions[i].name); /* flawfinder: ignore */
 			char *p = malloc((len + 1) * sizeof(char));
 			if (!p)
 				return NULL;
@@ -589,7 +589,7 @@ write_kitty_keys(char *str, const size_t end)
 	if (!k)
 		return NULL;
 
-	const size_t buf_len = strlen(k) + (m ? strlen(m) : 0) + 1;
+	const size_t buf_len = strlen(k) + (m ? strlen(m) : 0) + 1; /* flawfinder: ignore */
 	char *buf = malloc(buf_len * sizeof(char));
 	if (!buf)
 		return NULL;
@@ -618,7 +618,7 @@ write_xterm_mok_seq(char *str, const size_t end)
 	const char *m = (mod_key >= 0 && mod_key <= 255)
 		? get_mod_symbol((int)mod_key) : NULL;
 
-	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 2;
+	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 2; /* flawfinder: ignore */
 	char *buf = malloc(len * sizeof(char));
 	if (!buf)
 		return NULL;
@@ -639,7 +639,7 @@ write_translation(const int keycode, const int mod_key, const int legacy)
 	if (!k)
 		return NULL;
 
-	const size_t len = (m ? strlen(m) : 0) + strlen(k) + 1;
+	const size_t len = (m ? strlen(m) : 0) + strlen(k) + 1; /* flawfinder: ignore */
 	char *buf = malloc(len * sizeof(char));
 	if (!buf)
 		return NULL;
