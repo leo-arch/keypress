@@ -250,6 +250,11 @@ struct exceptions_t {
 /* A list of escape sequences missed by our identifying algorithms, mostly
  * because they do not seem to follow any recognizable pattern. */
 static const struct exceptions_t exceptions[] = {
+	/* The Linux console uses CSI final bytes A-E for F1-F5, when A-D
+	 * is almost universally used for arrow keys. */
+	{"\x1b[[A", "F1"}, {"\x1b[[B", "F2"}, {"\x1b[[C", "F3"},
+	{"\x1b[[D", "F4"}, {"\x1b[[E", "F5"},
+
 	/* St
 	 * Keycodes and modifiers are not used consistently. For example,
 	 * "CSI 2J" is Shift+Home: '2' for Shift and 'J' for Home. But,
@@ -661,7 +666,7 @@ normalize_seq(char **seq, const int term_type)
 		s++;
 
 	/* Skip extra '['. The Linux console, for example, is known to emit
-	 * a double CSI introducer for arrow keys (e.g. "ESC [[A" for Up). */
+	 * a double CSI introducer for function keys (e.g. "ESC [[A" for F1). */
 	while ((unsigned char)*s == CSI_INTRODUCER && term_type != TK_TERM_LEGACY)
 		s++;
 

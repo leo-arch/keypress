@@ -219,9 +219,6 @@ struct keys_t keys[] = {
 
 	{"\x1bOH", "Home"}, {"\x1bOF", "End"},
 
-	/* kitty keyboard protocol */
-	{"\x1b[P", "F1"}, {"\x1b[Q", "F2"}, {"\x1b[S", "F4"},
-
 	/* emacs and others */
 	{"\x1bOA", "Up"}, {"\x1bOB", "Down"},
 	{"\x1bOC", "Right"}, {"\x1bOD", "Left"},
@@ -251,7 +248,8 @@ struct keys_t keys[] = {
 	/* Sun/Solaris */
 	{"\x1b[224z", "F1"}, {"\x1b[214;7z", "Ctrl+Alt+Home"}, {"\x1b[2z", "Ins"},
 
-	/* Kitty protocol */
+	/* Kitty keyboard protocol */
+	{"\x1b[Q", "F2"}, {"\x1b[S", "F4"},
 	{"\x1b[57425u", "KP_Insert"}, {"\x1b[118;3u", "Alt+v"},
 	{"\x1b[106;7u", "Ctrl+Alt+j"},
 	{"\x1b[106;144u", "NumLock+Super+Ctrl+Alt+Shift+j"},
@@ -292,7 +290,7 @@ main(int argc, char **argv)
 
 		memcpy(s, keys[i].key, key_len + 1);
 
-		char *ret = translate_key(s);
+		char *ret = translate_key(s, 0);
 		if (!ret || strcmp(ret, keys[i].translation) != 0) {
 			errors++;
 			for (size_t j = 0; keys[i].key[j]; j++) {
