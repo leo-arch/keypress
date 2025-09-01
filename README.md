@@ -41,7 +41,7 @@ This command will output `Ctrl+Alt+Left`.
 > #include "translate_key.h"
 > ...
 > char str[] = "\x1b[1;7D";
-> char *keysym = translate_key(str);
+> char *keysym = translate_key(str, 0);
 >
 > if (keysym) {
 >     printf("%s\n", keysym);
