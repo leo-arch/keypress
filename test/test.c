@@ -234,8 +234,7 @@ struct keys_t keys[] = {
 	{"\x1b[1~", "Home"}, {"\x1b[4~", "End"},
 
 	/* st */
-	{"\x1b[4h", "Ins"}, {"\x1b[L", "Ctrl+Ins"},
-	{"\x1b[M", "Ctrl+Del"},
+	{"\x1b[4h", "Ins"}, {"\x1b[L", "Ctrl+Ins"}, {"\x1b[M", "Ctrl+Del"},
 
 	/* Linux console */
 	{"\x1b[[A", "F1"}, {"\x1b[[E", "F5"},
@@ -254,12 +253,15 @@ struct keys_t keys[] = {
 	{"\x1b[106;7u", "Ctrl+Alt+j"},
 	{"\x1b[106;144u", "NumLock+Super+Ctrl+Alt+Shift+j"},
 
-	/* Xterm  (with modifyOtherKeys enabled) */
+	/* Xterm (with modifyOtherKeys enabled) */
 	{"\x1b[27;5;13~", "Ctrl+Enter"}, {"\x1b[27;5;49~", "Ctrl+1"},
 	{"\x1b[27;9;9~", "Super+Tab"}, {"\x1b[27;5;65450~", "Ctrl+KP_Multiply"},
 
 	/* Contour */
 	{"\x1b[O6P", "Ctrl+Shift+F1"},
+
+	/* Extra 0x1b byte (Mlterm) */
+	{"\x1b\x1b[5;7~", "Ctrl+Alt+PgUp"},
 
 	/* UTF-8 */
 	{"\xf0\x9f\x98\x80", "😀"}, {"\xf0\x9f\x8c\x80", "🌀"},
@@ -268,7 +270,8 @@ struct keys_t keys[] = {
 	/* 8-bit CSI */
 	{"\x9b\x41", "Up"},
 
-	/* cons25 uses \e[M-\e[X for F1-F12 keys. */
+	/* cons25 uses \e[M-\e[X for F1-F12 keys.
+	 * To make this work, run in legacy mode (-L). */
 
 	{NULL, NULL},
 };

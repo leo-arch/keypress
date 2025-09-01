@@ -562,7 +562,7 @@ get_mod_symbol(const int mod_key)
 	if (m & 8)   l += snprintf(mod + l, s - (size_t)l, "Super+");
 	if (m & 4)   l += snprintf(mod + l, s - (size_t)l, "Ctrl+");
 	if (m & 2)   l += snprintf(mod + l, s - (size_t)l, "Alt+");
-	if (m & 1)   l += snprintf(mod + l, s - (size_t)l, "Shift+");
+	if (m & 1)        snprintf(mod + l, s - (size_t)l, "Shift+");
 
 	return mod;
 }
