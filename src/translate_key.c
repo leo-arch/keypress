@@ -377,7 +377,7 @@ set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
 	str[end] = '\0';
 
 	if (s) {
-		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
+		*mod_key += s[1] ? xatoi(s + 1) - 1 : 0;
 	} else {
 		if (*str == ESC_KEY) { /* Rxvt */
 			*mod_key += ALT_VAL;
@@ -503,10 +503,9 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 static const char *
 get_ext_key_symbol(const int keycode)
 {
-	static char keysym_str[2] = {0};
-
 	/* These are directly printable */
 	if (keycode > 32 && keycode <= 126) {
+		static char keysym_str[2] = {0};
 		keysym_str[0] = (char)keycode;
 		return keysym_str;
 	}
@@ -640,7 +639,7 @@ write_translation(const int keycode, const int mod_key, const int legacy)
 	if (!k)
 		return NULL;
 
-	const size_t len = (m ? strlen(m) : 0) + (k ? strlen(k) : 0) + 1;
+	const size_t len = (m ? strlen(m) : 0) + strlen(k) + 1;
 	char *buf = malloc(len * sizeof(char));
 	if (!buf)
 		return NULL;
