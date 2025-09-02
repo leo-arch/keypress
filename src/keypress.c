@@ -79,8 +79,8 @@ transform_esc_seq(const char *input, char *output)
 int
 get_term_type(void)
 {
-	if (g_options.legacy_keys == 1)
-		return TK_TERM_LEGACY;
+	if (g_options.sco_keys == 1)
+		return TK_TERM_LEGACY_SCO;
 	if (g_options.kitty_keys > 0)
 		return TK_TERM_KITTY;
 	return TK_TERM_GENERIC;
@@ -139,8 +139,9 @@ is_complete_escape_sequence(const char *buf, const int c)
 	if (buf[0] != ESC_KEY && (unsigned char)buf[0] != ALT_CSI)
 		return 0; /* Not an escape sequence */
 
-	if (g_options.legacy_keys == 1 && buf[0] == ESC_KEY
-	&& buf[1] == CSI_INTRODUCER) /* VT100/SCO sequence */
+#define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
+	if (g_options.sco_keys == 1 && buf[0] == ESC_KEY
+	&& buf[1] == CSI_INTRODUCER && !IS_DIGIT(c) && c != ';') /* VT100/SCO sequence */
 		return 1;
 
 	if (is_end_seq_char((const unsigned char)c)) /* CSI or SS3 sequence */

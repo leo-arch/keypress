@@ -66,12 +66,12 @@ Enable support for the Kitty keyboard protocol (full mode).
 Use a light color scheme.
 
 .TP
-.B -L
-Run in legacy mode (translate keys based on legacy VT100 key encodings). Mostly useful for virtual consoles using legacy encodings like cons25 or the FreeBSD console.
-
-.TP
 .B -n
 Disable colors.
+
+.TP
+.B -s
+Run in SCO keyboard mode. This option affects only key translations. Mostly useful for virtual consoles using legacy encodings like cons25 or the FreeBSD console, or when the terminal is set to this mode (e.g. \fBxterm -kt sco\fR).
 
 .TP
 .B -t \fISEQ\fR

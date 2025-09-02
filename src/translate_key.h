@@ -28,12 +28,14 @@
 #ifndef TRANSLATE_KEY_H
 #define TRANSLATE_KEY_H
 
-/* For the time being we support only two terminal types: legacy, for old VT100
- * mappings, and generic (basically term agnostic).
+/* We support the follwing terminal types:
+ *  legacy_sco:  Old VT100/SCO mappings
+ *  generic:     Term agnostic (default)
+ *  kitty:       Using the kitty keyboard protocol
  * In the future we can add more values to support term-specific translations. */
-#define TK_TERM_GENERIC 0
-#define TK_TERM_LEGACY  1
-#define TK_TERM_KITTY   2
+#define TK_TERM_GENERIC     0
+#define TK_TERM_LEGACY_SCO  1
+#define TK_TERM_KITTY       2
 
 #define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
 #define CSI_INTRODUCER 0x5b /* [ */

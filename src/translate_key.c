@@ -128,7 +128,7 @@ static const char *key_map[256] = {
 	 * However, 4 is End and 1 is Home in the Linux console and tmux/screen. */
 	[1] = "Home", [4] = "End",
 
-	[2] = "Ins", [3] = "Del",
+	[2] = "Insert", [3] = "Delete",
 	[5] = "PgUp", [6] = "PgDn", [7] = "Home", [8] = "End",
 	/* 9 and 10 are normally not used. Some mappings found (on rare/old terms):
 	9: F0, F3, F33, F34, and Clear
@@ -300,7 +300,7 @@ xatoi(const char *str)
 static char *
 check_exceptions(const char *str, const int term_type)
 {
-	if (term_type == TK_TERM_LEGACY)
+	if (term_type == TK_TERM_LEGACY_SCO)
 		return NULL;
 
 	/* Fix conflict with st: 'CSI P' is F1 in Kitty and Del in st. */
@@ -494,7 +494,7 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 		return NULL;
 	}
 
-	if (*str == 'Z' && csi_seq == 1 && term_type != TK_TERM_LEGACY) {
+	if (*str == 'Z' && csi_seq == 1 && term_type != TK_TERM_LEGACY_SCO) {
 		snprintf(buf, MAX_BUF, "%s", "Shift+Tab");
 		return buf;
 	}
@@ -681,11 +681,26 @@ normalize_seq(char **seq, const int term_type)
 
 	/* Skip extra '['. The Linux console, for example, is known to emit
 	 * a double CSI introducer for function keys (e.g. "ESC [[A" for F1). */
-	while ((unsigned char)*s == CSI_INTRODUCER && term_type != TK_TERM_LEGACY)
+	while ((unsigned char)*s == CSI_INTRODUCER && term_type != TK_TERM_LEGACY_SCO)
 		s++;
 
 	*seq = s;
 	return csi_seq;
+}
+
+static int
+is_sco_seq(const int csi_seq, const char *seq, const size_t end)
+{
+	return (csi_seq == 1 && seq[end] != '~');
+}
+
+static char *
+write_sco_keys(char *seq, const size_t end)
+{
+	char *s = strchr(seq, ';');
+	const int mod_key = (s && s[1]) ? xatoi(s + 1) - 1 : 0;
+
+	return write_translation(seq[end], mod_key, 1);
 }
 
 /* Translate the escape sequence STR into the corresponding symbolic value.
@@ -694,9 +709,10 @@ normalize_seq(char **seq, const int term_type)
  * The returned value, if not NULL, is dinamically allocated and must be
  * free'd by the caller.
  *
- * For the time being, TERM_TYPE is either TK_TERM_GENERIC or TK_TERM_LEGACY.
+ * For the time being, TERM_TYPE is either TK_TERM_GENERIC, TK_TERM_KITTY,
+ * or TK_TERM_LEGACY_SCO.
  * In the latter case, keycodes are translated using a different table
- * with legacy values.
+ * with SCO mappings.
  *
  * NOTE: This function assumes STR comes directly from the terminal, i.e. by
  * reading terminal input in raw mode. User suplied input, therefore, will
@@ -728,9 +744,8 @@ translate_key(char *seq, const int term_type)
 
 	const char end_char = seq[end];
 
-	if (term_type == TK_TERM_LEGACY && csi_seq == 1 && (end_char != '~'
-	|| (end > 0 && seq[end - 1] == CSI_INTRODUCER)))
-		return write_translation(end_char, 0, 1);
+	if (term_type == TK_TERM_LEGACY_SCO && is_sco_seq(csi_seq, seq, end))
+		return write_sco_keys(seq, end);
 
 	if (IS_KITTY_END_CHAR(end_char) && csi_seq == 1)
 		return write_kitty_keys(seq, end);
