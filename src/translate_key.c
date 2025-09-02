@@ -135,14 +135,21 @@ static const char *key_map[256] = {
 	10: F4, F10, F34, and F35 */
 	[11] = "F1", [12] = "F2", [13] = "F3",  [14] = "F4", [15] = "F5",
 	[17] = "F6", [18] = "F7", [19] = "F8", [20] = "F9", [21] = "F10",
+	/* In Rxvt, Shift+[F1,F2] generates the same sequence as F11-F12.
+	 * There's nothing we can do about it. */
 	[23]= "F11", [24] = "F12",
 
 	/* In Rxvt, these integers are mapped to either a function key above
 	 * F12, or to the shifted number - 10. E.g., 25 is both F13 and Shift+F3.
-	 * See https://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod#Key_Codes */
+	 * See https://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod#Key_Codes
+	 * We chose the Shift apprach, since Shift+F3 is much more intuitive than
+	 * F13. */
 	[25] = "Shift+F3", [26] = "Shift+F4", [28] = "Shift+F5",
-	[29]= "Shift+F6", [31] = "Shift+F7", [32] = "Shift+F8",
+	[31] = "Shift+F7", [32] = "Shift+F8",
 	[33] = "Shift+F9", [34] = "Shift+F10",
+	[29]= "Menu",
+	/* In Rxvt, Shift+F6 and Menu generate the same sequence. Again, there's
+	 * nothing we can do about it. */
 
 	[42] = "F21", [43] = "F22", [44] = "F23", [45] = "F24", [46] = "F25",
 	[47] = "F26", [48] = "F27", [49] = "F28", [50] = "F29", [51] = "F30",
@@ -339,12 +346,16 @@ set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
 	str[end] = '\0';
 	*keycode = xatoi(str);
 
-	const char is_func_key = (*keycode < 25 || *keycode > 34);
+	/* Rxvt function keys F13-F20 (integers 25-34), excluding the Menu key
+	 * (or F16, integer 29). */
+	const char is_func_key =
+		(*keycode >= 25 && *keycode <= 34 && *keycode != 29);
+
 	if (end_char == '$')
-		*mod_key += (is_func_key ? SHIFT_VAL : 0);
+		*mod_key += (!is_func_key ? SHIFT_VAL : 0);
 	else /* Either '^' (Ctrl) or '@' (Ctrl+Shift) */
 		*mod_key += CTRL_VAL + ((end_char == '@'
-			&& is_func_key) ? SHIFT_VAL : 0);
+			&& !is_func_key) ? SHIFT_VAL : 0);
 }
 
 /* The terminating character just terminates the string. Mostly '~', but
