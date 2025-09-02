@@ -139,9 +139,10 @@ static const char *key_map[256] = {
 
 	/* In Rxvt, these integers are mapped to either a function key above
 	 * F12, or to the shifted number - 10. E.g., 25 is both F13 and Shift+F3.
-	 * See https://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod#Escape_Sequences */
-	[25] = "F13", [26] = "F14", [28] = "F15", [29]= "F16", [31] = "F17",
-	[32] = "F18", [33] = "F19", [34] = "F20",
+	 * See https://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod#Key_Codes */
+	[25] = "Shift+F3", [26] = "Shift+F4", [28] = "Shift+F5",
+	[29]= "Shift+F6", [31] = "Shift+F7", [32] = "Shift+F8",
+	[33] = "Shift+F9", [34] = "Shift+F10",
 
 	[42] = "F21", [43] = "F22", [44] = "F23", [45] = "F24", [46] = "F25",
 	[47] = "F26", [48] = "F27", [49] = "F28", [50] = "F29", [51] = "F30",
@@ -324,23 +325,26 @@ is_end_seq_char(unsigned char c)
 		|| c == '$')); /* Rxvt uses this (E.g. "CSI 24$" for Shift+F12) */
 }
 
-/* Rxvt uses '$', '@', and '^' to indicate the modifier key. */
+/* Rxvt uses '$', '^', and '@' to indicate the modifier key. */
 static void
 set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
 {
-	if (str[end] == '$')
-		*mod_key += SHIFT_VAL;
-	else
-		*mod_key += CTRL_VAL + (str[end] == '@');
+	const char end_char = str[end];
 
-	str[end] = '\0';
-
-	if (*str == ESC_KEY) { /* Rxvt */
+	if (*str == ESC_KEY) {
 		*mod_key += ALT_VAL;
 		str += 2; /* Skip "ESC [" */
 	}
 
+	str[end] = '\0';
 	*keycode = xatoi(str);
+
+	const char is_func_key = (*keycode < 25 || *keycode > 34);
+	if (end_char == '$')
+		*mod_key += (is_func_key ? SHIFT_VAL : 0);
+	else /* Either '^' (Ctrl) or '@' (Ctrl+Shift) */
+		*mod_key += CTRL_VAL + ((end_char == '@'
+			&& is_func_key) ? SHIFT_VAL : 0);
 }
 
 /* The terminating character just terminates the string. Mostly '~', but
@@ -708,7 +712,7 @@ translate_key(char *seq, const int term_type)
 	int keycode = -1;
 	int mod_key = 0;
 
-	const size_t len = strlen(seq);
+	const size_t len = strlen(seq); /* flawfinder: ignore */
 	const size_t end = len > 0 ? len - 1 : len;
 
 	const char end_char = seq[end];

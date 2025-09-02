@@ -95,7 +95,7 @@ run_translate_key(const char *arg)
 		return EXIT_FAILURE;
 	}
 
-	char *str = malloc((strlen(arg) + 1) * sizeof(char));
+	char *str = malloc((strlen(arg) + 1) * sizeof(char)); /* flawfinder: ignore */
 	if (!str)
 		return ENOMEM;
 
