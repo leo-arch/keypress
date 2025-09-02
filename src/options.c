@@ -41,7 +41,7 @@ static void
 print_help(void)
 {
 	puts("Usage: keypress [OPTIONS]\n");
-	puts("  -c      Clear the screen before printing key information in\n"
+	puts("  -c      Do not clear the screen before displaying key information in\n"
 		"          interactive mode.");
 	puts("  -h      Display this help and exit.");
 	puts("  -i      Use ASCII characters to draw the table.");
@@ -128,7 +128,7 @@ parse_cmdline_args(const int argc, char **argv)
 	int opt;
 	while ((opt = getopt(argc, argv, "chikKlLnt:vx")) != -1) {
 		switch (opt) {
-		case 'c': g_options.clear_screen = 1; break;
+		case 'c': g_options.clear_screen = 0; break;
 		case 'i': g_options.ascii_draw = 1; break;
 		case 'k': g_options.kitty_keys = 1; break;
 		case 'K': g_options.kitty_keys = 2; break;
