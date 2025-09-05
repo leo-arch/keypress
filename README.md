@@ -77,3 +77,8 @@ To uninstall **keypress**, use the following command:
 ```sh
 sudo make uninstall
 ```
+### 4. Similar projects
+
+[libtermkey](https://www.leonerd.org.uk/code/libtermkey/) - Easy processing of keyboard entry from terminal-based programs
+> [!NOTE]
+> This library is deprecated. Use [libtickit](https://www.leonerd.org.uk/code/libtickit/) instead.
