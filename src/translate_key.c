@@ -558,6 +558,9 @@ get_ext_key_symbol(const int keycode)
 static const char *
 get_mod_symbol(const int mod_key)
 {
+	if (mod_key <= 0)
+		return NULL;
+
 	/* The biggest value mod_key can take is 255 (since
 	 * 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 = 255). In this case, the modifier
 	 * string would be "Shift+Alt+Ctrl+Super+Hyper+Meta+CapsLock+NumLock-",

@@ -237,10 +237,17 @@ print_sequence(struct state_t *state, const int is_utf8, const int c)
 	else
 		state->utf8_count = state->utf8_bytes = 0;
 
-	*state->buf_ptr = '\0';
-	print_footer(state->buf, is_utf8, g_options.clear_screen);
-	state->buf_ptr = state->buf;
 	state->clear_screen = g_options.clear_screen == 1;
+	*state->buf_ptr = '\0';
+
+	if (g_options.show_translation == 0) {
+		print_bottom_line(state->clear_screen);
+		memset(state->buf, '\0', BUF_SIZE);
+	} else {
+		print_footer(state->buf, is_utf8, g_options.clear_screen);
+	}
+
+	state->buf_ptr = state->buf;
 }
 
 static void

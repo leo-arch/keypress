@@ -53,6 +53,7 @@ print_help(void)
 	puts("  -t SEQ  Run in translation mode: translate the escape sequence\n"
 		"          SEQ into its corresponding text/symbolic representation\n"
 		"          and exit.");
+	puts("  -T      Do not show key translations.\n");
 	puts("  -v      Display version information and exit.");
 	puts("  -x      Enable Xterm's modifyOtherKeys feature.");
 
@@ -116,6 +117,7 @@ init_default_options(void)
 	g_options.kitty_keys   = DEFAULT_KITTY_KEYS;
 	g_options.light_theme  = DEFAULT_LIGHT_THEME;
 	g_options.sco_keys     = DEFAULT_SCO_KEYS;
+	g_options.show_translation = DEFAULT_SHOW_TRANSLATION;
 	g_options.translate    = DEFAULT_TRANSLATE;
 	g_options.xterm_mok    = DEFAULT_XTERM_MOK;
 }
@@ -126,7 +128,7 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "chikKlnst:vx")) != -1) {
+	while ((opt = getopt(argc, argv, "chikKlnst:Tvx")) != -1) {
 		switch (opt) {
 		case 'c': g_options.clear_screen = 0; break;
 		case 'i': g_options.ascii_draw = 1; break;
@@ -136,6 +138,7 @@ parse_cmdline_args(const int argc, char **argv)
 		case 'n': g_options.color = 0; break;
 		case 's': g_options.sco_keys = 1; break;
 		case 't': g_options.translate = optarg; break;
+		case 'T': g_options.show_translation = 0; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);
 		case 'x': g_options.xterm_mok = 1; break;
 		case 'h': /* fallthrough */

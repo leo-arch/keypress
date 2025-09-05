@@ -32,6 +32,7 @@
 #define DEFAULT_KITTY_KEYS   0 /* 1: enable, 2: full. */
 #define DEFAULT_LIGHT_THEME  0
 #define DEFAULT_SCO_KEYS     0
+#define DEFAULT_SHOW_TRANSLATION 1
 #define DEFAULT_TRANSLATE    NULL
 #define DEFAULT_XTERM_MOK    0
 

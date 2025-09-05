@@ -52,6 +52,7 @@ struct opts_t {
 	int kitty_keys;
 	int light_theme;
 	int sco_keys;
+	int show_translation;
 	int xterm_mok;
 };
 extern struct opts_t g_options;
