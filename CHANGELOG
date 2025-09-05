@@ -1,3 +1,27 @@
+0.3.5 (Sep 5, 2025)
+
+BUGS:
+* KP_0 and KP_Period are inverted in Rxvt.
+* NumLock/CapsLock + Arrow/Keypad keys not working with the Kitty protocol.
+* Alt not recognized for keypad keys in Rxvt.
+* the Del key in st is shown and F1.
+* Wrong translation in Mlterm when Alt is involved.
+
+IMPROVEMENTS:
+* Do not capitalize metafied keys (i.e. distinguish between Alt+e and Alt+Shift+e - or Alt+E).
+* Use -x to enable Xterm's modifyOtherKeys feature.
+* Add support for Xterm's modifyFunctionKeys:3.
+* Use -i to draw the table using ASCII characters.
+* Run with -l to use a light color scheme.
+* Do not truncate overlong names.
+* Add missing keypad keys for Foot.
+* KP_5 is now Begin, to be more consistent with other keypad key names.
+* Use -s to run in SCO keyboard mode (translate SCO key sequences).
+* Improve rendering performance and reduce screen flickering.
+* Improve translation of Rxvt function keys.
+* Clear screen is now default. Use -c to disable this feature.
+* Use -T to disable key translations.
+
 0.3.4 (Aug 23, 2025)
 
 BUGS:
