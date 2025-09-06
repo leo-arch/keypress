@@ -48,6 +48,7 @@ print_help(void)
 	puts("  -k      Enable support for the Kitty keyboard protocol.");
 	puts("  -K      Enable support for the Kitty keyboard protocol (full mode).");
 	puts("  -l      Use a light color scheme.");
+	puts("  -p      Run in HP keyboard mode.");
 	puts("  -s      Run in SCO keyboard mode.");
 	puts("  -n      Disable colors.");
 	puts("  -t SEQ  Run in translation mode: translate the escape sequence\n"
@@ -114,6 +115,7 @@ init_default_options(void)
 	g_options.ascii_draw   = DEFAULT_ASCII_DRAW;
 	g_options.clear_screen = DEFAULT_CLEAR_SCREEN;
 	g_options.color        = DEFAULT_COLOR;
+	g_options.hp_keys     = DEFAULT_HP_KEYS;
 	g_options.kitty_keys   = DEFAULT_KITTY_KEYS;
 	g_options.light_theme  = DEFAULT_LIGHT_THEME;
 	g_options.sco_keys     = DEFAULT_SCO_KEYS;
@@ -128,7 +130,7 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "chikKlnst:Tvx")) != -1) {
+	while ((opt = getopt(argc, argv, "chikKlnpst:Tvx")) != -1) {
 		switch (opt) {
 		case 'c': g_options.clear_screen = 0; break;
 		case 'i': g_options.ascii_draw = 1; break;
@@ -136,6 +138,7 @@ parse_cmdline_args(const int argc, char **argv)
 		case 'K': g_options.kitty_keys = 2; break;
 		case 'l': g_options.light_theme = 1; break;
 		case 'n': g_options.color = 0; break;
+		case 'p': g_options.hp_keys = 1; break;
 		case 's': g_options.sco_keys = 1; break;
 		case 't': g_options.translate = optarg; break;
 		case 'T': g_options.show_translation = 0; break;

@@ -49,6 +49,7 @@ struct opts_t {
 	int ascii_draw;
 	int clear_screen;
 	int color;
+	int hp_keys;
 	int kitty_keys;
 	int light_theme;
 	int sco_keys;

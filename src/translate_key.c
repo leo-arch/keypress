@@ -81,7 +81,7 @@
 /* Some names for control keys. */
 static const char *ctrl_keys[256] = {
 	[0x7f] = "Del", [0x0d] = "Enter", [0x08] = "Backspace",
-	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape",
+	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape"
 };
 
 /* VT100/SCO sequences predates ANSI X3.64 and ECMA-48, just as Xterm and Rxvrt
@@ -122,7 +122,19 @@ static const char *key_map_sco[256] = {
 	['z'] = "Ctrl+Shift+F4", ['@'] = "Ctrl+Shift+F5", ['['] = "Ctrl+Shift+F6",
 	['\\'] = "Ctrl+Shift+F7", [']'] = "Ctrl+Shift+F8", ['^'] = "Ctrl+Shift+F9",
 	['_'] = "Ctrl+Shift+F10", ['`'] = "Ctrl+Shift+F11",
-	['{'] = "Ctrl+Shift+F12",
+	['{'] = "Ctrl+Shift+F12"
+};
+
+static const char *key_map_hp[256] = {
+	['h'] = "Home",
+
+	['p'] = "F1", ['q'] = "F2", ['r'] = "F3", ['s'] = "F4", ['t'] = "F5",
+	['u'] = "F6", ['v'] = "F7", ['w'] = "F8",
+
+	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
+
+	['F'] = "End", ['P'] = "Del", ['Q'] = "Ins",
+	['S'] = "PgDn", ['T'] = "PgUp"
 };
 
 static const char *key_map_generic[256] = {
@@ -302,7 +314,7 @@ xatoi(const char *str)
 static char *
 check_exceptions(const char *str, const int term_type)
 {
-	if (term_type == TK_TERM_LEGACY_SCO)
+	if (term_type == TK_TERM_LEGACY_SCO || term_type == TK_TERM_LEGACY_HP)
 		return NULL;
 
 	/* Fix conflict with st: 'CSI P' is F1 in Kitty and Del in st. */
@@ -332,6 +344,20 @@ is_end_seq_char(unsigned char c)
 		&& c != CSI_INTRODUCER && c != SS3_INTRODUCER
 		&& ((c >= 0x40 && c <= 0x7e) /* ECMA-48 terminating bytes */
 		|| c == '$')); /* Rxvt uses this (E.g. "CSI 24$" for Shift+F12) */
+}
+
+static int
+is_sco_seq(const int csi_seq, const char *seq, const size_t end)
+{
+	return (csi_seq == 1 && seq[end] != '~');
+}
+
+static int
+is_hp_seq(const char c)
+{
+	return ((c == 'h' || (c >= 'p' && c <= 'w')
+	|| (c >= 'A' && c <= 'D') || c == 'F' || c == 'P' || c == 'Q'
+	|| c == 'S' || c == 'T'));
 }
 
 /* Rxvt uses '$', '^', and '@' to indicate the modifier key. */
@@ -496,7 +522,8 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 		return NULL;
 	}
 
-	if (*str == 'Z' && csi_seq == 1 && term_type != TK_TERM_LEGACY_SCO) {
+	if (*str == 'Z' && csi_seq == 1 && term_type != TK_TERM_LEGACY_SCO
+	&& term_type != TK_TERM_LEGACY_HP) {
 		snprintf(buf, MAX_BUF, "%s", "Shift+Tab");
 		return buf;
 	}
@@ -507,8 +534,10 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 			snprintf(buf, MAX_BUF, "Alt+%s", ctrl_keys[*s]);
 		else if (*s < 0x20)
 			snprintf(buf, MAX_BUF, "Ctrl+Alt+%c", *s + '@' + 0x20);
-		else
+		else if (term_type != TK_TERM_LEGACY_HP || !is_hp_seq(*s))
 			snprintf(buf, MAX_BUF, "Alt+%c", *s);
+		else
+			return NULL;
 		return buf;
 	}
 
@@ -652,8 +681,9 @@ get_keymap(const int term_type)
 {
 	switch (term_type) {
 	case TK_TERM_LEGACY_SCO: return key_map_sco;
+	case TK_TERM_LEGACY_HP:  return key_map_hp;
 	case TK_TERM_GENERIC: /* fallthrough */
-	default: return key_map_generic;
+	default:                 return key_map_generic;
 	}
 }
 
@@ -703,19 +733,14 @@ normalize_seq(char **seq, const int term_type)
 	return csi_seq;
 }
 
-static int
-is_sco_seq(const int csi_seq, const char *seq, const size_t end)
-{
-	return (csi_seq == 1 && seq[end] != '~');
-}
-
+/* Legacy mode: either SCO or HP keyboard mode. */
 static char *
-write_sco_keys(char *seq, const size_t end)
+write_legacy_keys(char *seq, const size_t end, const int term_type)
 {
 	char *s = strchr(seq, ';');
 	const int mod_key = (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 
-	return write_translation(seq[end], mod_key, TK_TERM_LEGACY_SCO);
+	return write_translation(seq[end], mod_key, term_type);
 }
 
 /* Translate the escape sequence STR into the corresponding symbolic value.
@@ -759,8 +784,11 @@ translate_key(char *seq, const int term_type)
 
 	const char end_char = seq[end];
 
+	if (term_type == TK_TERM_LEGACY_HP)
+		return write_legacy_keys(seq, end, term_type);
+
 	if (term_type == TK_TERM_LEGACY_SCO && is_sco_seq(csi_seq, seq, end))
-		return write_sco_keys(seq, end);
+		return write_legacy_keys(seq, end, term_type);
 
 	if (IS_KITTY_END_CHAR(end_char) && csi_seq == 1)
 		return write_kitty_keys(seq, end);
