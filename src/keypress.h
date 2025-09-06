@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 #define PROG_NAME "keypress"
-#define VERSION   "0.3.5"
+#define VERSION   "0.3.6"
 
 #define EXIT_KEY  0x03 /* Ctrl+C */
 #define CLR_KEY   0x18 /* Ctrl+X */
