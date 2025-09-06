@@ -85,8 +85,10 @@ static const char *ctrl_keys[256] = {
 };
 
 /* VT100/SCO sequences predates ANSI X3.64 and ECMA-48, just as Xterm and Rxvrt
- * standardized sequences. They're emitted by the FreeBSD console and cons25
- * (DragonFly, for example). The format is: CSI n, where n is a single byte.
+ * standardized sequences. They're emitted by the FreeBSD console, cons25
+ * (DragonFly, for example), and Xterm in SCO keyboard mode ('xterm -kt sco').
+ *
+ * The format is: "CSI n", where n is a single byte.
  *
  * Modifier keys are not encoded in any way. Instead, the final CSI byte
  * represents both the key and the modifier.
@@ -95,7 +97,7 @@ static const char *ctrl_keys[256] = {
  *     https://vt100.net/docs/vt510-rm/chapter6.html
  *     https://www.invisible-island.net/xterm/xterm-function-keys.html
  * and keyboard(4) in FreeBSD/Dragonfly. */
-static const char *key_map_legacy[256] = {
+static const char *key_map_sco[256] = {
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
 
 	['E'] = "Begin", ['F'] = "End", ['G'] = "PgDn", ['H'] = "Home",
@@ -123,7 +125,7 @@ static const char *key_map_legacy[256] = {
 	['{'] = "Ctrl+Shift+F12",
 };
 
-static const char *key_map[256] = {
+static const char *key_map_generic[256] = {
 	/* According to Rxvt docs: 1:Find, 3:Execute (but also Delete), 4:Select
 	 * However, 4 is End and 1 is Home in the Linux console and tmux/screen. */
 	[1] = "Home", [4] = "End",
@@ -142,7 +144,7 @@ static const char *key_map[256] = {
 	/* In Rxvt, these integers are mapped to either a function key above
 	 * F12, or to the shifted number - 10. E.g., 25 is both F13 and Shift+F3.
 	 * See https://pod.tst.eu/http://cvs.schmorp.de/rxvt-unicode/doc/rxvt.7.pod#Key_Codes
-	 * We chose the Shift apprach, since Shift+F3 is much more intuitive than
+	 * We chose the Shift approach, since Shift+F3 is much more intuitive than
 	 * F13. */
 	[25] = "Shift+F3", [26] = "Shift+F4", [28] = "Shift+F5",
 	[31] = "Shift+F7", [32] = "Shift+F8",
@@ -645,10 +647,20 @@ write_xterm_mok_seq(char *str, const size_t end)
 	return buf;
 }
 
-static char *
-write_translation(const int keycode, const int mod_key, const int legacy)
+static const char **
+get_keymap(const int term_type)
 {
-	const char **keymap = legacy == 1 ? key_map_legacy : key_map;
+	switch (term_type) {
+	case TK_TERM_LEGACY_SCO: return key_map_sco;
+	case TK_TERM_GENERIC: /* fallthrough */
+	default: return key_map_generic;
+	}
+}
+
+static char *
+write_translation(const int keycode, const int mod_key, const int term_type)
+{
+	const char **keymap = get_keymap(term_type);
 	const char *k = (keycode >= 0 && keycode <= 255)
 		? keymap[(unsigned char)keycode] : NULL;
 	const char *m = (mod_key >= 0 && mod_key <= 255)
@@ -703,7 +715,7 @@ write_sco_keys(char *seq, const size_t end)
 	char *s = strchr(seq, ';');
 	const int mod_key = (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 
-	return write_translation(seq[end], mod_key, 1);
+	return write_translation(seq[end], mod_key, TK_TERM_LEGACY_SCO);
 }
 
 /* Translate the escape sequence STR into the corresponding symbolic value.
@@ -765,5 +777,5 @@ translate_key(char *seq, const int term_type)
 	else
 		return NULL;
 
-	return write_translation(keycode, mod_key, 0);
+	return write_translation(keycode, mod_key, TK_TERM_GENERIC);
 }
