@@ -74,10 +74,10 @@
 
 /* Values for modifier keys.
  * See https://en.wikipedia.org/wiki/ANSI_escape_code */
-#define SHIFT_VAL 1
-#define ALT_VAL   2
-#define CTRL_VAL  4
-#define SUPER_VAL 8
+#define MOD_SHIFT 1
+#define MOD_ALT   2
+#define MOD_CTRL  4
+#define MOD_SUPER 8
 
 /* Some names for control keys. */
 static const char *ctrl_keys[256] = {
@@ -226,7 +226,7 @@ static const struct ext_key_map_t ext_key_map[] = {
 	{30, "RS"}, {31, "US"}, {32, "Space"}, {127, "Del"},
 	{160, "NBSP"}, {173, "SHY"},
 
-	/* Kitty / extended keys */
+	/* Kitty CSI u extended keys */
 	{57358, "CapsLock"}, {57359, "ScrollLock"}, {57360, "NumLock"},
 	{57361, "PrtScr"}, {57362, "Pause"}, {57363, "Menu"},
 	{57376, "F13"}, {57377, "F14"}, {57378, "F15"}, {57379, "F16"},
@@ -254,7 +254,7 @@ static const struct ext_key_map_t ext_key_map[] = {
 	{57450, "RSuper"}, {57451, "RHyper"}, {57452, "RMeta"},
 	{57453, "ISO_Level3_Shift"}, {57454, "ISO_Level5_Shift"},
 
-	/* Foot */
+	/* Foot (modifyOtherKeys extensions) */
 	{65421, "KP_Enter"}, {65450, "KP_Multiply"}, {65451, "KP_Add"},
 	{65452, "KP_Separator"}, {65453, "KP_Subtract"},
 	{65454, "KP_Delete"}, {65455, "KP_Divide"}, {65456, "KP_Insert"},
@@ -368,7 +368,7 @@ set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
 	const char end_char = str[end];
 
 	if (*str == ESC_KEY) {
-		*mod_key += ALT_VAL;
+		*mod_key += MOD_ALT;
 		str += 2; /* Skip "ESC [" */
 	}
 
@@ -381,10 +381,10 @@ set_end_char_is_mod_key(char *str, const size_t end, int *keycode, int *mod_key)
 		(*keycode >= 25 && *keycode <= 34 && *keycode != 29);
 
 	if (end_char == '$')
-		*mod_key += (!is_func_key ? SHIFT_VAL : 0);
+		*mod_key += (!is_func_key ? MOD_SHIFT : 0);
 	else /* Either '^' (Ctrl) or '@' (Ctrl+Shift) */
-		*mod_key += CTRL_VAL + ((end_char == '@'
-			&& !is_func_key) ? SHIFT_VAL : 0);
+		*mod_key += MOD_CTRL + ((end_char == '@'
+			&& !is_func_key) ? MOD_SHIFT : 0);
 }
 
 /* The terminating character just terminates the string. Mostly '~', but
@@ -398,7 +398,7 @@ set_end_char_is_generic(char *str, const size_t end, int *keycode, int *mod_key)
 
 	if (*str == ESC_KEY) {
 		if (!s) { /* Rxvt */
-			*mod_key += ALT_VAL;
+			*mod_key += MOD_ALT;
 			*keycode = xatoi(str + 2);
 			return;
 		}
@@ -424,7 +424,7 @@ set_end_char_is_keycode_no_arrow(char *str, const size_t end, int *keycode,
 		*mod_key += s[1] ? xatoi(s + 1) - 1 : 0;
 	} else {
 		if (*str == ESC_KEY) { /* Rxvt */
-			*mod_key += ALT_VAL;
+			*mod_key += MOD_ALT;
 			str++;
 		}
 		if (*str == SS3_INTRODUCER) /* Contour (SS3 mod key) */
@@ -450,7 +450,7 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 	char *s = strchr(str, ';');
 
 	if (*str == ESC_KEY && !s) { /* Rxvt */
-		*mod_key += ALT_VAL;
+		*mod_key += MOD_ALT;
 		str++;
 		end--;
 	}
@@ -460,9 +460,9 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	} else if (IS_LOWER_ARROW_CHAR(str[end])) { /* Rxvt */
 		if (*str == SS3_INTRODUCER)
-			*mod_key += CTRL_VAL;
+			*mod_key += MOD_CTRL;
 		else
-			*mod_key += SHIFT_VAL;
+			*mod_key += MOD_SHIFT;
 	} else if (IS_UPPER_ARROW_CHAR(str[end])) {
 		str[end] = '\0';
 		if (*str == SS3_INTRODUCER)
@@ -518,11 +518,13 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 		return buf;
 	}
 
+	/* Alt+UTF-8 */
+	if (IS_UTF8_LEAD_BYTE(*str) && csi_seq == 0) {
+		snprintf(buf, MAX_BUF, "Alt+%s", (unsigned char *)str);
+		return buf;
+	}
+
 	if (str[1]) { /* More than 1 byte after ESC */
-		if (IS_UTF8_LEAD_BYTE(*str) && csi_seq == 0) {
-			snprintf(buf, MAX_BUF, "Alt+%s", (unsigned char *)str);
-			return buf;
-		}
 		free(buf);
 		return NULL;
 	}
