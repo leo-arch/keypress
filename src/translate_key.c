@@ -472,8 +472,39 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 	}
 }
 
+/* Translate the modifier number MOD_KEY into human-readable form. */
+static const char *
+get_mod_symbol(const int mod_key)
+{
+	if (mod_key <= 0)
+		return NULL;
+
+	/* The biggest value mod_key can take is 255 (since
+	 * 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 = 255). In this case, the modifier
+	 * string would be "Shift+Alt+Ctrl+Super+Hyper+Meta+CapsLock+NumLock-",
+	 * which is 50 bytes long, including the terminating NUL byte. */
+	static char mod[64];
+	memset(mod, '\0', sizeof(mod));
+
+	const int m = mod_key;
+	const size_t s = sizeof(mod);
+	int l = 0;
+
+	if (m & 128) l += snprintf(mod + l, s - (size_t)l, "NumLock+");
+	if (m & 64)  l += snprintf(mod + l, s - (size_t)l, "CapsLock+");
+	if (m & 32)  l += snprintf(mod + l, s - (size_t)l, "Meta+");
+	if (m & 16)  l += snprintf(mod + l, s - (size_t)l, "Hyper+");
+	if (m & 8)   l += snprintf(mod + l, s - (size_t)l, "Super+");
+	if (m & 4)   l += snprintf(mod + l, s - (size_t)l, "Ctrl+");
+	if (m & 2)   l += snprintf(mod + l, s - (size_t)l, "Alt+");
+	if (m & 1)        snprintf(mod + l, s - (size_t)l, "Shift+");
+
+	return mod;
+}
+
 /* Max output string length */
 #define MAX_BUF 256
+#define SYM(n) (get_mod_symbol((n)))
 
 static char *
 print_non_esc_seq(const char *str)
@@ -494,7 +525,7 @@ print_non_esc_seq(const char *str)
 	} else if (ctrl_keys[*s]) { /* Backspace, Tab, Enter, Space, Del */
 		snprintf(buf, MAX_BUF, "%s", ctrl_keys[*s]);
 	} else if (*s < 0x20) { /* Control characters */
-		snprintf(buf, MAX_BUF, "%s%c", "Ctrl+", *s + '@' + 0x20);
+		snprintf(buf, MAX_BUF, "%s%c", SYM(MOD_CTRL), *s + '@' + 0x20);
 	} else {
 		free(buf);
 		return NULL;
@@ -520,7 +551,7 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 
 	/* Alt+UTF-8 */
 	if (IS_UTF8_LEAD_BYTE(*str) && csi_seq == 0) {
-		snprintf(buf, MAX_BUF, "Alt+%s", (unsigned char *)str);
+		snprintf(buf, MAX_BUF, "%s%s", SYM(MOD_ALT), (unsigned char *)str);
 		return buf;
 	}
 
@@ -531,18 +562,19 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 
 	if (*str == 'Z' && csi_seq == 1 && term_type != TK_TERM_LEGACY_SCO
 	&& term_type != TK_TERM_LEGACY_HP) {
-		snprintf(buf, MAX_BUF, "%s", "Shift+Tab");
+		snprintf(buf, MAX_BUF, "%sTab", SYM(MOD_SHIFT));
 		return buf;
 	}
 
 	if (csi_seq == 0) {
 		unsigned char *s = (unsigned char *)str;
 		if (ctrl_keys[*s]) /* Backspace, Tab, Enter, Space, Del */
-			snprintf(buf, MAX_BUF, "Alt+%s", ctrl_keys[*s]);
+			snprintf(buf, MAX_BUF, "%s%s", SYM(MOD_ALT), ctrl_keys[*s]);
 		else if (*s < 0x20)
-			snprintf(buf, MAX_BUF, "Ctrl+Alt+%c", *s + '@' + 0x20);
+			snprintf(buf, MAX_BUF, "%s%c", SYM(MOD_CTRL + MOD_ALT),
+				*s + '@' + 0x20);
 		else if (term_type != TK_TERM_LEGACY_HP || !is_hp_seq(*s))
-			snprintf(buf, MAX_BUF, "Alt+%c", *s);
+			snprintf(buf, MAX_BUF, "%s%c", SYM(MOD_ALT), *s);
 		else
 			return NULL;
 		return buf;
@@ -552,6 +584,7 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 	return NULL;
 }
 #undef MAX_BUF
+#undef SYM
 
 static const char *
 get_ext_key_symbol(const int keycode)
@@ -590,36 +623,6 @@ get_ext_key_symbol(const int keycode)
 	}
 
 	return str;
-}
-
-/* Translate the modifier number MOD_key into human-readable form. */
-static const char *
-get_mod_symbol(const int mod_key)
-{
-	if (mod_key <= 0)
-		return NULL;
-
-	/* The biggest value mod_key can take is 255 (since
-	 * 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 = 255). In this case, the modifier
-	 * string would be "Shift+Alt+Ctrl+Super+Hyper+Meta+CapsLock+NumLock-",
-	 * which is 50 bytes long, including the terminating NUL byte. */
-	static char mod[64];
-	memset(mod, '\0', sizeof(mod));
-
-	const int m = mod_key;
-	const size_t s = sizeof(mod);
-	int l = 0;
-
-	if (m & 128) l += snprintf(mod + l, s - (size_t)l, "NumLock+");
-	if (m & 64)  l += snprintf(mod + l, s - (size_t)l, "CapsLock+");
-	if (m & 32)  l += snprintf(mod + l, s - (size_t)l, "Meta+");
-	if (m & 16)  l += snprintf(mod + l, s - (size_t)l, "Hyper+");
-	if (m & 8)   l += snprintf(mod + l, s - (size_t)l, "Super+");
-	if (m & 4)   l += snprintf(mod + l, s - (size_t)l, "Ctrl+");
-	if (m & 2)   l += snprintf(mod + l, s - (size_t)l, "Alt+");
-	if (m & 1)        snprintf(mod + l, s - (size_t)l, "Shift+");
-
-	return mod;
 }
 
 static char *
