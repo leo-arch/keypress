@@ -48,7 +48,8 @@
  * key (Alt). Under this category we also find Xterm's MOK (modifyOtherKeys)
  * and the Kitty keyboard protocol. */
 
-#define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
+#define IS_DIGIT(c)            ((c) >= '0' && (c) <= '9')
+#define IS_UTF8_LEAD_BYTE(c)   (((c) & 0xc0) == 0xc0)
 #define IS_LOWER_ARROW_CHAR(c) ((c) >= 'a' && (c) <= 'd')
 #define IS_UPPER_ARROW_CHAR(c) ((c) >= 'A' && (c) <= 'D')
 #define IS_ARROW_CHAR(c) (IS_LOWER_ARROW_CHAR((c)) || IS_UPPER_ARROW_CHAR((c)))
@@ -517,7 +518,11 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 		return buf;
 	}
 
-	if (str[1]) {
+	if (str[1]) { /* More than 1 byte after ESC */
+		if (IS_UTF8_LEAD_BYTE(*str) && csi_seq == 0) {
+			snprintf(buf, MAX_BUF, "Alt+%s", (unsigned char *)str);
+			return buf;
+		}
 		free(buf);
 		return NULL;
 	}

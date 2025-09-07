@@ -115,7 +115,7 @@ init_default_options(void)
 	g_options.ascii_draw   = DEFAULT_ASCII_DRAW;
 	g_options.clear_screen = DEFAULT_CLEAR_SCREEN;
 	g_options.color        = DEFAULT_COLOR;
-	g_options.hp_keys     = DEFAULT_HP_KEYS;
+	g_options.hp_keys      = DEFAULT_HP_KEYS;
 	g_options.kitty_keys   = DEFAULT_KITTY_KEYS;
 	g_options.light_theme  = DEFAULT_LIGHT_THEME;
 	g_options.sco_keys     = DEFAULT_SCO_KEYS;

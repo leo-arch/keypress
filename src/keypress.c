@@ -276,7 +276,8 @@ update_buffer(struct state_t *state, const int c)
 		return;
 	}
 
-	if (state->buf[0] == ESC_KEY || (unsigned char)state->buf[0] == ALT_CSI) {
+	if ((state->buf[0] == ESC_KEY || (unsigned char)state->buf[0] == ALT_CSI)
+	&& state->utf8_bytes == 0) {
 		/* Append byte to the buffer only provided we are in the
 		 * middle of an escape sequence. */
 		*state->buf_ptr++ = (char)c;

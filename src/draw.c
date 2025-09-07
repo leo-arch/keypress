@@ -144,6 +144,9 @@ utf8_decode(const unsigned char *s, uint32_t *cp_out)
 static char *
 build_utf8_codepoint(const char *buf)
 {
+	if (!IS_UTF8_LEAD_BYTE(*buf))
+		return "";
+
 	uint32_t cp = 0;
 	if (utf8_decode((const unsigned char *)buf, &cp) != 0)
 		return "";
