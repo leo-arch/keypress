@@ -93,6 +93,9 @@
 #define MOD_ALT   2
 #define MOD_CTRL  4
 #define MOD_SUPER 8
+/* Unused
+#define MOD_HYPER 16
+#define MOD_META  32 */
 
 /* Some names for control keys. */
 static const char *ctrl_keys[256] = {
