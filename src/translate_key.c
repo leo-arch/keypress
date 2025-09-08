@@ -34,6 +34,8 @@
 
 #include "translate_key.h"
 
+/* See https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-PC-Style-Function-Keys */
+
 /* When it comes to keyboard escape sequences, we have three kind of
  * terminating characters:
  *
@@ -47,6 +49,19 @@
  * ends the sequence, '15' is the pressed key (F5), and '3' the modifier
  * key (Alt). Under this category we also find Xterm's MOK (modifyOtherKeys)
  * and the Kitty keyboard protocol. */
+
+/* This translation module supports the following encoding schemes:
+ * 1. SCO (legacy)
+ * 2. HP (legacy)
+ * 3. Sun (CSI-z)
+ * 4. Xterm
+ * 5. Xterm (modifyOtherKeys)
+ * 6. Rxvt
+ * 7. Fixterms (CSI-u)
+ * 8. Kitty (extended CSI-u)
+ * 9. Foot (extended CSI-u)
+ *
+ * Also, it can handle quirks/execeptions via the exceptions struct. */
 
 #define IS_DIGIT(c)            ((c) >= '0' && (c) <= '9')
 #define IS_UTF8_LEAD_BYTE(c)   (((c) & 0xc0) == 0xc0)
@@ -65,7 +80,7 @@
 #define IS_GENERIC_END_CHAR(c) ((c) == '~' || (c) == 'z')
 #define IS_KEYCODE_END_CHAR(c) (  \
 	IS_ARROW_CHAR((c))         || \
-	((c) >= 'E' && (c) <= 'H') || \
+	((c) >= 'E' && (c) <= 'I') || \
 	((c) >= 'P' && (c) <= 'S') || \
 	((c) >= 'j' && (c) <= 'y') || \
 	(c) == 'M' || (c) == 'X')
@@ -184,6 +199,8 @@ static const char *key_map_generic[256] = {
 	['p'] = "KP_Insert", ['q'] = "KP_End", ['r'] = "KP_Down", ['s'] = "KP_PgDn",
 	['t'] = "KP_Left", ['u'] = "KP_Begin", ['v'] = "KP_Right", ['w'] = "KP_Home",
 	['x'] = "KP_Up", ['y'] = "KP_PgUp", ['X'] = "KP_Equal",
+	/* Found in old VT keyboards (VT52, VT220) */
+	['I'] = "KP_Tab",
 
 	/* Xterm */
 	['E'] = "Begin", ['F'] = "End", ['H'] = "Home",
@@ -200,7 +217,7 @@ static const char *key_map_generic[256] = {
 	[215] = "F38", [217] = "F40", [219] = "F42", [221] = "F44",
 	[234] = "F46", [235] = "F47",
 	/* According to terminfo, kcpy is "CSI 197z", while kf16 is "CSI 29~" */
-	[197] = "Copy",
+	[197] = "Menu",
 /*  These ones conflict with the above function keys
  * 	[195] = "Undo", [196] = "Help", [200] = "Find", */
 	[214] = "Home", [216] = "PgUp", [218] = "Begin", [220] = "End",
