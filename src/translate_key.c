@@ -120,7 +120,7 @@ static const char *key_map_sco[256] = {
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
 
 	['E'] = "Begin", ['F'] = "End", ['G'] = "PgDn", ['H'] = "Home",
-	['I'] = "PgUp", ['L'] = "Ins",
+	['I'] = "PgUp", ['L'] = "Insert",
 	['J'] = "LSuper", ['~'] = "RSuper", ['}'] = "Menu",
 
 	['M'] = "F1", ['N'] = "F2", ['O'] = "F3", ['P'] = "F4", ['Q'] = "F5",
@@ -152,7 +152,7 @@ static const char *key_map_hp[256] = {
 
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
 
-	['F'] = "End", ['J'] = "Clear", ['P'] = "Del", ['Q'] = "Ins",
+	['F'] = "End", ['J'] = "Clear", ['P'] = "Delete", ['Q'] = "Insert",
 	['S'] = "PgDn", ['T'] = "PgUp"
 };
 
