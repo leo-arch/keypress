@@ -152,7 +152,7 @@ static const char *key_map_hp[256] = {
 
 	['A'] = "Up", ['B'] = "Down", ['C'] = "Right", ['D'] = "Left",
 
-	['F'] = "End", ['P'] = "Del", ['Q'] = "Ins",
+	['F'] = "End", ['J'] = "Clear", ['P'] = "Del", ['Q'] = "Ins",
 	['S'] = "PgDn", ['T'] = "PgUp"
 };
 
@@ -377,7 +377,7 @@ static int
 is_hp_seq(const char c)
 {
 	return ((c == 'h' || (c >= 'p' && c <= 'w')
-	|| (c >= 'A' && c <= 'D') || c == 'F' || c == 'P' || c == 'Q'
+	|| (c >= 'A' && c <= 'D') || c == 'F' || c == 'J' || c == 'P' || c == 'Q'
 	|| c == 'S' || c == 'T'));
 }
 
