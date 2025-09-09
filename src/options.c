@@ -45,6 +45,7 @@ print_help(void)
 		"          interactive mode.");
 	puts("  -h      Display this help and exit.");
 	puts("  -i      Use ASCII characters to draw the table.");
+	puts("  -I      Show terminfo capability names.");
 	puts("  -k      Enable support for the Kitty keyboard protocol.");
 	puts("  -K      Enable support for the Kitty keyboard protocol (full mode).");
 	puts("  -l      Use a light color scheme.");
@@ -119,6 +120,7 @@ init_default_options(void)
 	g_options.kitty_keys   = DEFAULT_KITTY_KEYS;
 	g_options.light_theme  = DEFAULT_LIGHT_THEME;
 	g_options.sco_keys     = DEFAULT_SCO_KEYS;
+	g_options.show_ticap   = DEFAULT_SHOW_TICAP;
 	g_options.show_translation = DEFAULT_SHOW_TRANSLATION;
 	g_options.translate    = DEFAULT_TRANSLATE;
 	g_options.xterm_mok    = DEFAULT_XTERM_MOK;
@@ -130,10 +132,11 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "chikKlnpst:Tvx")) != -1) {
+	while ((opt = getopt(argc, argv, "chiIkKlnpst:Tvx")) != -1) {
 		switch (opt) {
 		case 'c': g_options.clear_screen = 0; break;
 		case 'i': g_options.ascii_draw = 1; break;
+		case 'I': g_options.show_ticap = 1; break;
 		case 'k': g_options.kitty_keys = 1; break;
 		case 'K': g_options.kitty_keys = 2; break;
 		case 'l': g_options.light_theme = 1; break;

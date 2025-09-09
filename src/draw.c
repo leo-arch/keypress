@@ -71,6 +71,89 @@ build_binary(const uint8_t n)
 	return bin;
 }
 
+struct ticaps_t {
+	const char *name;
+	const char *ticap;
+};
+
+static struct ticaps_t ticaps[] = {
+	/* Function keys */
+	{"F1", "kf1"}, {"F2", "kf2"}, {"F3", "kf3"}, {"F4", "kf4"}, {"F5", "kf5"},
+	{"F6", "kf6"}, {"F7", "kf7"}, {"F8", "kf8"}, {"F9", "kf9"}, {"F10", "kf10"},
+	{"F11", "kf11"}, {"F12", "kf12"},
+
+	/* Arrow keys */
+	{"Down", "kcud1"}, {"Left", "kcub1"}, {"Right", "kcuf1"}, {"Up", "kcuu1"},
+
+	/* Editing keys */
+	{"Home", "khome"}, {"Insert", "kich1"}, {"PgDn", "knp"}, {"PgUp", "kpp"},
+	{"Begin", "kbeg"}, {"Delete", "kdch1"}, {"End", "kend"},
+
+	/* Keypad keys */
+	{"KP_Home", "ka1"}, {"KP_PgUp", "ka3"},
+	{"KP_Begin", "kb2"},
+	{"KP_End", "kc1"}, {"KP_PgDn", "kc3"},
+	{"KP_Enter", "kent"},
+
+	/* Shifted keys */
+	/* These are inverted in xterm and rxvt
+	{"Shift+Up", "kri"}, {"Shift+Down", "kind"}, */
+	{"Shift+Right", "kRIT"}, {"Shift+PgDn", "kNXT"}, {"Shift+PgUp", "kPRV"},
+	{"Shift+Left", "kLFT"}, {"Shift+Home", "kHOM"}, {"Shift+End", "kEND"},
+	{"Shift+Begin", "kBEG"}, {"Shift+Delete", "kDC"}, {"Shift+Insert", "kIC"},
+
+	/* Misc keys */
+	{"Backspace", "kbs"}, {"Shift+Tab", "kcbt"},
+
+	/* Xterm only
+	{"Shift+F1", "kf13"}, {"Shift+F2", "kf14"}, {"Shift+F3", "kf15"},
+	{"Shift+F4", "kf16"}, {"Shift+F5", "kf17"}, {"Shift+F6", "kf18"},
+	{"Shift+F7", "kf19"}, {"Shift+F8", "kf20"}, {"Shift+F9", "kf21"},
+	{"Shift+F10", "kf22"}, {"Shift+F11", "kf23"}, {"Shift+F12", "kf24"},
+
+	{"Ctrl+F1", "kf25"}, {"Ctrl+F2", "kf26"}, {"Ctrl+F3", "kf27"},
+	{"Ctrl+F4", "kf28"}, {"Ctrl+F5", "kf29"}, {"Ctrl+F6", "kf30"},
+	{"Ctrl+F7", "kf31"}, {"Ctrl+F8", "kf32"}, {"Ctrl+F9", "kf33"},
+	{"Ctrl+F10", "kf34"}, {"Ctrl+F11", "kf35"}, {"Ctrl+F12", "kf36"},
+
+	{"Ctrl+Shift+F1", "kf37"}, {"Ctrl+Shift+F2", "kf38"},
+	{"Ctrl+Shift+F3", "kf39"}, {"Ctrl+Shift+F4", "kf40"},
+	{"Ctrl+Shift+F5", "kf41"}, {"Ctrl+Shift+F6", "kf42"},
+	{"Ctrl+Shift+F7", "kf43"}, {"Ctrl+Shift+F8", "kf44"},
+	{"Ctrl+Shift+F9", "kf45"}, {"Ctrl+Shift+F10", "kf46"},
+	{"Ctrl+Shift+F11", "kf47"}, {"Ctrl+Shift+F12", "kf48"},
+
+	{"Alt+F1", "kf49"}, {"Alt+F2", "kf50"}, {"Alt+F3", "kf51"},
+	{"Alt+F4", "kf52"}, {"Alt+F5", "kf53"}, {"Alt+F6", "kf54"},
+	{"Alt+F7", "kf55"}, {"Alt+F8", "kf56"}, {"Alt+F9", "kf57"},
+	{"Alt+F10", "kf58"}, {"Alt+F11", "kf59"}, {"Alt+F12", "kf60"},
+
+	{"Alt+Shift+F1", "kf61"}, {"Alt+Shift+F2", "kf62"}, {"Alt+Shift+F3", "kf63"}, */
+
+	{NULL, NULL}
+};
+
+static const char *
+build_ticap(const char *str)
+{
+	int found = -1;
+	for (int i = 0; ticaps[i].name; i++) {
+		if (*str == *ticaps[i].name && strcmp(str, ticaps[i].name) == 0) {
+			found = i;
+			break;
+		}
+	}
+
+	if (found != -1) {
+		static char buf[32];
+		snprintf(buf, sizeof(buf), "%s (%s)",
+			g_options.colors.reset, ticaps[found].ticap);
+		return buf;
+	}
+
+	return "";
+}
+
 /* Return the number of bytes of a character by inspecting
  * its initial byte (C). */
 int
@@ -215,6 +298,7 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 	static int edge = TABLE_WIDTH + 5;
 
 	char *str = translate_key(buf, get_term_type());
+	const char *ticap = (g_options.show_ticap == 1 && str) ? build_ticap(str) : "";
 
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	int overlong = 0;
@@ -233,7 +317,7 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 		table_color, ascii ? FOOTER_TOP_A : FOOTER_TOP_U,
 		sep, reset_color,
 		color, str ? str : "?",
-		utf8_cp, reset_color, edge,
+		*utf8_cp ? utf8_cp : ticap, reset_color, edge,
 		table_color, overlong == 0 ? sep : "", reset_color);
 
 	if (clear_screen == 0)

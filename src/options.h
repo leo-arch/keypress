@@ -53,6 +53,7 @@ struct opts_t {
 	int kitty_keys;
 	int light_theme;
 	int sco_keys;
+	int show_ticap; /* Print terminfo capability name */
 	int show_translation;
 	int xterm_mok;
 };
