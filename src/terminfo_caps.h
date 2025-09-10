@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-const char *build_ticap(const char *str, const int is_rxvt);
+const char *build_terminfo_cap(const char *str, const int is_rxvt);
 
 #ifdef __cplusplus
 }

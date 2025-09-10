@@ -105,7 +105,7 @@ static struct ticaps_t ticaps[] = {
 };
 
 const char *
-build_ticap(const char *str, const int is_rxvt)
+build_terminfo_cap(const char *str, const int is_rxvt)
 {
 	char *p = is_rxvt == 1 ? strrchr(str, '+') : NULL;
 	int diff = (p && p[1] == 'F' && IS_DIGIT(p[2])) ? 2 : 0; /* Rxvt only */

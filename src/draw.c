@@ -211,7 +211,7 @@ print_header(void)
 }
 
 static int
-retrieve_ticap(const char *seq, const int term_type)
+retrieve_terminfo_cap(const char *seq, const int term_type)
 {
 	if (g_options.show_terminfo_cap == 0)
 		return 0;
@@ -232,9 +232,10 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 	static int edge = TABLE_WIDTH + 5;
 
 	const int term_type = get_term_type();
-	const int ret_ticap = retrieve_ticap(buf, term_type);
+	const int ret_terminfo_cap = retrieve_terminfo_cap(buf, term_type);
 	char *str = translate_key(buf, term_type);
-	const char *ticap = (str && ret_ticap == 1)	? build_ticap(str, g_is_rxvt) : "";
+	const char *ticap = (str && ret_terminfo_cap == 1)
+		? build_terminfo_cap(str, g_is_rxvt) : "";
 
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	int overlong = 0;
