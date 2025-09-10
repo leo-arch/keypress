@@ -163,7 +163,7 @@ static const char *
 build_ticap(const char *str)
 {
 	char *p = g_is_rxvt == 1 ? strrchr(str, '+') : NULL;
-	int diff = (p && p[1] == 'F' && IS_DIGIT(p[2])) ? 2 : 0; // Rxvt
+	int diff = (p && p[1] == 'F' && IS_DIGIT(p[2])) ? 2 : 0; /* Rxvt only */
 	if (diff > 0 && strncmp(str, "Ctrl+Shift+F", 12) == 0)
 		diff += 2;
 
@@ -183,7 +183,7 @@ build_ticap(const char *str)
 		}
 	}
 
-	if (diff > 0) { // Rxvt reports kf[1-44].
+	if (diff > 0) { /* Rxvt reports function keys up to F44. */
 		const char *t = found >= diff ? ticaps[found - diff].ticap : NULL;
 		if (t && *t == 'k' && t[1] == 'f' && atoi(t + 2) > 44)
 			return "";

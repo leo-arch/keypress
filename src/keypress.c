@@ -92,8 +92,7 @@ get_term_type(void)
 	static char *env_term = NULL;
 	if (!env_term) {
 		env_term = getenv("TERM");
-		if (*env_term == 'l' && strncmp(env_term, "linux", 5) == 0)
-			is_linux = 1;
+		is_linux = strncmp(env_term, "linux", 5) == 0;
 	}
 
 	return is_linux == 1 ? TK_TERM_LINUX : TK_TERM_GENERIC;

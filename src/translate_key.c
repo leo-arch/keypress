@@ -312,6 +312,21 @@ static const struct exceptions_t exceptions[] = {
 	{NULL, NULL}
 };
 
+static const char *
+fix_linux_func_keys(const int keycode, const int mod_key, const char *key)
+{
+	if (mod_key != 0)
+		return key;
+
+	switch (keycode) {
+	case 25: return "Shift+F1"; case 26: return "Shift+F2";
+	case 28: return "Shift+F3"; case 29: return "Shift+F4";
+	case 31: return "Shift+F5"; case 32: return "Shift+F6";
+	case 33: return "Shift+F7"; case 34: return "Shift+F8";
+	default: return key;
+	}
+}
+
 /* A safe atoi */
 static int
 xatoi(const char *str)
@@ -714,21 +729,6 @@ get_keymap(const int term_type)
 	case TK_TERM_LEGACY_HP:  return key_map_hp;
 	case TK_TERM_GENERIC: /* fallthrough */
 	default:                 return key_map_generic;
-	}
-}
-
-static const char *
-fix_linux_func_keys(const int keycode, const int mod_key, const char *key)
-{
-	if (mod_key != 0)
-		return key;
-
-	switch (keycode) {
-	case 25: return "Shift+F1"; case 26: return "Shift+F2";
-	case 28: return "Shift+F3"; case 29: return "Shift+F4";
-	case 31: return "Shift+F5"; case 32: return "Shift+F6";
-	case 33: return "Shift+F7"; case 34: return "Shift+F8";
-	default: return key;
 	}
 }
 
