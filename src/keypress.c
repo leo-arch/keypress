@@ -87,7 +87,16 @@ get_term_type(void)
 		return TK_TERM_LEGACY_HP;
 	if (g_options.kitty_keys > 0)
 		return TK_TERM_KITTY;
-	return TK_TERM_GENERIC;
+
+	static int is_linux = 0;
+	static char *env_term = NULL;
+	if (!env_term) {
+		env_term = getenv("TERM");
+		if (*env_term == 'l' && strncmp(env_term, "linux", 5) == 0)
+			is_linux = 1;
+	}
+
+	return is_linux == 1 ? TK_TERM_LINUX : TK_TERM_GENERIC;
 }
 
 static int

@@ -717,6 +717,21 @@ get_keymap(const int term_type)
 	}
 }
 
+static const char *
+fix_linux_func_keys(const int keycode, const int mod_key, const char *key)
+{
+	if (mod_key != 0)
+		return key;
+
+	switch (keycode) {
+	case 25: return "Shift+F1"; case 26: return "Shift+F2";
+	case 28: return "Shift+F3"; case 29: return "Shift+F4";
+	case 31: return "Shift+F5"; case 32: return "Shift+F6";
+	case 33: return "Shift+F7"; case 34: return "Shift+F8";
+	default: return key;
+	}
+}
+
 static char *
 write_translation(const int keycode, const int mod_key, const int term_type)
 {
@@ -728,6 +743,9 @@ write_translation(const int keycode, const int mod_key, const int term_type)
 
 	if (!k)
 		return NULL;
+
+	if (term_type == TK_TERM_LINUX)
+		k = fix_linux_func_keys(keycode, mod_key, k);
 
 	const size_t len = (m ? strlen(m) : 0) + strlen(k) + 1; /* flawfinder: ignore */
 	char *buf = malloc(len * sizeof(char));
@@ -835,5 +853,5 @@ translate_key(char *seq, const int term_type)
 	else
 		return NULL;
 
-	return write_translation(keycode, mod_key, TK_TERM_GENERIC);
+	return write_translation(keycode, mod_key, term_type);
 }

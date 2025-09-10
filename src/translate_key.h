@@ -33,11 +33,13 @@
  *  legacy_hp:   Old HP mappings
  *  generic:     Term agnostic (default)
  *  kitty:       Using the kitty keyboard protocol
+ *  linux:       The Linux console
  * In the future we can add more values to support term-specific translations. */
 #define TK_TERM_GENERIC     0
 #define TK_TERM_LEGACY_SCO  1
 #define TK_TERM_LEGACY_HP   2
 #define TK_TERM_KITTY       3
+#define TK_TERM_LINUX       4
 
 #define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
 #define CSI_INTRODUCER 0x5b /* [ */
