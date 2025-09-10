@@ -37,8 +37,8 @@
 #include "keypress.h" /* BUF_SIZE, PROG_NAME, VERSION, get_term_type */
 #include "options.h" /* g_options */
 #include "term.h" /* CLEAR_SCREEN */
-#include "translate_key.h" /* translate_key */
-#include "terminfo_caps.h" /* build_ticap */
+#include "translate_key.h" /* translate_key, TK_TERM macros */
+#include "terminfo_caps.h" /* build_terminfo_cap */
 
 /* Lenght of the table, excluding borders. */
 #define TABLE_WIDTH 35
@@ -227,15 +227,15 @@ retrieve_terminfo_cap(const char *seq, const int term_type)
 }
 
 void
-print_footer(char *buf, const int is_utf8, const int clear_screen)
+print_footer(char *buf, const int is_utf8, const int clear_screen,
+	const int term_type)
 {
 	static int edge = TABLE_WIDTH + 5;
 
-	const int term_type = get_term_type();
 	const int ret_terminfo_cap = retrieve_terminfo_cap(buf, term_type);
 	char *str = translate_key(buf, term_type);
-	const char *ticap = (str && ret_terminfo_cap == 1)
-		? build_terminfo_cap(str, g_is_rxvt) : "";
+	const char *terminfo_cap = (str && ret_terminfo_cap == 1)
+		? build_terminfo_cap(str, term_type) : "";
 
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	int overlong = 0;
@@ -254,7 +254,7 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 		table_color, ascii ? FOOTER_TOP_A : FOOTER_TOP_U,
 		sep, reset_color,
 		color, str ? str : "?",
-		*utf8_cp ? utf8_cp : ticap, reset_color, edge,
+		*utf8_cp ? utf8_cp : terminfo_cap, reset_color, edge,
 		table_color, overlong == 0 ? sep : "", reset_color);
 
 	if (clear_screen == 0)

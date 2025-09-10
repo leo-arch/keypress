@@ -45,6 +45,7 @@ extern "C" {
 
 #define IS_CTRL_KEY(c)    ((c) >= 0 && (c) <= 31)
 #define IS_OCTAL_DIGIT(c) ((c) >= '0' && (c) <= '7')
+#define IS_DIGIT(c)       ((c) >= '0' && (c) <= '9')
 
 #define IS_UTF8_LEAD_BYTE(c) (((c) & 0xc0) == 0xc0)
 #define IS_UTF8_CONT_BYTE(c) (((c) & 0xc0) == 0x80)
@@ -66,9 +67,6 @@ extern "C" {
 /* Ctrl+x */
 #define KITTY_CLR_KEY(s, c) (*(s) == ESC_KEY && \
 	(c) == 'u' && strcmp((s) + 1, "[120;5") == 0)
-
-int get_term_type(void);
-extern int g_is_rxvt;
 
 #ifdef __cplusplus
 }

@@ -29,7 +29,9 @@
 #include <string.h> /* strcmp, strncmp, strrchr */
 #include <stdlib.h> /* atoi */
 
-#define IS_DIGIT(n) ((n) >= '0' && (n) <= '9')
+#include "translate_key.h" /* TK_TERM macros */
+#include "keypress.h"      /* IS_DIGIT */
+
 #define COLOR_RESET "\x1b[0m"
 
 struct ticaps_t {
@@ -105,8 +107,10 @@ static struct ticaps_t ticaps[] = {
 };
 
 const char *
-build_terminfo_cap(const char *str, const int is_rxvt)
+build_terminfo_cap(const char *str, const int term_type)
 {
+	const int is_rxvt = term_type == TK_TERM_RXVT;
+
 	const char *p = is_rxvt == 1 ? strrchr(str, '+') : NULL;
 	int diff = (p && p[1] == 'F' && IS_DIGIT(p[2])) ? 2 : 0; /* Rxvt only */
 	if (diff > 0 && strncmp(str, "Ctrl+Shift+F", 12) == 0)

@@ -38,8 +38,6 @@
 #include "translate_key.h" /* translate_key, is_end_seq_char */
 #include "term.h" /* init_term, deinit_term */
 
-int g_is_rxvt = 0;
-
 /* Symbols for control characters */
 const char *const keysym_table[] = {
 	"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
@@ -78,7 +76,7 @@ transform_esc_seq(const char *input, char *output)
 	*out_ptr = '\0';
 }
 
-int
+static int
 get_term_type(void)
 {
 	if (g_options.sco_keys == 1)
@@ -88,18 +86,34 @@ get_term_type(void)
 	if (g_options.kitty_keys > 0)
 		return TK_TERM_KITTY;
 
-	static int is_linux = 0;
-	static char *env_term = NULL;
-	if (!env_term) {
-		env_term = getenv("TERM");
-		is_linux = (env_term && strncmp(env_term, "linux", 5) == 0);
+	char *env_term = getenv("TERM");
+	char *env_colorterm = getenv("COLORTERM");
+
+	if (env_colorterm) {
+		if (strncmp(env_colorterm, "rxvt", 4) == 0
+		|| strncmp(env_colorterm, "Eterm", 5) == 0)
+			return TK_TERM_RXVT;
 	}
 
-	return is_linux == 1 ? TK_TERM_LINUX : TK_TERM_GENERIC;
+	if (!env_term || !*env_term)
+		return TK_TERM_GENERIC;
+
+	if (strncmp(env_term, "xterm", 5) == 0)
+		return TK_TERM_XTERM;
+	if (strncmp(env_term, "rxvt", 4) == 0
+	|| strncmp(env_term, "Eterm", 5) == 0)
+		return TK_TERM_RXVT;
+	if (strncmp(env_term, "linux", 5) == 0)
+		return TK_TERM_LINUX;
+	if (strncmp(env_term, "st-", 3) == 0
+	|| strncmp(env_term, "stterm", 6) == 0)
+		return TK_TERM_ST;
+
+	return TK_TERM_GENERIC;
 }
 
 static int
-run_translate_key(const char *arg)
+run_translate_key(const char *arg, const int term_type)
 {
 	if (!arg) {
 		fprintf(stderr, "Missing parameter: An escape sequence is expected\n");
@@ -113,7 +127,7 @@ run_translate_key(const char *arg)
 
 	transform_esc_seq(arg, str);
 
-	char *key_sym = translate_key(str, get_term_type());
+	char *key_sym = translate_key(str, term_type);
 	free(str);
 
 	if (key_sym) {
@@ -151,7 +165,6 @@ is_complete_escape_sequence(const char *buf, const int c)
 	if (buf[0] != ESC_KEY && (unsigned char)buf[0] != ALT_CSI)
 		return 0; /* Not an escape sequence */
 
-#define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
 	if (g_options.sco_keys == 1 && buf[0] == ESC_KEY
 	&& buf[1] == CSI_INTRODUCER && !IS_DIGIT(c) && c != ';') /* VT100/SCO sequence */
 		return 1;
@@ -242,7 +255,8 @@ print_byte_info(struct state_t *state, const int c)
 }
 
 static void
-print_sequence(struct state_t *state, const int is_utf8, const int c)
+print_sequence(struct state_t *state, const int is_utf8, const int c,
+	const int term_type)
 {
 	if (is_utf8 == 0)
 		*state->buf_ptr++ = (char)c;
@@ -256,14 +270,14 @@ print_sequence(struct state_t *state, const int is_utf8, const int c)
 		print_bottom_line(state->clear_screen);
 		memset(state->buf, '\0', BUF_SIZE);
 	} else {
-		print_footer(state->buf, is_utf8, g_options.clear_screen);
+		print_footer(state->buf, is_utf8, g_options.clear_screen, term_type);
 	}
 
 	state->buf_ptr = state->buf;
 }
 
 static void
-update_buffer(struct state_t *state, const int c)
+update_buffer(struct state_t *state, const int c, const int term_type)
 {
 	/* Avoid writing past the end of the buffer. */
 	if (state->buf_ptr >= state->buf + (BUF_SIZE - 1))
@@ -276,13 +290,13 @@ update_buffer(struct state_t *state, const int c)
 
 	if (is_complete_escape_sequence(state->buf, c)) {
 		/* Key combination involving modifier keys (Ctrl, Alt, Super). */
-		print_sequence(state, 0, c);
+		print_sequence(state, 0, c, term_type);
 		return;
 	}
 
 	if (state->utf8_bytes > 1 && state->utf8_count == state->utf8_bytes) {
 		/* A UTF-8 character. */
-		print_sequence(state, 1, 0);
+		print_sequence(state, 1, 0, term_type);
 		return;
 	}
 
@@ -301,31 +315,16 @@ update_buffer(struct state_t *state, const int c)
 	}
 }
 
-static int
-check_rxvt(void)
-{
-	char *ptr = getenv("TERM");
-	if (ptr && strncmp(ptr, "rxvt", 4) == 0)
-		return 1;
-
-	/* Most rxvt-based terminals set COLORTERM to something like "rxvt-" */
-	ptr = getenv("COLORTERM");
-	if (ptr && (strncmp(ptr, "rxvt", 4) == 0 || strncmp(ptr, "Eterm", 5) == 0))
-		return 1;
-
-	return 0;
-}
-
 int
 main(int argc, char **argv)
 {
 	parse_cmdline_args(argc, argv);
+	const int term_type = get_term_type();
 
 	if (g_options.translate != NULL) /* -t SEQ */
-		return run_translate_key(g_options.translate);
+		return run_translate_key(g_options.translate, term_type);
 
 	init_term();
-	g_is_rxvt = g_options.show_terminfo_cap == 1 ? check_rxvt() : 0;
 
 	struct state_t state = {0};
 	state.buf_ptr = state.buf;
@@ -350,7 +349,7 @@ main(int argc, char **argv)
 			break;
 
 		print_byte_info(&state, c);
-		update_buffer(&state, c);
+		update_buffer(&state, c, term_type);
 
 		fflush(stdout);
 	}
