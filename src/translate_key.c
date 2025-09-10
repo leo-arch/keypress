@@ -305,10 +305,10 @@ static const struct exceptions_t exceptions[] = {
 	 * Home anymore, but Del.
 	 * Also, while "CSI P", is Del, "CSI 2K" is Shift+Del and "CSI K" is Shift+End.
 	 * Also, while "CSI L" is Ctrl+Ins, "CSI 4l" is Shift+Ins. */
-	{"\x1b[4h", "Ins"}, {"\x1b[M", "Ctrl+Del"}, {"\x1b[L", "Ctrl+Ins"},
+	{"\x1b[4h", "Insert"}, {"\x1b[M", "Ctrl+Delete"}, {"\x1b[L", "Ctrl+Insert"},
 	{"\x1b[2J", "Shift+Home"}, {"\x1b[K", "Shift+End"},
-	{"\x1b[2K", "Shift+Del"}, {"\x1b[J", "Ctrl+End"},
-	{"\x1b[4l", "Shift+Ins"}, {"\x1b[P", "Del"},
+	{"\x1b[2K", "Shift+Delete"}, {"\x1b[J", "Ctrl+End"},
+	{"\x1b[4l", "Shift+Insert"}, {"\x1b[P", "Delete"},
 	{NULL, NULL}
 };
 

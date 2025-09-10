@@ -68,6 +68,7 @@ extern "C" {
 	(c) == 'u' && strcmp((s) + 1, "[120;5") == 0)
 
 int get_term_type(void);
+extern int g_is_rxvt;
 
 #ifdef __cplusplus
 }

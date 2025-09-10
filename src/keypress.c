@@ -38,6 +38,8 @@
 #include "translate_key.h" /* translate_key, is_end_seq_char */
 #include "term.h" /* init_term, deinit_term */
 
+int g_is_rxvt = 0;
+
 /* Symbols for control characters */
 const char *const keysym_table[] = {
 	"NUL", "SOH", "STX", "ETX", "EOT", "ENQ", "ACK", "BEL",
@@ -291,6 +293,21 @@ update_buffer(struct state_t *state, const int c)
 	}
 }
 
+static int
+check_rxvt(void)
+{
+	char *ptr = getenv("TERM");
+	if (ptr && strncmp(ptr, "rxvt", 4) == 0)
+		return 1;
+
+	/* Most rxvt-based terminals set COLORTERM to something like "rxvt-" */
+	ptr = getenv("COLORTERM");
+	if (ptr && (strncmp(ptr, "rxvt", 4) == 0 || strncmp(ptr, "Eterm", 5) == 0))
+		return 1;
+
+	return 0;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -300,6 +317,7 @@ main(int argc, char **argv)
 		return run_translate_key(g_options.translate);
 
 	init_term();
+	g_is_rxvt = g_options.show_terminfo_cap == 1 ? check_rxvt() : 0;
 
 	struct state_t state = {0};
 	state.buf_ptr = state.buf;
