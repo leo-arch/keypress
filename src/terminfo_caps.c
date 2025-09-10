@@ -76,7 +76,7 @@ static struct ticaps_t ticaps[] = {
 
 	/* Modified function keys
 	 * Based on xterm values. For rxvt-based terminals we need to hack
-	 * some of these values. See build_ticap() below. */
+	 * some of these values. See build_terminfo_cap() below. */
 	{"Shift+F1", "kf13"}, {"Shift+F2", "kf14"}, {"Shift+F3", "kf15"},
 	{"Shift+F4", "kf16"}, {"Shift+F5", "kf17"}, {"Shift+F6", "kf18"},
 	{"Shift+F7", "kf19"}, {"Shift+F8", "kf20"}, {"Shift+F9", "kf21"},
@@ -107,7 +107,7 @@ static struct ticaps_t ticaps[] = {
 const char *
 build_terminfo_cap(const char *str, const int is_rxvt)
 {
-	char *p = is_rxvt == 1 ? strrchr(str, '+') : NULL;
+	const char *p = is_rxvt == 1 ? strrchr(str, '+') : NULL;
 	int diff = (p && p[1] == 'F' && IS_DIGIT(p[2])) ? 2 : 0; /* Rxvt only */
 	if (diff > 0 && strncmp(str, "Ctrl+Shift+F", 12) == 0)
 		diff += 2;
@@ -117,10 +117,10 @@ build_terminfo_cap(const char *str, const int is_rxvt)
 		if (*str == *ticaps[i].name && strcmp(str, ticaps[i].name) == 0) {
 			/* The values of kri and kind and inverted in Rxvt regarding Xterm. */
 			if (is_rxvt == 1 && strcmp(ticaps[i].ticap, "kri") == 0)
-				/* kind is the next one in the ticaps table */
+				/* kind is the next one in the ticaps table. */
 				found = i + 1;
 			else if (is_rxvt == 1 && strcmp(ticaps[i].ticap, "kind") == 0)
-				/* kri is the previous one in the ticaps table */
+				/* kri is the previous one in the ticaps table. */
 				found = i > 0 ? i - 1 : i;
 			else
 				found = i;
@@ -128,7 +128,7 @@ build_terminfo_cap(const char *str, const int is_rxvt)
 		}
 	}
 
-	if (diff > 0) { /* Rxvt reports function keys up to F44. */
+	if (diff > 0) { /* Rxvt reports function keys only up to F44. */
 		const char *t = found >= diff ? ticaps[found - diff].ticap : NULL;
 		if (t && *t == 'k' && t[1] == 'f' && atoi(t + 2) > 44)
 			return "";
