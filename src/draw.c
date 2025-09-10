@@ -38,8 +38,7 @@
 #include "options.h" /* g_options */
 #include "term.h" /* CLEAR_SCREEN */
 #include "translate_key.h" /* translate_key */
-
-#define IS_DIGIT(n) ((n) >= '0' && (n) <= '9')
+#include "terminfo_caps.h" /* build_ticap */
 
 /* Lenght of the table, excluding borders. */
 #define TABLE_WIDTH 35
@@ -91,112 +90,6 @@ build_binary(const uint8_t n)
 	bin[8] = '\0';
 
 	return bin;
-}
-
-struct ticaps_t {
-	const char *name;
-	const char *ticap;
-};
-
-/* Map key translations to terminfo capabilty names. */
-static struct ticaps_t ticaps[] = {
-	/* Function keys */
-	{"F1", "kf1"}, {"F2", "kf2"}, {"F3", "kf3"}, {"F4", "kf4"}, {"F5", "kf5"},
-	{"F6", "kf6"}, {"F7", "kf7"}, {"F8", "kf8"}, {"F9", "kf9"}, {"F10", "kf10"},
-	{"F11", "kf11"}, {"F12", "kf12"}, {"Menu", "kf16"},
-
-	/* Arrow keys */
-	{"Down", "kcud1"}, {"Left", "kcub1"}, {"Right", "kcuf1"}, {"Up", "kcuu1"},
-
-	/* Editing keys */
-	{"Home", "khome"}, {"Insert", "kich1"}, {"PgDn", "knp"}, {"PgUp", "kpp"},
-	{"Begin", "kbeg"}, {"Delete", "kdch1"}, {"End", "kend"},
-
-	/* Keypad keys */
-	{"KP_Home", "ka1"}, {"KP_PgUp", "ka3"},
-	{"KP_Begin", "kb2"},
-	{"KP_End", "kc1"}, {"KP_PgDn", "kc3"},
-	{"KP_Enter", "kent"},
-
-	/* Shifted keys */
-	/* These two are inverted in Rxvt compared to Xterm. */
-	{"Shift+Up", "kri"}, {"Shift+Down", "kind"},
-
-	{"Shift+Right", "kRIT"}, {"Shift+PgDn", "kNXT"}, {"Shift+PgUp", "kPRV"},
-	{"Shift+Left", "kLFT"}, {"Shift+Home", "kHOM"}, {"Shift+End", "kEND"},
-	{"Shift+Begin", "kBEG"}, {"Shift+Delete", "kDC"}, {"Shift+Insert", "kIC"},
-
-	/* Misc keys */
-	{"Backspace", "kbs"}, {"Shift+Tab", "kcbt"},
-
-	/* Modified function keys
-	 * Based on xterm values. For rxvt-based terminals we need to hack
-	 * some of these values. See build_ticap() below. */
-	{"Shift+F1", "kf13"}, {"Shift+F2", "kf14"}, {"Shift+F3", "kf15"},
-	{"Shift+F4", "kf16"}, {"Shift+F5", "kf17"}, {"Shift+F6", "kf18"},
-	{"Shift+F7", "kf19"}, {"Shift+F8", "kf20"}, {"Shift+F9", "kf21"},
-	{"Shift+F10", "kf22"}, {"Shift+F11", "kf23"}, {"Shift+F12", "kf24"},
-
-	{"Ctrl+F1", "kf25"}, {"Ctrl+F2", "kf26"}, {"Ctrl+F3", "kf27"},
-	{"Ctrl+F4", "kf28"}, {"Ctrl+F5", "kf29"}, {"Ctrl+F6", "kf30"},
-	{"Ctrl+F7", "kf31"}, {"Ctrl+F8", "kf32"}, {"Ctrl+F9", "kf33"},
-	{"Ctrl+F10", "kf34"}, {"Ctrl+F11", "kf35"}, {"Ctrl+F12", "kf36"},
-
-	{"Ctrl+Shift+F1", "kf37"}, {"Ctrl+Shift+F2", "kf38"},
-	{"Ctrl+Shift+F3", "kf39"}, {"Ctrl+Shift+F4", "kf40"},
-	{"Ctrl+Shift+F5", "kf41"}, {"Ctrl+Shift+F6", "kf42"},
-	{"Ctrl+Shift+F7", "kf43"}, {"Ctrl+Shift+F8", "kf44"},
-	{"Ctrl+Shift+F9", "kf45"}, {"Ctrl+Shift+F10", "kf46"},
-	{"Ctrl+Shift+F11", "kf47"}, {"Ctrl+Shift+F12", "kf48"},
-
-	{"Alt+F1", "kf49"}, {"Alt+F2", "kf50"}, {"Alt+F3", "kf51"},
-	{"Alt+F4", "kf52"}, {"Alt+F5", "kf53"}, {"Alt+F6", "kf54"},
-	{"Alt+F7", "kf55"}, {"Alt+F8", "kf56"}, {"Alt+F9", "kf57"},
-	{"Alt+F10", "kf58"}, {"Alt+F11", "kf59"}, {"Alt+F12", "kf60"},
-
-	{"Alt+Shift+F1", "kf61"}, {"Alt+Shift+F2", "kf62"}, {"Alt+Shift+F3", "kf63"},
-
-	{NULL, NULL}
-};
-
-static const char *
-build_ticap(const char *str)
-{
-	char *p = g_is_rxvt == 1 ? strrchr(str, '+') : NULL;
-	int diff = (p && p[1] == 'F' && IS_DIGIT(p[2])) ? 2 : 0; /* Rxvt only */
-	if (diff > 0 && strncmp(str, "Ctrl+Shift+F", 12) == 0)
-		diff += 2;
-
-	int found = -1;
-	for (int i = 0; ticaps[i].name; i++) {
-		if (*str == *ticaps[i].name && strcmp(str, ticaps[i].name) == 0) {
-			/* The values of kri and kind and inverted in Rxvt regarding Xterm. */
-			if (g_is_rxvt == 1 && strcmp(ticaps[i].ticap, "kri") == 0)
-				/* kind is the next one in the ticaps table */
-				found = i + 1;
-			else if (g_is_rxvt == 1 && strcmp(ticaps[i].ticap, "kind") == 0)
-				/* kri is the previous one in the ticaps table */
-				found = i > 0 ? i - 1 : i;
-			else
-				found = i;
-			break;
-		}
-	}
-
-	if (diff > 0) { /* Rxvt reports function keys up to F44. */
-		const char *t = found >= diff ? ticaps[found - diff].ticap : NULL;
-		if (t && *t == 'k' && t[1] == 'f' && atoi(t + 2) > 44)
-			return "";
-	}
-
-	if (found != -1) {
-		static char buf[32];
-		snprintf(buf, sizeof(buf), "%s (%s)",
-			g_options.colors.reset, ticaps[found - diff].ticap);
-		return buf;
-	}
-
-	return "";
 }
 
 /* Return the number of bytes of a character by inspecting
@@ -341,7 +234,7 @@ print_footer(char *buf, const int is_utf8, const int clear_screen)
 	const int term_type = get_term_type();
 	const int ret_ticap = retrieve_ticap(buf, term_type);
 	char *str = translate_key(buf, term_type);
-	const char *ticap = (str && ret_ticap == 1)	? build_ticap(str) : "";
+	const char *ticap = (str && ret_ticap == 1)	? build_ticap(str, g_is_rxvt) : "";
 
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	int overlong = 0;

@@ -11,7 +11,7 @@ RM ?= rm
 CFLAGS += -MD -O3 -std=c99 -fstack-protector-strong -Wall -Wextra -pedantic
 CPPFLAGS ?=  # Define CPPFLAGS, can be empty for now
 
-OBJECTS=src/draw.o src/keypress.o src/options.o src/term.o src/translate_key.o
+OBJECTS=src/draw.o src/keypress.o src/options.o src/term.o src/translate_key.o src/terminfo_caps.o
 DEPS=$(OBJECTS:.o=.d)
 
 $(BIN): $(OBJECTS)

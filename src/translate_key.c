@@ -312,6 +312,8 @@ static const struct exceptions_t exceptions[] = {
 	{NULL, NULL}
 };
 
+/* The linux console uses CSI [25-33]~ for Shift+[F1-F8]: this conflicts with
+ * rxvt, which uses the same codes for Shift+[F3-F10]. */
 static const char *
 fix_linux_func_keys(const int keycode, const int mod_key, const char *key)
 {
