@@ -120,7 +120,7 @@ init_default_options(void)
 	g_options.kitty_keys   = DEFAULT_KITTY_KEYS;
 	g_options.light_theme  = DEFAULT_LIGHT_THEME;
 	g_options.sco_keys     = DEFAULT_SCO_KEYS;
-	g_options.show_terminfo_cap = DEFAULT_SHOW_TICAP;
+	g_options.show_terminfo_cap = DEFAULT_SHOW_TERMINFO_CAP;
 	g_options.show_translation = DEFAULT_SHOW_TRANSLATION;
 	g_options.translate    = DEFAULT_TRANSLATE;
 	g_options.xterm_mok    = DEFAULT_XTERM_MOK;

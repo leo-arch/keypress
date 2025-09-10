@@ -39,8 +39,30 @@
 #include "term.h" /* CLEAR_SCREEN */
 #include "translate_key.h" /* translate_key */
 
+#define IS_DIGIT(n) ((n) >= '0' && (n) <= '9')
+
 /* Lenght of the table, excluding borders. */
 #define TABLE_WIDTH 35
+
+#define SEP_U "│"
+#define SEP_A "|"
+
+#define BOTTOM_CLR_U    "└──────┴──────┴─────┴──────────┴──────┘"
+#define BOTTOM_NO_CLR_U "├──────┼──────┼─────┼──────────┼──────┤"
+#define BOTTOM_CLR_A    "+------+------+-----+----------+------+"
+#define BOTTOM_NO_CLR_A "+------+------+-----+----------+------+"
+
+#define HEADER_TOP_U  "┌──────┬──────┬─────┬──────────┬──────┐"
+#define HEADER_BASE_U "├──────┼──────┼─────┼──────────┼──────┤"
+#define HEADER_TOP_A  "+-------------------------------------+"
+#define HEADER_BASE_A "+------+------+-----+----------+------+"
+
+#define FOOTER_TOP_U         "├──────┴──────┴─────┴──────────┴──────┤"
+#define FOOTER_BASE_CLR_U    "└─────────────────────────────────────┘"
+#define FOOTER_BASE_NO_CLR_U "├─────────────────────────────────────┤"
+#define FOOTER_TOP_A         "+-------------------------------------+"
+#define FOOTER_BASE_CLR_A    "+-------------------------------------+"
+#define FOOTER_BASE_NO_CLR_A "+-------------------------------------+"
 
 static size_t
 wc_xstrlen(const char *restrict str)
@@ -76,6 +98,7 @@ struct ticaps_t {
 	const char *ticap;
 };
 
+/* Map key translations to terminfo capabilty names. */
 static struct ticaps_t ticaps[] = {
 	/* Function keys */
 	{"F1", "kf1"}, {"F2", "kf2"}, {"F3", "kf3"}, {"F4", "kf4"}, {"F5", "kf5"},
@@ -136,7 +159,6 @@ static struct ticaps_t ticaps[] = {
 	{NULL, NULL}
 };
 
-#define IS_DIGIT(n) ((n) >= '0' && (n) <= '9')
 static const char *
 build_ticap(const char *str)
 {
@@ -262,26 +284,6 @@ build_utf8_codepoint(const char *buf)
 	snprintf(str, sizeof(str), " (U+%X)", cp);
 	return str;
 }
-
-#define SEP_U "│"
-#define SEP_A "|"
-
-#define BOTTOM_CLR_U    "└──────┴──────┴─────┴──────────┴──────┘"
-#define BOTTOM_NO_CLR_U "├──────┼──────┼─────┼──────────┼──────┤"
-#define BOTTOM_CLR_A    "+------+------+-----+----------+------+"
-#define BOTTOM_NO_CLR_A "+------+------+-----+----------+------+"
-
-#define HEADER_TOP_U  "┌──────┬──────┬─────┬──────────┬──────┐"
-#define HEADER_BASE_U "├──────┼──────┼─────┼──────────┼──────┤"
-#define HEADER_TOP_A  "+-------------------------------------+"
-#define HEADER_BASE_A "+------+------+-----+----------+------+"
-
-#define FOOTER_TOP_U         "├──────┴──────┴─────┴──────────┴──────┤"
-#define FOOTER_BASE_CLR_U    "└─────────────────────────────────────┘"
-#define FOOTER_BASE_NO_CLR_U "├─────────────────────────────────────┤"
-#define FOOTER_TOP_A         "+-------------------------------------+"
-#define FOOTER_BASE_CLR_A    "+-------------------------------------+"
-#define FOOTER_BASE_NO_CLR_A "+-------------------------------------+"
 
 void
 print_header(void)
