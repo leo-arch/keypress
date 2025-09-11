@@ -835,7 +835,7 @@ translate_key(char *seq, const int term_type)
 
 	const char end_char = seq[end];
 
-	if (term_type == TK_TERM_LEGACY_HP)
+	if (term_type == TK_TERM_LEGACY_HP && end_char != '~')
 		return write_legacy_keys(seq, end, term_type);
 
 	if (term_type == TK_TERM_LEGACY_SCO && is_sco_seq(csi_seq, seq, end))
@@ -856,5 +856,9 @@ translate_key(char *seq, const int term_type)
 	else
 		return NULL;
 
-	return write_translation(keycode, mod_key, term_type);
+	const int tt =
+		(term_type == TK_TERM_LEGACY_HP || term_type == TK_TERM_LEGACY_SCO)
+		? TK_TERM_GENERIC : term_type;
+
+	return write_translation(keycode, mod_key, tt);
 }
