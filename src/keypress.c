@@ -90,23 +90,21 @@ get_term_type(void)
 	char *env_colorterm = getenv("COLORTERM");
 
 	if (env_colorterm) {
-		if (strncmp(env_colorterm, "rxvt", 4) == 0
-		|| strncmp(env_colorterm, "Eterm", 5) == 0)
+		if (strstr(env_colorterm, "rxvt") || strstr(env_colorterm, "Eterm"))
 			return TK_TERM_RXVT;
 	}
 
 	if (!env_term || !*env_term)
 		return TK_TERM_GENERIC;
 
-	if (strncmp(env_term, "xterm", 5) == 0)
+	if (strstr(env_term, "xterm"))
 		return TK_TERM_XTERM;
-	if (strncmp(env_term, "rxvt", 4) == 0
-	|| strncmp(env_term, "Eterm", 5) == 0)
+	if (strstr(env_term, "rxvt") || strstr(env_term, "Eterm")
+	|| strstr(env_term, "dvtm"))
 		return TK_TERM_RXVT;
-	if (strncmp(env_term, "linux", 5) == 0)
+	if (strstr(env_term, "linux"))
 		return TK_TERM_LINUX;
-	if (strncmp(env_term, "st-", 3) == 0
-	|| strncmp(env_term, "stterm", 6) == 0)
+	if (strstr(env_term, "st-") || strstr(env_term, "stterm"))
 		return TK_TERM_ST;
 
 	return TK_TERM_GENERIC;

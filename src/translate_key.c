@@ -229,14 +229,14 @@ static const char *key_map_generic[256] = {
 	[229] = "F6", [230] = "F7", [231] = "F8", [232] = "F9", [233] = "F10"
 };
 
-struct ext_key_map_t {
+struct ext_keymap_t {
 	int code;
 	const char *name;
 };
 
 /* An extended list of key symbols and their corresponding key codes.
  * This includes control characters, just as Kitty and Foot extended keys. */
-static const struct ext_key_map_t ext_key_map[] = {
+static const struct ext_keymap_t ext_keymap[] = {
 	{0, "NULL"}, {1, "SOH"}, {2, "STX"}, {3, "ETX"}, {4, "EOT"},
 	{5, "ENQ"}, {6, "ACK"}, {7, "BELL"}, {8, "Backspace"}, {9, "Tab"},
 	{10, "LF"}, {11, "VT"}, {12, "FF"}, {13, "Enter"}, {14, "SO"},
@@ -633,10 +633,10 @@ get_ext_key_symbol(const int keycode)
 		return keysym_str;
 	}
 
-	/* Linear search through ext_key_map */
-	for (size_t i = 0; ext_key_map[i].name != NULL; i++) {
-		if (ext_key_map[i].code == keycode)
-			return ext_key_map[i].name;
+	/* Linear search through ext_keymap */
+	for (size_t i = 0; ext_keymap[i].name != NULL; i++) {
+		if (ext_keymap[i].code == keycode)
+			return ext_keymap[i].name;
 	}
 
 	/* Transform a UTF-8 codepoint into a string of bytes. */

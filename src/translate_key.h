@@ -28,22 +28,16 @@
 #ifndef TRANSLATE_KEY_H
 #define TRANSLATE_KEY_H
 
-/* We support the follwing terminal types:
- *  legacy_sco:  Old VT100/SCO mappings
- *  legacy_hp:   Old HP mappings
- *  generic:     Term agnostic (default)
- *  kitty:       Using the kitty keyboard protocol
- *  linux:       The Linux console
- * In the future we can add more values to support term-specific translations. */
+/* Terminal types */
 #define TK_TERM_GENERIC    0
-#define TK_TERM_LEGACY_SCO 1
-#define TK_TERM_LEGACY_HP  2
-#define TK_TERM_KITTY      4
-#define TK_TERM_LINUX      8
+#define TK_TERM_LEGACY_SCO (1 << 0)
+#define TK_TERM_LEGACY_HP  (1 << 1)
+#define TK_TERM_KITTY      (1 << 2)
+#define TK_TERM_LINUX      (1 << 3)
 /* For the time being, these ones are unused */
-#define TK_TERM_XTERM      16
-#define TK_TERM_RXVT       32
-#define TK_TERM_ST         64
+#define TK_TERM_XTERM      (1 << 4)
+#define TK_TERM_RXVT       (1 << 5)
+#define TK_TERM_ST         (1 << 6)
 
 #define ALT_CSI        0x9b /* 8-bit CSI (alternate sequence) */
 #define CSI_INTRODUCER 0x5b /* [ */
