@@ -158,7 +158,8 @@ static const char *key_map_hp[256] = {
 
 static const char *key_map_generic[256] = {
 	/* According to Rxvt docs: 1:Find, 3:Execute (but also Delete), 4:Select
-	 * However, 4 is End and 1 is Home in the Linux console and tmux/screen. */
+	 * However, 4 is End and 1 is Home in the Linux console and
+	 * cygwin/tmux/screen. */
 	[1] = "Home", [4] = "End",
 
 	[2] = "Insert", [3] = "Delete",

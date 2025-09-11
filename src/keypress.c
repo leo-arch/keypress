@@ -102,7 +102,8 @@ get_term_type(void)
 	if (strstr(env_term, "rxvt") || strstr(env_term, "Eterm")
 	|| strstr(env_term, "dvtm"))
 		return TK_TERM_RXVT;
-	if (strstr(env_term, "linux"))
+	if (strstr(env_term, "linux") || strstr(env_term, "cygwin")
+	|| strstr(env_term, "yaft"))
 		return TK_TERM_LINUX;
 	if (strstr(env_term, "st-") || strstr(env_term, "stterm"))
 		return TK_TERM_ST;
