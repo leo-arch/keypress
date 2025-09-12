@@ -41,13 +41,12 @@ static void
 print_help(void)
 {
 	puts("Usage: keypress [OPTIONS]\n");
-	puts("  -c      Do not clear the screen before displaying key information in\n"
-		"          interactive mode.");
+	puts("  -c      Do not clear the screen before displaying key information.\n");
 	puts("  -h      Display this help and exit.");
 	puts("  -i      Use ASCII characters to draw the table.");
 	puts("  -I      Do not show terminfo capability names.");
-	puts("  -k      Enable support for the Kitty keyboard protocol.");
-	puts("  -K      Enable support for the Kitty keyboard protocol (full mode).");
+	puts("  -k      Enable the Kitty keyboard protocol (disambiguate).");
+	puts("  -K      Enable the Kitty keyboard protocol (full).");
 	puts("  -l      Use a light color scheme.");
 	puts("  -p      Run in HP keyboard mode.");
 	puts("  -s      Run in SCO keyboard mode.");
