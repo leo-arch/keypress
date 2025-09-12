@@ -77,8 +77,12 @@ transform_esc_seq(const char *input, char *output)
 }
 
 static int
-get_term_type(void)
+get_term_type(char **term)
 {
+	char *env_term = getenv("TERM");
+	if (env_term && *env_term)
+		*term= env_term;
+
 	if (g_options.sco_keys == 1)
 		return TK_TERM_LEGACY_SCO;
 	if (g_options.hp_keys == 1)
@@ -86,7 +90,6 @@ get_term_type(void)
 	if (g_options.kitty_keys > 0)
 		return TK_TERM_KITTY;
 
-	char *env_term = getenv("TERM");
 	char *env_colorterm = getenv("COLORTERM");
 
 	if (env_colorterm) {
@@ -103,7 +106,7 @@ get_term_type(void)
 	|| strstr(env_term, "dvtm"))
 		return TK_TERM_RXVT;
 	if (strstr(env_term, "linux") || strstr(env_term, "cygwin")
-	|| strstr(env_term, "yaft"))
+	|| strstr(env_term, "yaft") || strstr(env_term, "fbterm"))
 		return TK_TERM_LINUX;
 	if (strstr(env_term, "st-") || strstr(env_term, "stterm"))
 		return TK_TERM_ST;
@@ -190,7 +193,7 @@ struct state_t {
 };
 
 static void
-handle_ctrl_keys(struct state_t *state, const int c)
+handle_ctrl_keys(struct state_t *state, const int c, const char *term_name)
 {
 	state->exit = 0;
 
@@ -205,7 +208,7 @@ handle_ctrl_keys(struct state_t *state, const int c)
 	if (KITTY_CLR_KEY(state->buf, c)
 	|| XTERM_MOK_CLR_KEY(state->buf, c)) {
 		state->clear_screen = 0;
-		print_header();
+		print_header(term_name);
 		memset(state->buf, 0, BUF_SIZE);
 		state->buf_ptr = state->buf;
 		state->exit = CTRL_KEY_CONT;
@@ -214,7 +217,7 @@ handle_ctrl_keys(struct state_t *state, const int c)
 
 	if (c == CLR_KEY || state->clear_screen == 1) { /* Ctrl+X */
 		state->clear_screen = 0;
-		print_header();
+		print_header(term_name);
 
 		if (c == CLR_KEY) /* Ctrl+X: do not print info about this key. */
 			state->exit = CTRL_KEY_CONT;
@@ -318,7 +321,8 @@ int
 main(int argc, char **argv)
 {
 	parse_cmdline_args(argc, argv);
-	const int term_type = get_term_type();
+	char *term_name = NULL;
+	const int term_type = get_term_type(&term_name);
 
 	if (g_options.translate != NULL) /* -t SEQ */
 		return run_translate_key(g_options.translate, term_type);
@@ -328,7 +332,7 @@ main(int argc, char **argv)
 	struct state_t state = {0};
 	state.buf_ptr = state.buf;
 
-	print_header();
+	print_header(term_name);
 	fflush(stdout);
 
 	unsigned char ch = 0;
@@ -339,7 +343,7 @@ main(int argc, char **argv)
 
 		const int c = (int)ch;
 
-		handle_ctrl_keys(&state, c);
+		handle_ctrl_keys(&state, c, term_name);
 		if (state.exit == CTRL_KEY_CONT) {
 			fflush(stdout);
 			continue;

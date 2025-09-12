@@ -46,6 +46,11 @@
 #define SEP_U "│"
 #define SEP_A "|"
 
+#define INFO_TOP_U "┌─────────────────────────────────────┐"
+#define INFO_TOP_A "+-------------------------------------+"
+#define INFO_BASE_U "└─────────────────────────────────────┘"
+#define INFO_BASE_A "+-------------------------------------+"
+
 #define BOTTOM_CLR_U    "└──────┴──────┴─────┴──────────┴──────┘"
 #define BOTTOM_NO_CLR_U "├──────┼──────┼─────┼──────────┼──────┤"
 #define BOTTOM_CLR_A    "+------+------+-----+----------+------+"
@@ -178,29 +183,71 @@ build_utf8_codepoint(const char *buf)
 	return str;
 }
 
-void
-print_header(void)
+static const char *
+get_input_mode(void)
 {
-	CLEAR_SCREEN;
-	static char *sep = NULL, *top = NULL, *base;
-	if (!sep){
-		sep = g_options.ascii_draw ? SEP_A : SEP_U;
-		top = g_options.ascii_draw ? HEADER_TOP_A : HEADER_TOP_U;
-		base = g_options.ascii_draw ? HEADER_BASE_A : HEADER_BASE_U;
-	}
+	if (g_options.sco_keys == 1)
+		return "SCO";
+	if (g_options.hp_keys == 1)
+		return "HP";
+	if (g_options.kitty_keys > 0)
+		return g_options.kitty_keys == 1 ? "Kitty (disambiguate)"
+			: "Kitty (full)";
+	if (g_options.xterm_mok == 1)
+		return "modifyOtherKeys";
+
+	return "ANSI";
+}
+
+static void
+build_header(char *buf, const size_t buf_size, const char *term_name)
+{
+	char *header = buf;
+
+	const char *sep = g_options.ascii_draw ? SEP_A : SEP_U;
+	const char *top = g_options.ascii_draw ? HEADER_TOP_A : HEADER_TOP_U;
+	const char *base = g_options.ascii_draw ? HEADER_BASE_A : HEADER_BASE_U;
+	const char *info_top = g_options.ascii_draw ? INFO_TOP_A : INFO_TOP_U;
+	const char *info_base = g_options.ascii_draw ? INFO_BASE_A : INFO_BASE_U;
+	const int edge = TABLE_WIDTH + 5;
+
+	const char *input_mode = get_input_mode();
 
 	const char *header_color = g_options.colors.header;
 	const char *reset_color = g_options.colors.reset;
 	const char *table_color = g_options.colors.table;
 
 	const char *bold = *g_options.colors.header ? "\x1b[1m" : "";
-	printf(" %s%s%s %s  (%sC-c%s: quit, %sC-x%s: clear)\n"
+
+	int bytes = snprintf(header, buf_size,
+		" %s%s%s %s  (%sC-c%s: quit, %sC-x%s: clear)\n",
+		bold, PROG_NAME, reset_color, VERSION,
+		bold, reset_color, bold, reset_color);
+
+	bytes += snprintf(header + bytes, buf_size - (size_t)bytes,
+		" %s%s%s\n",
+		table_color, info_top, reset_color);
+
+	bytes += snprintf(header + bytes, buf_size - (size_t)bytes,
+		" %s%s%s %sTerminal%s:   %s\x1b[%dG%s%s%s\n",
+		table_color, sep, reset_color,
+		bold, reset_color, term_name ? term_name : "", edge,
+		table_color, sep, reset_color);
+
+	bytes += snprintf(header + bytes, buf_size - (size_t)bytes,
+		" %s%s%s %sInput mode%s: %s\x1b[%dG%s%s%s\n",
+		table_color, sep, reset_color,
+		bold, reset_color, input_mode, edge,
+		table_color, sep, reset_color);
+
+	bytes += snprintf(header + bytes, buf_size - (size_t)bytes,
+		" %s%s%s\n", table_color, info_base, reset_color);
+
+	snprintf(header + bytes, buf_size - (size_t)bytes,
 		" %s%s\n"
 		" %s%s %sHex%s  %s%s%s %sOct%s  %s%s%s %sDec%s %s%s%s   %sBin%s    "
 		"%s%s%s %sSym%s  %s%s\n"
 		" %s%s\n",
-		bold, PROG_NAME, reset_color, VERSION,
-		bold, reset_color, bold, reset_color,
 		table_color, top,
 		sep, reset_color, header_color, reset_color,
 		table_color, sep, reset_color, header_color, reset_color,
@@ -208,6 +255,18 @@ print_header(void)
 		table_color, sep, reset_color, header_color, reset_color,
 		table_color, sep, reset_color, header_color, reset_color,
 		table_color, sep, base, reset_color);
+}
+
+void
+print_header(const char *term_name)
+{
+	CLEAR_SCREEN;
+
+	static char header_buf[1024] = "";
+	if (!*header_buf)
+		build_header(header_buf, sizeof(header_buf), term_name);
+
+	fputs(header_buf, stdout);
 }
 
 static int

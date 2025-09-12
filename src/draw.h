@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 int  utf8_char_bytes(unsigned char c);
-void print_header(void);
+void print_header(const char *term_name);
 void print_footer(char *buf, const int is_utf8, const int clear_screen,
 	const int term_type);
 void print_row(const int c, const char *s);
