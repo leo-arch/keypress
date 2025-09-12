@@ -26,6 +26,7 @@
 */
 
 /* Default value for options */
+#define DEFAULT_APP_CURSOR_KEYS 0
 #define DEFAULT_ASCII_DRAW   0
 #define DEFAULT_CLEAR_SCREEN 1
 #define DEFAULT_COLOR        1

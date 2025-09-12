@@ -48,6 +48,9 @@ switch_to_alternate_buffer(void)
 	} else if (g_options.xterm_mok == 1) {
 		SET_XTERM_MOK;
 	}
+
+	if (g_options.app_cursor_keys == 1)
+		SET_APP_CURSOR_KEYS;
 }
 
 static void
@@ -58,6 +61,9 @@ switch_to_normal_buffer(void)
 	} else if (g_options.xterm_mok == 1) {
 		UNSET_XTERM_MOK;
 	}
+
+	if (g_options.app_cursor_keys == 1)
+		UNSET_APP_CURSOR_KEYS;
 
 	UNHIDE_CURSOR;
 	UNSET_ALT_SCREEN;

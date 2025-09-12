@@ -240,6 +240,14 @@ build_header(char *buf, const size_t buf_size, const char *term_name)
 		bold, reset_color, input_mode, edge,
 		table_color, sep, reset_color);
 
+	if (g_options.app_cursor_keys == 1) {
+		bytes += snprintf(header + bytes, buf_size - (size_t)bytes,
+			" %s%s%s %sApp cursor keys%s: true\x1b[%dG%s%s%s\n",
+			table_color, sep, reset_color,
+			bold, reset_color, edge,
+			table_color, sep, reset_color);
+	}
+
 	bytes += snprintf(header + bytes, buf_size - (size_t)bytes,
 		" %s%s%s\n", table_color, info_base, reset_color);
 

@@ -41,6 +41,7 @@ static void
 print_help(void)
 {
 	puts("Usage: keypress [OPTIONS]\n");
+	puts("  -a      Enable Application Cursor keys (DECCKM).");
 	puts("  -c      Do not clear the screen before displaying key information.");
 	puts("  -h      Display this help and exit.");
 	puts("  -i      Use ASCII characters to draw the table.");
@@ -112,6 +113,7 @@ set_colors(const int enabled)
 static void
 init_default_options(void)
 {
+	g_options.app_cursor_keys = DEFAULT_APP_CURSOR_KEYS;
 	g_options.ascii_draw   = DEFAULT_ASCII_DRAW;
 	g_options.clear_screen = DEFAULT_CLEAR_SCREEN;
 	g_options.color        = DEFAULT_COLOR;
@@ -131,8 +133,9 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "chiIkKlnpst:Tvx")) != -1) {
+	while ((opt = getopt(argc, argv, "achiIkKlnpst:Tvx")) != -1) {
 		switch (opt) {
+		case 'a': g_options.app_cursor_keys = 1; break;
 		case 'c': g_options.clear_screen = 0; break;
 		case 'i': g_options.ascii_draw = 1; break;
 		case 'I': g_options.show_terminfo_cap = 0; break;
