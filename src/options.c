@@ -41,7 +41,7 @@ static void
 print_help(void)
 {
 	puts("Usage: keypress [OPTIONS]\n");
-	puts("  -a      Enable Application Cursor keys (DECCKM).");
+	puts("  -a      Enable Application Cursor keys (DECCKM) mode.");
 	puts("  -c      Do not clear the screen before displaying key information.");
 	puts("  -h      Display this help and exit.");
 	puts("  -i      Use ASCII characters to draw the table.");
