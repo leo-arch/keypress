@@ -44,6 +44,7 @@ extern "C" {
 #define SET_XTERM_MOK       fputs("\x1b[>4;2m", stdout)
 #define UNSET_XTERM_MOK     fputs("\x1b[>4;0m", stdout)
 
+int  get_term_type(char **term_str);
 void init_term(void);
 void deinit_term(void);
 

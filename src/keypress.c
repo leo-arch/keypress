@@ -77,44 +77,6 @@ transform_esc_seq(const char *input, char *output)
 }
 
 static int
-get_term_type(char **term)
-{
-	char *env_term = getenv("TERM");
-	if (env_term && *env_term)
-		*term= env_term;
-
-	if (g_options.sco_keys == 1)
-		return TK_TERM_LEGACY_SCO;
-	if (g_options.hp_keys == 1)
-		return TK_TERM_LEGACY_HP;
-	if (g_options.kitty_keys > 0)
-		return TK_TERM_KITTY;
-
-	char *env_colorterm = getenv("COLORTERM");
-
-	if (env_colorterm) {
-		if (strstr(env_colorterm, "rxvt") || strstr(env_colorterm, "Eterm"))
-			return TK_TERM_RXVT;
-	}
-
-	if (!env_term || !*env_term)
-		return TK_TERM_GENERIC;
-
-	if (strstr(env_term, "xterm"))
-		return TK_TERM_XTERM;
-	if (strstr(env_term, "rxvt") || strstr(env_term, "Eterm")
-	|| strstr(env_term, "dvtm"))
-		return TK_TERM_RXVT;
-	if (strstr(env_term, "linux") || strstr(env_term, "cygwin")
-	|| strstr(env_term, "yaft") || strstr(env_term, "fbterm"))
-		return TK_TERM_LINUX;
-	if (strstr(env_term, "st-") || strstr(env_term, "stterm"))
-		return TK_TERM_ST;
-
-	return TK_TERM_GENERIC;
-}
-
-static int
 run_translate_key(const char *arg, const int term_type)
 {
 	if (!arg) {

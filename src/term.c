@@ -27,9 +27,12 @@
 
 #include <locale.h>  /* setlocale */
 #include <termios.h> /* tcgetattr, tcsetattr */
+#include <stdlib.h>  /* getenv */
+#include <string.h>  /* strstr */
 #include <unistd.h>  /* STDIN_FILENO */
 
 #include "term.h"    /* macros */
+#include "translate_key.h" /* TK_TERM macros */
 #include "options.h" /* g_options */
 
 struct termios orig_termios;
@@ -96,4 +99,72 @@ init_term(void)
 	setlocale(LC_ALL, "");
 	enable_raw_mode();
 	switch_to_alternate_buffer();
+}
+
+static void
+set_xterm_terminal(char **term)
+{
+	char *env = getenv("XTERM_VERSION");
+	if (env) return;
+
+	if ((env = getenv("KONSOLE_VERSION")))
+		*term = "xterm (konsole)";
+
+	else if ((env = getenv("GNOME_TERMINAL_SCREEN")))
+		*term = "xterm (gnome-terminal)";
+
+	else if ((env = getenv("WEZTERM_EXECUTABLE")))
+		*term = "xterm (wezterm)";
+
+	else if ((env = getenv("TERMINOLOGY")))
+		*term = "xterm (terminology)";
+
+	else if ((env = getenv("TERMINATOR_UUID")))
+		*term = "xterm (terminator)";
+}
+
+int
+get_term_type(char **term_str)
+{
+	char *term = getenv("TERM");
+	char *term_program = !term ? getenv("TERM_PROGRAM") : NULL;
+	*term_str = (term && *term) ? term :
+		((term_program && *term_program) ? term_program : "Unknown");
+
+	if (g_options.sco_keys == 1)
+		return TK_TERM_LEGACY_SCO;
+	if (g_options.hp_keys == 1)
+		return TK_TERM_LEGACY_HP;
+	if (g_options.kitty_keys > 0)
+		return TK_TERM_KITTY;
+
+	char *colorterm = getenv("COLORTERM");
+
+	if (colorterm) {
+		if (strstr(colorterm, "rxvt")) {
+			if (!term || !strstr(term, "rxvt"))
+				*term_str = "rxvt";
+			return TK_TERM_RXVT;
+		} else if (strstr(colorterm, "Eterm"))
+			return TK_TERM_RXVT;
+	}
+
+	if (!term || !*term)
+		return TK_TERM_GENERIC;
+
+	if (strstr(term, "xterm")) {
+		set_xterm_terminal(term_str);
+		return TK_TERM_XTERM;
+	}
+
+	if (strstr(term, "rxvt") || strstr(term, "Eterm")
+	|| strstr(term, "dvtm"))
+		return TK_TERM_RXVT;
+	if (strstr(term, "linux") || strstr(term, "cygwin")
+	|| strstr(term, "yaft") || strstr(term, "fbterm"))
+		return TK_TERM_LINUX;
+	if (strstr(term, "st-") || strstr(term, "stterm"))
+		return TK_TERM_ST;
+
+	return TK_TERM_GENERIC;
 }
