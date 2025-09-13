@@ -110,22 +110,22 @@ init_term(void)
 static void
 set_xterm_terminal(char **term)
 {
-	char *env = getenv("XTERM_VERSION");
-	if (env) return;
+	if (getenv("XTERM_VERSION"))
+		return; /*  Plain xterm */
 
-	if ((env = getenv("KONSOLE_VERSION")))
+	if (getenv("KONSOLE_VERSION"))
 		*term = "xterm (konsole)";
 
-	else if ((env = getenv("GNOME_TERMINAL_SCREEN")))
+	else if (getenv("GNOME_TERMINAL_SCREEN"))
 		*term = "xterm (gnome-terminal)";
 
-	else if ((env = getenv("WEZTERM_EXECUTABLE")))
+	else if (getenv("WEZTERM_EXECUTABLE"))
 		*term = "xterm (wezterm)";
 
-	else if ((env = getenv("TERMINOLOGY")))
+	else if (getenv("TERMINOLOGY"))
 		*term = "xterm (terminology)";
 
-	else if ((env = getenv("TERMINATOR_UUID")))
+	else if (getenv("TERMINATOR_UUID"))
 		*term = "xterm (terminator)";
 }
 

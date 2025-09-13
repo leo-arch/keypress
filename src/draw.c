@@ -284,7 +284,7 @@ retrieve_terminfo_cap(const char *seq, const int term_type)
 	if (term_type != TK_TERM_KITTY)
 		return 1;
 
-	const size_t len = strlen(seq);
+	const size_t len = strlen(seq); /* flawfinder: ignore */
 	if (len > 0 && seq[len - 1] == 'u')
 		return 0;
 
