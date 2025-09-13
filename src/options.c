@@ -57,7 +57,8 @@ print_help(void)
 		"          and exit.");
 	puts("  -T      Do not show key translations.\n");
 	puts("  -v      Display version information and exit.");
-	puts("  -x      Enable Xterm's modifyOtherKeys feature.");
+	puts("  -x      Enable Xterm's modifyOtherKeys (disambiguate).");
+	puts("  -X      Enable Xterm's modifyOtherKeys (full, XTerm only).");
 
 	printf("\nBy default, %s runs in interactive mode: it generates a\n"
 		"byte-by-byte representation of keyboard inputs, whether for\n"
@@ -133,7 +134,7 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "achiIkKlnpst:Tvx")) != -1) {
+	while ((opt = getopt(argc, argv, "achiIkKlnpst:TvxX")) != -1) {
 		switch (opt) {
 		case 'a': g_options.app_cursor_keys = 1; break;
 		case 'c': g_options.clear_screen = 0; break;
@@ -149,6 +150,7 @@ parse_cmdline_args(const int argc, char **argv)
 		case 'T': g_options.show_translation = 0; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);
 		case 'x': g_options.xterm_mok = 1; break;
+		case 'X': g_options.xterm_mok = 2; break;
 		case 'h': /* fallthrough */
 		default: print_help(); exit(EXIT_SUCCESS);
 		}

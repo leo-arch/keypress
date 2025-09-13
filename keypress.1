@@ -99,7 +99,11 @@ Display version information and exit.
 
 .TP
 .B -x
-Enable Xterm's modifyOtherKeys feature (request extended modifier reporting for printable keys).
+Enable Xterm's modifyOtherKeys (disambiguate): report modified printable keys (e.g. Alt+u) as escape sequences.
+
+.TP
+.B -X
+Enable Xterm's modifyOtherKeys (full): report unmodified printable keys as escape sequences as well.
 
 .SH EXAMPLES
 To translate an escape sequence:

@@ -46,8 +46,8 @@
 #define SEP_U "│"
 #define SEP_A "|"
 
-#define INFO_TOP_U "┌─────────────────────────────────────┐"
-#define INFO_TOP_A "+-------------------------------------+"
+#define INFO_TOP_U  "┌─────────────────────────────────────┐"
+#define INFO_TOP_A  "+-------------------------------------+"
 #define INFO_BASE_U "└─────────────────────────────────────┘"
 #define INFO_BASE_A "+-------------------------------------+"
 
@@ -193,8 +193,9 @@ get_input_mode(void)
 	if (g_options.kitty_keys > 0)
 		return g_options.kitty_keys == 1 ? "Kitty (disambiguate)"
 			: "Kitty (full)";
-	if (g_options.xterm_mok == 1)
-		return "modifyOtherKeys";
+	if (g_options.xterm_mok > 0)
+		return g_options.xterm_mok == 1 ? "modifyOtherKeys"
+			: "modifyOtherKeys (full)";
 
 	return "ANSI";
 }

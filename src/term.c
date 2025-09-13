@@ -45,8 +45,8 @@ switch_to_alternate_buffer(void)
 
 	if (g_options.kitty_keys > 0) {
 		SET_KITTY_KEYS((g_options.kitty_keys > 1));
-	} else if (g_options.xterm_mok == 1) {
-		SET_XTERM_MOK;
+	} else if (g_options.xterm_mok > 0) {
+		SET_XTERM_MOK(g_options.xterm_mok > 1);
 	}
 
 	if (g_options.app_cursor_keys == 1)
@@ -58,7 +58,7 @@ switch_to_normal_buffer(void)
 {
 	if (g_options.kitty_keys > 0) {
 		UNSET_KITTY_KEYS((g_options.kitty_keys > 1));
-	} else if (g_options.xterm_mok == 1) {
+	} else if (g_options.xterm_mok > 0) {
 		UNSET_XTERM_MOK;
 	}
 
