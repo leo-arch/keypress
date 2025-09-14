@@ -11,9 +11,9 @@ keypress [\fIOPTION\fR]...
 .TP
 If running with the \fB-t\fR option, \fBkeypress\fR translates the escape sequence SEQ into the corresponding symbolic representation. For example:
 .TP
- \fBkeypress -t "\\e[1;11D"\fR
+ \fBkeypress -t "\\e[1;12D"\fR
 .TP
-This command will output \fBSuper+Alt+Left\fR.
+This command will output \fBSuper+Alt+Shift+Left\fR.
 .
 .TP
 If no options are provided, \fBkeypress\fR runs in interactive mode. In this mode, it generates a byte-by-byte representation of keyboard inputs, whether for individual keys or key combinations. This representation includes the following formats: \fBhexadecimal\fR, \fBoctal\fR, \fBdecimal\fR, \fBbinary\fR, and the corresponding \fBsymbols\fR.
@@ -43,7 +43,7 @@ l l l l l.
 .SH OPTIONS
 .TP
 .B -a
-Enable Application Cursor Keys (DECCKM) mode.
+Enable Application Cursor Keys (DECCKM) mode. In this mode, escape sequences for cursor keys are built using SS3 (ESC O) instead of CSI (ESC [) sequences.
 
 .TP
 .B -c
@@ -63,11 +63,11 @@ Show terminfo capability names.
 
 .TP
 .B -k
-Enable the Kitty keyboard protocol (disambiguate).
+Enable the Kitty keyboard protocol (disambiguate mode). Requires Kitty 0.20.0 or later (or a compatible terminal).
 
 .TP
 .B -K
-Enable the Kitty keyboard protocol (full).
+Enable the Kitty keyboard protocol (full mode). Requires Kitty 0.20.0 or later (or a compatible terminal).
 
 .TP
 .B -l
@@ -95,7 +95,7 @@ Do not show key translations.
 
 .TP
 .B -u
-Make XTerm emit CSI-u sequences (requires either \fB-x\fR or \fB-X\fR).
+Make XTerm emit CSI-u sequences (requires either \fB-x\fR or \fB-X\fR). This option requires XTerm 398 or later.
 
 .TP
 .B -v
@@ -103,19 +103,19 @@ Display version information and exit.
 
 .TP
 .B -x
-Enable Xterm's modifyOtherKeys (MOK) (disambiguate): report modified printable keys (e.g. Alt+u) as escape sequences.
+Enable Xterm's \fBmodifyOtherKeys\fR (MOK) (disambiguate mode): report modified printable keys (e.g. \fBAlt+u\fR) as escape sequences. This option requires XTerm 214 or later.
 
 .TP
 .B -X
-Enable Xterm's modifyOtherKeys (MOK) (full): report unmodified printable keys as escape sequences as well. In this mode, the following resources are set to 4: \fBmodifyCursorKeys\fR, \fBmodifyFunctionKeys\fR, \fBmodifyKeypadKeys\fR, and \fBmodifySpecialKeys\fR.
+Enable Xterm's \fBmodifyOtherKeys\fR (MOK) (full mode): report unmodified printable keys as escape sequences as well. In this mode, the following resources are set to 4: \fBmodifyCursorKeys\fR, \fBmodifyFunctionKeys\fR, \fBmodifyKeypadKeys\fR, and \fBmodifySpecialKeys\fR. This option requires XTerm 398 or later.
 
 .TP
-\fBNote\fR: Options \fB-x\fR, \fB-X\fR, and \fB-u\fR are specific to XTerm. Support in other terminals is limited or incomplete.
+\fBNote\fR: Options \fB-u\fR, \fB-x\fR, and \fB-X\fR are specific to XTerm. Support in other terminals is limited or incomplete.
 
 .SH EXAMPLES
 To translate an escape sequence:
 .TP
- \fBkeypress -t "\\e[1;11D"\fR
+ \fBkeypress -t "\\e[1;12D"\fR
 .TP
 To run the program in its default mode (interactive):
 .TP
@@ -128,4 +128,7 @@ Written by Leo Abramovich.
 Report bugs to <https://github.com/leo-arch/keypress/issues>.
 
 .SH COPYRIGHT
-Copyright © 2025 Leo Abramovich. License: MIT.
+Copyright © 2025 Leo Abramovich.
+
+.SH LICENSE
+MIT

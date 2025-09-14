@@ -236,7 +236,8 @@ struct ext_keymap_t {
 };
 
 /* An extended list of key symbols and their corresponding key codes.
- * This includes control characters, just as Kitty and Foot extended keys. */
+ * This includes control characters, just as XTerm, Kitty, and Foot
+ * extended keys. */
 static const struct ext_keymap_t ext_keymap[] = {
 	{0, "NULL"}, {1, "SOH"}, {2, "STX"}, {3, "ETX"}, {4, "EOT"},
 	{5, "ENQ"}, {6, "ACK"}, {7, "BELL"}, {8, "Backspace"}, {9, "Tab"},
