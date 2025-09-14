@@ -248,16 +248,16 @@ static const struct ext_keymap_t ext_keymap[] = {
 	{160, "NBSP"}, {173, "SHY"},
 
 	/* Xterm special keys */
-	{24849, "VolumeDown"}, {24851, "VolumeUp"}, {24850, "VolumeMute"},
-	{24853, "MediaStop"}, {24854, "MediaTrackPrevious"},
-	{24852, "MediaPlay"}, {24855, "MediaTrackNext"},
+	{24849, "AudioLowerVolume"}, {24851, "AudioRaiseVolume"},
+	{24850, "AudioMute"}, {24853, "AudioStop"}, {24854, "AudioPrev"},
+	{24852, "AudioPlay"}, {24855, "AudioNext"},
 	{24961, "Tools"}, {24857, "Mail"}, {24856, "HomePage"},
 	{24859, "Search"}, {24861, "Calculator"},
 
 	{57632, "Tab"},
 	{57937, "Left"}, {57938, "Up"}, {57939, "Right"}, {57940, "Down"},
 	{57955, "Insert"}, {57936, "Home"}, {57943, "End"}, {57941, "PgUp"},
-	{57942, "PgDn"}, {57959, "Menu"}, {57953, "PrtScr"},
+	{57942, "PgDn"}, {57959, "Menu"}, {57953, "PrintScreen"},
 
 	{57997, "KP_Enter"},
 	{58014, "KP_0"}, {58015, "KP_Decimal"}, {58012, "KP_1"}, {58009, "KP_2"},
@@ -277,7 +277,7 @@ static const struct ext_keymap_t ext_keymap[] = {
 
 	/* Kitty CSI u extended keys */
 	{57358, "CapsLock"}, {57359, "ScrollLock"}, {57360, "NumLock"},
-	{57361, "PrtScr"}, {57362, "Pause"}, {57363, "Menu"},
+	{57361, "PrintScreen"}, {57362, "Pause"}, {57363, "Menu"},
 	{57376, "F13"}, {57377, "F14"}, {57378, "F15"}, {57379, "F16"},
 	{57380, "F17"}, {57381, "F18"}, {57382, "F19"}, {57383, "F20"},
 	{57384, "F21"}, {57385, "F22"}, {57386, "F23"}, {57387, "F24"},
@@ -292,12 +292,12 @@ static const struct ext_keymap_t ext_keymap[] = {
 	{57417, "KP_Left"}, {57418, "KP_Right"}, {57419, "KP_Up"},
 	{57420, "KP_Down"}, {57421, "KP_PgUp"}, {57422, "KP_PgDn"},
 	{57423, "KP_Home"}, {57424, "KP_End"}, {57425, "KP_Insert"},
-	{57426, "KP_Delete"}, {57427, "KP_Begin"}, {57428, "MediaPlay"},
+	{57426, "KP_Delete"}, {57427, "KP_Begin"}, {57428, "AudioPlay"},
 	{57429, "MediaPause"}, {57430, "MediaPlayPause"}, {57431, "MediaReverse"},
-	{57432, "MediaStop"}, {57433, "MediaFastForward"}, {57434, "MediaRewind"},
-	{57435, "MediaTrackNext"}, {57436, "MediaTrackPrevious"},
-	{57437, "MediaRecord"}, {57438, "VolumeDown"}, {57439, "VolumeUp"},
-	{57440, "VolumeMute"}, {57441, "LShift"}, {57442, "LControl"},
+	{57432, "AudioStop"}, {57433, "MediaFastForward"}, {57434, "MediaRewind"},
+	{57435, "AudioNext"}, {57436, "AudioPrev"}, {57437, "MediaRecord"},
+	{57438, "AudioLowerVolume"}, {57439, "AudioRaiseVolume"},
+	{57440, "AudioMute"}, {57441, "LShift"}, {57442, "LControl"},
 	{57443, "LAlt"}, {57444, "LSuper"}, {57445, "LHyper"}, {57446, "LMeta"},
 	{57447, "RShift"}, {57448, "RControl"}, {57449, "RAlt"},
 	{57450, "RSuper"}, {57451, "RHyper"}, {57452, "RMeta"},
@@ -663,7 +663,7 @@ get_ext_key_symbol(const int keycode, const int term_type)
 	}
 
 	if (term_type == TK_TERM_XTERM && (keycode == 19 || keycode == 20))
-		return keycode == 20 ? "Scrollock" : "Pause";
+		return keycode == 20 ? "ScrollLock" : "Pause";
 
 	/* Linear search through ext_keymap */
 	for (size_t i = 0; ext_keymap[i].name != NULL; i++) {
