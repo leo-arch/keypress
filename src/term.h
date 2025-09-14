@@ -47,7 +47,7 @@ extern "C" {
 /* XTerm-specific resources to handle escape sequences */
 /* See https://invisible-island.net/xterm/ctlseqs/ctlseqs.html for the escape
  * sequence as such, and https://invisible-island.net/xterm/manpage/xterm.html#VT100-Widget-Resources:modifyOtherKeys
- * for available parameters (0-4): 4 = Full, 2 = disambiguate. */
+ * for available parameters (0-3): 3 = Full, 2 = disambiguate. */
 #define SET_XTERM_MOK(n)      fprintf(stdout, "\x1b[>4;%dm", (n) == 1 ? 3 : 2)
 #define UNSET_XTERM_MOK       fputs("\x1b[>4;0m", stdout)
 

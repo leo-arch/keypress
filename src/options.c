@@ -46,8 +46,8 @@ print_help(void)
 	puts("  -h      Display this help and exit.");
 	puts("  -i      Use ASCII characters to draw the table.");
 	puts("  -I      Do not show terminfo capability names.");
-	puts("  -k      Enable the Kitty keyboard protocol (disambiguate).");
-	puts("  -K      Enable the Kitty keyboard protocol (full).");
+	puts("  -k      Enable the Kitty keyboard protocol (disambiguate mode).");
+	puts("  -K      Enable the Kitty keyboard protocol (full mode).");
 	puts("  -l      Use a light color scheme.");
 	puts("  -p      Run in HP keyboard mode.");
 	puts("  -s      Run in SCO keyboard mode.");
@@ -58,8 +58,8 @@ print_help(void)
 	puts("  -T      Do not show key translations.");
 	puts("  -u      Make XTerm emit CSI-u sequences (requires -x or -X).");
 	puts("  -v      Display version information and exit.");
-	puts("  -x      Enable Xterm's modifyOtherKeys (MOK) (disambiguate).");
-	puts("  -X      Enable Xterm's modifyOtherKeys (MOK) (full, XTerm only).");
+	puts("  -x      Enable Xterm's XTMODKEYS (disambiguate mode).");
+	puts("  -X      Enable Xterm's XTMODKEYS (full mode, XTerm only).");
 
 	printf("\nBy default, %s runs in interactive mode: it generates a\n"
 		"byte-by-byte representation of keyboard inputs, whether for\n"
