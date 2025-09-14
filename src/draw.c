@@ -196,7 +196,8 @@ get_input_mode(void)
 	if (g_options.xterm_mok > 0)
 		return g_options.xterm_mok == 1
 			? (g_options.xterm_csi_u ? "XTMODKEYS (CSI-u)" : "XTMODKEYS")
-			: (g_options.xterm_csi_u ? "XTMODKEYS (full/CSI-u)" : "XTMODKEYS (full)");
+			: (g_options.xterm_csi_u ? "XTMODKEYS (full/CSI-u)"
+				: "XTMODKEYS (full)");
 
 	return "ANSI";
 }
@@ -277,31 +278,14 @@ print_header(const char *term_name)
 	fputs(header_buf, stdout);
 }
 
-static int
-retrieve_terminfo_cap(const char *seq, const int term_type)
-{
-	if (g_options.show_terminfo_cap == 0)
-		return 0;
-
-	if (term_type != TK_TERM_KITTY)
-		return 1;
-
-	const size_t len = strlen(seq); /* flawfinder: ignore */
-	if (len > 0 && seq[len - 1] == 'u')
-		return 0;
-
-	return 1;
-}
-
 void
 print_footer(char *buf, const int is_utf8, const int clear_screen,
 	const int term_type)
 {
 	static int edge = TABLE_WIDTH + 5;
 
-	const int ret_terminfo_cap = retrieve_terminfo_cap(buf, term_type);
 	char *str = translate_key(buf, term_type);
-	const char *terminfo_cap = (str && ret_terminfo_cap == 1)
+	const char *terminfo_cap = (str && g_options.show_terminfo_cap == 1)
 		? build_terminfo_cap(str, term_type) : "";
 
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;

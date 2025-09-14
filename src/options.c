@@ -79,7 +79,7 @@ print_help(void)
 		 " - Pasting from the primary clipboard is allowed.\n"
 		 " - To quit the program, press 'Ctrl+c'.\n"
 		 " - To clear the screen, press 'Ctrl+x'.\n"
-		 " - These key combinations are reserved for controlling the\n"
+		 " - The above key combinations are reserved for controlling the\n"
 		 "   program's flow, so they will not be represented in the output.\n");
 
 	puts("Reserved Key Combinations:\n"
