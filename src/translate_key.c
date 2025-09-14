@@ -99,7 +99,7 @@
 
 /* Some names for control keys. */
 static const char *ctrl_keys[256] = {
-	[0x7f] = "Del", [0x0d] = "Enter", [0x08] = "Backspace",
+	[0x7f] = "Delete", [0x0d] = "Return", [0x08] = "Backspace",
 	[0x09] = "Tab", [0x20] = "Space", [0x1b] = "Escape"
 };
 
@@ -240,7 +240,7 @@ struct ext_keymap_t {
 static const struct ext_keymap_t ext_keymap[] = {
 	{0, "NULL"}, {1, "SOH"}, {2, "STX"}, {3, "ETX"}, {4, "EOT"},
 	{5, "ENQ"}, {6, "ACK"}, {7, "BELL"}, {8, "Backspace"}, {9, "Tab"},
-	{10, "LF"}, {11, "VT"}, {12, "FF"}, {13, "Enter"}, {14, "SO"},
+	{10, "LF"}, {11, "VT"}, {12, "FF"}, {13, "Return"}, {14, "SO"},
 	{15, "SI"}, {16, "DLE"}, {17, "DC1"}, {18, "DC2"}, {19, "DC3"},
 	{20, "DC4"}, {21, "NAK"}, {22, "SYN"}, {23, "ETB"}, {24, "CAN"},
 	{25, "EM"}, {26, "SUB"}, {27, "Escape"}, {28, "FS"}, {29, "GS"},
@@ -588,7 +588,7 @@ print_non_esc_seq(const char *str)
 
 	if (s[1]) {
 		snprintf(buf, MAX_BUF, "%s", s); /* A string, not a byte */
-	} else if (ctrl_keys[*s]) { /* Backspace, Tab, Enter, Space, Del */
+	} else if (ctrl_keys[*s]) { /* Backspace, Tab, Return, Space, Del */
 		snprintf(buf, MAX_BUF, "%s", ctrl_keys[*s]);
 	} else if (*s < 0x20) { /* Control characters */
 		snprintf(buf, MAX_BUF, "%s%c", SYM(MOD_CTRL), *s + '@' + 0x20);
@@ -634,7 +634,7 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 
 	if (csi_seq == 0) {
 		unsigned char *s = (unsigned char *)str;
-		if (ctrl_keys[*s]) /* Backspace, Tab, Enter, Space, Del */
+		if (ctrl_keys[*s]) /* Backspace, Tab, Return, Space, Del */
 			snprintf(buf, MAX_BUF, "%s%s", SYM(MOD_ALT), ctrl_keys[*s]);
 		else if (*s < 0x20)
 			snprintf(buf, MAX_BUF, "%s%c", SYM(MOD_CTRL + MOD_ALT),
