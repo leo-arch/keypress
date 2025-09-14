@@ -109,41 +109,41 @@ struct keys_t keys[] = {
 	{"\x1b[23;8~", "Ctrl+Alt+Shift+F11"}, {"\x1b[24;8~", "Ctrl+Alt+Shift+F12"},
 
 	{"\x1b[H", "Home"}, {"\x1b[F", "End"},
-	{"\x1b[2~", "Ins"}, {"\x1b[3~", "Del"},
-	{"\x1b[5~", "PgUp"}, {"\x1b[6~", "PgDn"},
+	{"\x1b[2~", "Insert"}, {"\x1b[3~", "Delete"},
+	{"\x1b[5~", "PageUp"}, {"\x1b[6~", "PageDown"},
 
 	{"\x1b[1;3H", "Alt+Home"}, {"\x1b[1;3F", "Alt+End"},
-	{"\x1b[2;3~", "Alt+Ins"}, {"\x1b[3;3~", "Alt+Del"},
-	{"\x1b[5;3~", "Alt+PgUp"}, {"\x1b[6;3~", "Alt+PgDn"},
+	{"\x1b[2;3~", "Alt+Insert"}, {"\x1b[3;3~", "Alt+Delete"},
+	{"\x1b[5;3~", "Alt+PageUp"}, {"\x1b[6;3~", "Alt+PageDown"},
 
 	{"\x1b[1;5H", "Ctrl+Home"}, {"\x1b[1;5F", "Ctrl+End"},
-	{"\x1b[2;5~", "Ctrl+Ins"}, {"\x1b[3;5~", "Ctrl+Del"},
-	{"\x1b[5;5~", "Ctrl+PgUp"}, {"\x1b[6;5~", "Ctrl+PgDn"},
+	{"\x1b[2;5~", "Ctrl+Insert"}, {"\x1b[3;5~", "Ctrl+Delete"},
+	{"\x1b[5;5~", "Ctrl+PageUp"}, {"\x1b[6;5~", "Ctrl+PageDown"},
 
 	{"\x1b[1;7H", "Ctrl+Alt+Home"}, {"\x1b[1;7F", "Ctrl+Alt+End"},
-	{"\x1b[2;7~", "Ctrl+Alt+Ins"}, {"\x1b[3;7~", "Ctrl+Alt+Del"},
-	{"\x1b[5;7~", "Ctrl+Alt+PgUp"}, {"\x1b[6;7~", "Ctrl+Alt+PgDn"},
+	{"\x1b[2;7~", "Ctrl+Alt+Insert"}, {"\x1b[3;7~", "Ctrl+Alt+Delete"},
+	{"\x1b[5;7~", "Ctrl+Alt+PageUp"}, {"\x1b[6;7~", "Ctrl+Alt+PageDown"},
 
 	{"\x1b[1;4H", "Alt+Shift+Home"}, {"\x1b[1;4F", "Alt+Shift+End"},
-	{"\x1b[2;4~", "Alt+Shift+Ins"}, {"\x1b[3;4~", "Alt+Shift+Del"},
-	{"\x1b[5;4~", "Alt+Shift+PgUp"}, {"\x1b[6;4~", "Alt+Shift+PgDn"},
+	{"\x1b[2;4~", "Alt+Shift+Insert"}, {"\x1b[3;4~", "Alt+Shift+Delete"},
+	{"\x1b[5;4~", "Alt+Shift+PageUp"}, {"\x1b[6;4~", "Alt+Shift+PageDown"},
 
 	{"\x1b[1;6H", "Ctrl+Shift+Home"}, {"\x1b[1;6F", "Ctrl+Shift+End"},
-	{"\x1b[2;6~", "Ctrl+Shift+Ins"}, {"\x1b[3;6~", "Ctrl+Shift+Del"},
-	{"\x1b[5;6~", "Ctrl+Shift+PgUp"}, {"\x1b[6;6~", "Ctrl+Shift+PgDn"},
+	{"\x1b[2;6~", "Ctrl+Shift+Insert"}, {"\x1b[3;6~", "Ctrl+Shift+Delete"},
+	{"\x1b[5;6~", "Ctrl+Shift+PageUp"}, {"\x1b[6;6~", "Ctrl+Shift+PageDown"},
 
 	{"\x1b[1;8H", "Ctrl+Alt+Shift+Home"}, {"\x1b[1;8F", "Ctrl+Alt+Shift+End"},
-	{"\x1b[2;8~", "Ctrl+Alt+Shift+Ins"}, {"\x1b[3;8~", "Ctrl+Alt+Shift+Del"},
-	{"\x1b[5;8~", "Ctrl+Alt+Shift+PgUp"}, {"\x1b[6;8~", "Ctrl+Alt+Shift+PgDn"},
+	{"\x1b[2;8~", "Ctrl+Alt+Shift+Insert"}, {"\x1b[3;8~", "Ctrl+Alt+Shift+Delete"},
+	{"\x1b[5;8~", "Ctrl+Alt+Shift+PageUp"}, {"\x1b[6;8~", "Ctrl+Alt+Shift+PageDown"},
 
-	{"\x1b[3;2~", "Shift+Del"}, {"\x1b[1;2H", "Shift+Home"},
+	{"\x1b[3;2~", "Shift+Delete"}, {"\x1b[1;2H", "Shift+Home"},
 	{"\x1b[1;2F", "Shift+End"},
 
 	{"\x1b", "Escape"},
 
 	{"\x09", "Tab"}, {"\x1b\x09", "Alt+Tab"}, {"\x1b[Z", "Shift+Tab"},
 
-	{"\x7f", "Del"}, {"\x1b\x7f", "Alt+Del"},
+	{"\x7f", "Delete"}, {"\x1b\x7f", "Alt+Delete"},
 
 	/* rxvt-specific */
 	{"\x1b[11~", "F1"}, {"\x1b[12~", "F2"},
@@ -157,10 +157,10 @@ struct keys_t keys[] = {
 	{"\x1b[23^", "Ctrl+F11"}, {"\x1b[24^", "Ctrl+F12"},
 
 	{"\x1b[23~", "F11"}, {"\x1b[24~", "F12"},
-	{"\x1b[25~", "F13"}, {"\x1b[26~", "F14"},
-	{"\x1b[28~", "F15"}, {"\x1b[29~", "F16"},
-	{"\x1b[31~", "F17"}, {"\x1b[32~", "F18"},
-	{"\x1b[33~", "F19"}, {"\x1b[34~", "F20"},
+	{"\x1b[25~", "Shift+F3"}, {"\x1b[26~", "Shift+F4"},
+	{"\x1b[28~", "Shift+F5"}, {"\x1b[29~", "Menu"},
+	{"\x1b[31~", "Shift+F7"}, {"\x1b[32~", "Shift+F8"},
+	{"\x1b[33~", "Shift+F9"}, {"\x1b[34~", "Shift+F10"},
 	{"\x1b[23$", "Shift+F11"}, {"\x1b[24$", "Shift+F12"},
 
 	{"\x1b\x1b[11~", "Alt+F1"}, {"\x1b\x1b[12~", "Alt+F2"},
@@ -171,10 +171,10 @@ struct keys_t keys[] = {
 	{"\x1b\x1b[23~", "Alt+F11"}, {"\x1b\x1b[24~", "Alt+F12"},
 
 	{"\x1b[23^", "Ctrl+F11"}, {"\x1b[24^", "Ctrl+F12"},
-	{"\x1b[25^", "Ctrl+F13"}, {"\x1b[26^", "Ctrl+F14"},
-	{"\x1b[28^", "Ctrl+F15"}, {"\x1b[29^", "Ctrl+F16"},
-	{"\x1b[31^", "Ctrl+F17"}, {"\x1b[32^", "Ctrl+F18"},
-	{"\x1b[33^", "Ctrl+F19"}, {"\x1b[34^", "Ctrl+F20"},
+	{"\x1b[25^", "Ctrl+Shift+F3"}, {"\x1b[26^", "Ctrl+Shift+F4"},
+	{"\x1b[28^", "Ctrl+Shift+F5"}, {"\x1b[29^", "Ctrl+Menu"},
+	{"\x1b[31^", "Ctrl+Shift+F7"}, {"\x1b[32^", "Ctrl+Shift+F8"},
+	{"\x1b[33^", "Ctrl+Shift+F9"}, {"\x1b[34^", "Ctrl+Shift+F10"},
 	{"\x1b[23@", "Ctrl+Shift+F11"}, {"\x1b[24@", "Ctrl+Shift+F12"},
 
 	{"\x1b[a", "Shift+Up"}, {"\x1b[b", "Shift+Down"},
@@ -189,22 +189,22 @@ struct keys_t keys[] = {
 	{"\x1b[7~", "Home"}, {"\x1b[8~", "End"},
 
 	{"\x1b\x1b[7~", "Alt+Home"}, {"\x1b\x1b[8~", "Alt+End"},
-	{"\x1b\x1b[2~", "Alt+Ins"}, {"\x1b\x1b[3~", "Alt+Del"},
-	{"\x1b\x1b[5~", "Alt+PgUp"}, {"\x1b\x1b[6~", "Alt+PgDn"},
+	{"\x1b\x1b[2~", "Alt+Insert"}, {"\x1b\x1b[3~", "Alt+Delete"},
+	{"\x1b\x1b[5~", "Alt+PageUp"}, {"\x1b\x1b[6~", "Alt+PageDown"},
 
 	{"\x1b[7^", "Ctrl+Home"}, {"\x1b[8^", "Ctrl+End"},
-	{"\x1b[2^", "Ctrl+Ins"}, {"\x1b[3^", "Ctrl+Del"},
-	{"\x1b[5^", "Ctrl+PgUp"}, {"\x1b[6^", "Ctrl+PgDn"},
+	{"\x1b[2^", "Ctrl+Insert"}, {"\x1b[3^", "Ctrl+Delete"},
+	{"\x1b[5^", "Ctrl+PageUp"}, {"\x1b[6^", "Ctrl+PageDown"},
 
 	{"\x1b[7$", "Shift+Home"}, {"\x1b[8$", "Shift+End"},
-	{"\x1b[5^", "Ctrl+PgUp"}, {"\x1b[6^", "Ctrl+PgDn"},
+	{"\x1b[5^", "Ctrl+PageUp"}, {"\x1b[6^", "Ctrl+PageDown"},
 	{"\x1b[7^", "Ctrl+Home"}, {"\x1b[8^", "Ctrl+End"},
 
 	{"\x1b\x1b[7^", "Ctrl+Alt+Home"}, {"\x1b\x1b[8^", "Ctrl+Alt+End"},
-	{"\x1b\x1b[2^", "Ctrl+Alt+Ins"}, {"\x1b\x1b[3^", "Ctrl+Alt+Del"},
-	{"\x1b\x1b[5^", "Ctrl+Alt+PgUp"}, {"\x1b\x1b[6^", "Ctrl+Alt+PgDn"},
+	{"\x1b\x1b[2^", "Ctrl+Alt+Insert"}, {"\x1b\x1b[3^", "Ctrl+Alt+Delete"},
+	{"\x1b\x1b[5^", "Ctrl+Alt+PageUp"}, {"\x1b\x1b[6^", "Ctrl+Alt+PageDown"},
 
-	{"\x1b[2@", "Ctrl+Shift+Ins"},	{"\x1b[3@", "Ctrl+Shift+Del"},
+	{"\x1b[2@", "Ctrl+Shift+Insert"}, {"\x1b[3@", "Ctrl+Shift+Delete"},
 	{"\x1b[7@", "Ctrl+Shift+Home"}, {"\x1b[8@", "Ctrl+Shift+End"},
 
 	/* Vte-specific */
@@ -234,18 +234,18 @@ struct keys_t keys[] = {
 	{"\x1b[1~", "Home"}, {"\x1b[4~", "End"},
 
 	/* st */
-	{"\x1b[4h", "Ins"}, {"\x1b[L", "Ctrl+Ins"}, {"\x1b[M", "Ctrl+Del"},
+	{"\x1b[4h", "Insert"}, {"\x1b[L", "Ctrl+Insert"}, {"\x1b[M", "Ctrl+Delete"},
 
 	/* Linux console */
 	{"\x1b[[A", "F1"}, {"\x1b[[E", "F5"},
 
 	/* Let's test the Super key */
-	{"\x1b[6;9~", "Super+PgDn"}, {"\x1b[1;11F", "Super+Alt+End"},
-	{"\x1b[1;13P", "Super+Ctrl+F1"}, {"\x1b[3;15~", "Super+Ctrl+Alt+Del"},
+	{"\x1b[6;9~", "Super+PageDown"}, {"\x1b[1;11F", "Super+Alt+End"},
+	{"\x1b[1;13P", "Super+Ctrl+F1"}, {"\x1b[3;15~", "Super+Ctrl+Alt+Delete"},
 	{"\x1b[19;10~", "Super+Shift+F8"},
 
 	/* Sun/Solaris */
-	{"\x1b[224z", "F1"}, {"\x1b[214;7z", "Ctrl+Alt+Home"}, {"\x1b[2z", "Ins"},
+	{"\x1b[224z", "F1"}, {"\x1b[214;7z", "Ctrl+Alt+Home"}, {"\x1b[2z", "Insert"},
 
 	/* Kitty keyboard protocol */
 	{"\x1b[Q", "F2"}, {"\x1b[S", "F4"},
@@ -254,14 +254,14 @@ struct keys_t keys[] = {
 	{"\x1b[106;144u", "NumLock+Super+Ctrl+Alt+Shift+j"},
 
 	/* Xterm (with modifyOtherKeys enabled) */
-	{"\x1b[27;5;13~", "Ctrl+Enter"}, {"\x1b[27;5;49~", "Ctrl+1"},
+	{"\x1b[27;5;13~", "Ctrl+Return"}, {"\x1b[27;5;49~", "Ctrl+1"},
 	{"\x1b[27;9;9~", "Super+Tab"}, {"\x1b[27;5;65450~", "Ctrl+KP_Multiply"},
 
 	/* Contour */
 	{"\x1b[O6P", "Ctrl+Shift+F1"},
 
 	/* Extra 0x1b byte (Mlterm) */
-	{"\x1b\x1b[5;7~", "Ctrl+Alt+PgUp"},
+	{"\x1b\x1b[5;7~", "Ctrl+Alt+PageUp"},
 
 	/* UTF-8 */
 	{"\xf0\x9f\x98\x80", "😀"}, {"\xf0\x9f\x8c\x80", "🌀"},

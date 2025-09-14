@@ -51,8 +51,8 @@ static struct ticaps_t ticaps[] = {
 	{"Down", "kcud1"}, {"Left", "kcub1"}, {"Right", "kcuf1"}, {"Up", "kcuu1"},
 
 	/* Editing keys */
-	{"Home", "khome"}, {"Insert", "kich1"}, {"PgDn", "knp"}, {"PgUp", "kpp"},
-	{"Begin", "kbeg"}, {"Delete", "kdch1"}, {"End", "kend"},
+	{"Home", "khome"}, {"Insert", "kich1"}, {"PageDown", "knp"},
+	{"PageUp", "kpp"}, {"Begin", "kbeg"}, {"Delete", "kdch1"}, {"End", "kend"},
 	/* Defined in Rxvt (absent in Xterm) */
 	{"Find", "kfnd"}, {"Select", "kslt"},
 	/* Some terminals map kel to Ctrl+End (rxvt), others to Shift+Del (st)
@@ -60,16 +60,16 @@ static struct ticaps_t ticaps[] = {
 //	{"", "kel"},
 
 	/* Keypad keys */
-	{"KP_Home", "ka1"}, {"KP_PgUp", "ka3"},
+	{"KP_Home", "ka1"}, {"KP_PageUp", "ka3"},
 	{"KP_Begin", "kb2"},
-	{"KP_End", "kc1"}, {"KP_PgDn", "kc3"},
+	{"KP_End", "kc1"}, {"KP_PageDown", "kc3"},
 	{"KP_Enter", "kent"},
 
 	/* Shifted keys */
 	/* These two are inverted in Rxvt compared to Xterm. */
 	{"Shift+Up", "kri"}, {"Shift+Down", "kind"},
 
-	{"Shift+Right", "kRIT"}, {"Shift+PgDn", "kNXT"}, {"Shift+PgUp", "kPRV"},
+	{"Shift+Right", "kRIT"}, {"Shift+PageDown", "kNXT"}, {"Shift+PageUp", "kPRV"},
 	{"Shift+Left", "kLFT"}, {"Shift+Home", "kHOM"}, {"Shift+End", "kEND"},
 	{"Shift+Begin", "kBEG"}, {"Shift+Delete", "kDC"}, {"Shift+Insert", "kIC"},
 
