@@ -58,8 +58,8 @@ print_help(void)
 	puts("  -T      Do not show key translations.");
 	puts("  -u      Make XTerm emit CSI-u sequences (requires -x or -X).");
 	puts("  -v      Display version information and exit.");
-	puts("  -x      Enable Xterm's modifyOtherKeys (disambiguate).");
-	puts("  -X      Enable Xterm's modifyOtherKeys (full, XTerm only).");
+	puts("  -x      Enable Xterm's modifyOtherKeys (MOK) (disambiguate).");
+	puts("  -X      Enable Xterm's modifyOtherKeys (MOK) (full, XTerm only).");
 
 	printf("\nBy default, %s runs in interactive mode: it generates a\n"
 		"byte-by-byte representation of keyboard inputs, whether for\n"

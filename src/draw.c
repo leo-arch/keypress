@@ -194,8 +194,9 @@ get_input_mode(void)
 		return g_options.kitty_keys == 1 ? "Kitty (disambiguate)"
 			: "Kitty (full)";
 	if (g_options.xterm_mok > 0)
-		return g_options.xterm_mok == 1 ? "modifyOtherKeys"
-			: "modifyOtherKeys (full)";
+		return g_options.xterm_mok == 1
+			? (g_options.xterm_csi_u ? "MOK (CSI-u)" : "MOK")
+			: (g_options.xterm_csi_u ? "MOK (full/CSI-u)" : "MOK (full)");
 
 	return "ANSI";
 }
