@@ -247,11 +247,12 @@ static const struct ext_keymap_t ext_keymap[] = {
 	{30, "RS"}, {31, "US"}, {32, "Space"}, {127, "Del"},
 	{160, "NBSP"}, {173, "SHY"},
 
-	/* Xterm special (Media) keys */
-	/* Names for these are taken from the kitty table */
+	/* Xterm special keys */
 	{24849, "VolumeDown"}, {24851, "VolumeUp"}, {24850, "VolumeMute"},
 	{24853, "MediaStop"}, {24854, "MediaTrackPrevious"},
 	{24852, "MediaPlay"}, {24855, "MediaTrackNext"},
+	{24961, "Tools"}, {24857, "Mail"}, {24856, "HomePage"},
+	{24859, "Search"}, {24861, "Calculator"},
 
 	{57632, "Tab"},
 	{57937, "Left"}, {57938, "Up"}, {57939, "Right"}, {57940, "Down"},
@@ -273,10 +274,6 @@ static const struct ext_keymap_t ext_keymap[] = {
 	{58046, "F1"}, {58047, "F2"}, {58048, "F3"}, {58049, "F4"},
 	{58050, "F5"}, {58051, "F6"}, {58052, "F7"}, {58053, "F8"},
 	{58054, "F9"}, {58055, "F10"}, {58056, "F11"}, {58057, "F12"},
-
-	/* We haven't identified these codes yet */
-	{24961, "Fn+F1"},
-	{24857, "Fn+F9"}, {24856, "Fn+F10"}, {24859, "Fn+F11"}, {24861, "Fn+F12"},
 
 	/* Kitty CSI u extended keys */
 	{57358, "CapsLock"}, {57359, "ScrollLock"}, {57360, "NumLock"},
