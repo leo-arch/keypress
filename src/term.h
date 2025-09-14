@@ -44,11 +44,27 @@ extern "C" {
 #define SET_APP_CURSOR_KEYS   fputs("\x1b[?1h", stdout)
 #define UNSET_APP_CURSOR_KEYS fputs("\x1b[?1l", stdout)
 
+/* XTerm-specific resources to handle escape sequences */
 /* See https://invisible-island.net/xterm/ctlseqs/ctlseqs.html for the escape
  * sequence as such, and https://invisible-island.net/xterm/manpage/xterm.html#VT100-Widget-Resources:modifyOtherKeys
- * for available parameters (0-3): 3 = Full, 2 = disambiguate. */
+ * for available parameters (0-4): 4 = Full, 2 = disambiguate. */
 #define SET_XTERM_MOK(n)      fprintf(stdout, "\x1b[>4;%dm", (n) == 1 ? 3 : 2)
 #define UNSET_XTERM_MOK       fputs("\x1b[>4;0m", stdout)
+
+#define SET_XTERM_MOD_CUR_KEYS       fputs("\x1b[>1;4m", stdout)
+#define SET_XTERM_MOD_FUNC_KEYS      fputs("\x1b[>2;4m", stdout)
+#define SET_XTERM_MOD_KP_KEYS        fputs("\x1b[>3;4m", stdout)
+#define SET_XTERM_MOD_SPECIAL_KEYS   fputs("\x1b[>7;4m", stdout)
+#define UNSET_XTERM_MOD_CUR_KEYS     fputs("\x1b[>1;2m", stdout)
+#define UNSET_XTERM_MOD_FUNC_KEYS    fputs("\x1b[>2;2m", stdout)
+#define UNSET_XTERM_MOD_KP_KEYS      fputs("\x1b[>3;2m", stdout)
+#define UNSET_XTERM_MOD_SPECIAL_KEYS fputs("\x1b[>7;0m", stdout)
+
+#define XTERM_CSI_U_CUR_KEYS(n)     fprintf(stdout, "\x1b[>1;%df", (n))
+#define XTERM_CSI_U_FUNC_KEYS(n)    fprintf(stdout, "\x1b[>2;%df", (n))
+#define XTERM_CSI_U_KP_KEYS(n)      fprintf(stdout, "\x1b[>3;%df", (n))
+#define XTERM_CSI_U_OTHER_KEYS(n)   fprintf(stdout, "\x1b[>4;%df", (n))
+#define XTERM_CSI_U_SPECIAL_KEYS(n) fprintf(stdout, "\x1b[>7;%df", (n))
 
 int  get_term_type(char **term_str);
 void init_term(void);

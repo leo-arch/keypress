@@ -94,6 +94,10 @@ Display the text/symbolic representation for the key sequence SEQ and exit.
 Do not show key translations.
 
 .TP
+.B -u
+Make XTerm emit CSI-u sequences (requires either \fB-x\fR or \fB-X\fR).
+
+.TP
 .B -v
 Display version information and exit.
 
@@ -103,7 +107,7 @@ Enable Xterm's modifyOtherKeys (disambiguate): report modified printable keys (e
 
 .TP
 .B -X
-Enable Xterm's modifyOtherKeys (full): report unmodified printable keys as escape sequences as well.
+Enable Xterm's modifyOtherKeys (full): report unmodified printable keys as escape sequences as well. In this mode, the following resources are set to 4: \fBmodifyCursorKeys\fR, \fBmodifyFunctionKeys\fR, \fBmodifyKeypadKeys\fR, and \fBmodifySpecialKeys\fR.
 
 .SH EXAMPLES
 To translate an escape sequence:

@@ -37,6 +37,7 @@
 #define DEFAULT_SHOW_TERMINFO_CAP 1
 #define DEFAULT_SHOW_TRANSLATION 1
 #define DEFAULT_TRANSLATE    NULL
+#define DEFAULT_XTERM_CSI_U  0
 #define DEFAULT_XTERM_MOK    0 /* 1: disambiguate, 2: full. */
 
 /* Default colors */

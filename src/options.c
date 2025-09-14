@@ -55,7 +55,8 @@ print_help(void)
 	puts("  -t SEQ  Run in translation mode: translate the escape sequence\n"
 		"          SEQ into its corresponding text/symbolic representation\n"
 		"          and exit.");
-	puts("  -T      Do not show key translations.\n");
+	puts("  -T      Do not show key translations.");
+	puts("  -u      Make XTerm emit CSI-u sequences (requires -x or -X).");
 	puts("  -v      Display version information and exit.");
 	puts("  -x      Enable Xterm's modifyOtherKeys (disambiguate).");
 	puts("  -X      Enable Xterm's modifyOtherKeys (full, XTerm only).");
@@ -125,6 +126,7 @@ init_default_options(void)
 	g_options.show_terminfo_cap = DEFAULT_SHOW_TERMINFO_CAP;
 	g_options.show_translation = DEFAULT_SHOW_TRANSLATION;
 	g_options.translate    = DEFAULT_TRANSLATE;
+	g_options.xterm_csi_u  = DEFAULT_XTERM_CSI_U;
 	g_options.xterm_mok    = DEFAULT_XTERM_MOK;
 }
 
@@ -134,7 +136,7 @@ parse_cmdline_args(const int argc, char **argv)
 	init_default_options();
 
 	int opt;
-	while ((opt = getopt(argc, argv, "achiIkKlnpst:TvxX")) != -1) {
+	while ((opt = getopt(argc, argv, "achiIkKlnpst:TuvxX")) != -1) {
 		switch (opt) {
 		case 'a': g_options.app_cursor_keys = 1; break;
 		case 'c': g_options.clear_screen = 0; break;
@@ -148,6 +150,7 @@ parse_cmdline_args(const int argc, char **argv)
 		case 's': g_options.sco_keys = 1; break;
 		case 't': g_options.translate = optarg; break;
 		case 'T': g_options.show_translation = 0; break;
+		case 'u': g_options.xterm_csi_u = 1; break;
 		case 'v': printf("%s\n", VERSION); exit(EXIT_SUCCESS);
 		case 'x': g_options.xterm_mok = 1; break;
 		case 'X': g_options.xterm_mok = 2; break;

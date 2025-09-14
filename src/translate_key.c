@@ -247,6 +247,37 @@ static const struct ext_keymap_t ext_keymap[] = {
 	{30, "RS"}, {31, "US"}, {32, "Space"}, {127, "Del"},
 	{160, "NBSP"}, {173, "SHY"},
 
+	/* Xterm special (Media) keys */
+	/* Names for these are taken from the kitty table */
+	{24849, "VolumeDown"}, {24851, "VolumeUp"}, {24850, "VolumeMute"},
+	{24853, "MediaStop"}, {24854, "MediaTrackPrevious"},
+	{24852, "MediaPlay"}, {24855, "MediaTrackNext"},
+
+	{57632, "Tab"},
+	{57937, "Left"}, {57938, "Up"}, {57939, "Right"}, {57940, "Down"},
+	{57955, "Insert"}, {57936, "Home"}, {57943, "End"}, {57941, "PgUp"},
+	{57942, "PgDn"}, {57959, "Menu"}, {57953, "PrtScr"},
+
+	{57997, "KP_Enter"},
+	{58014, "KP_0"}, {58015, "KP_Decimal"}, {58012, "KP_1"}, {58009, "KP_2"},
+	{58011, "KP_3"}, {58006, "KP_4"}, {58013, "KP_5"}, {58008, "KP_6"},
+	{58005, "KP_7"}, {58007, "KP_8"}, {58010, "KP_9"},
+
+	{58032, "KP_Insert"}, {58030, "KP_Delete"}, {58033, "KP_End"},
+	{58033, "KP_End"}, {58034, "KP_Down"}, {58035, "KP_PgDn"},
+	{58036, "KP_Left"}, {58037, "KP_Begin"}, {58038, "KP_Right"},
+	{58039, "KP_Home"}, {58040, "KP_Up"}, {58041, "KP_PgUp"},
+	{58031, "KP_Divide"}, {58026, "KP_Multiply"}, {58029, "KP_Subtract"},
+	{58027, "KP_Add"}, {58033, "KP_End"},
+
+	{58046, "F1"}, {58047, "F2"}, {58048, "F3"}, {58049, "F4"},
+	{58050, "F5"}, {58051, "F6"}, {58052, "F7"}, {58053, "F8"},
+	{58054, "F9"}, {58055, "F10"}, {58056, "F11"}, {58057, "F12"},
+
+	/* We haven't identified these codes yet */
+	{24961, "Fn+F1"},
+	{24857, "Fn+F9"}, {24856, "Fn+F10"}, {24859, "Fn+F11"}, {24861, "Fn+F12"},
+
 	/* Kitty CSI u extended keys */
 	{57358, "CapsLock"}, {57359, "ScrollLock"}, {57360, "NumLock"},
 	{57361, "PrtScr"}, {57362, "Pause"}, {57363, "Menu"},
@@ -625,7 +656,7 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 #undef SYM
 
 static const char *
-get_ext_key_symbol(const int keycode)
+get_ext_key_symbol(const int keycode, const int term_type)
 {
 	/* These are directly printable */
 	if (keycode > 32 && keycode <= 126) {
@@ -633,6 +664,9 @@ get_ext_key_symbol(const int keycode)
 		keysym_str[0] = (char)keycode;
 		return keysym_str;
 	}
+
+	if (term_type == TK_TERM_XTERM && (keycode == 19 || keycode == 20))
+		return keycode == 20 ? "Scrollock" : "Pause";
 
 	/* Linear search through ext_keymap */
 	for (size_t i = 0; ext_keymap[i].name != NULL; i++) {
@@ -664,7 +698,7 @@ get_ext_key_symbol(const int keycode)
 }
 
 static char *
-write_kitty_keys(char *str, const size_t end)
+write_kitty_keys(char *str, const size_t end, const int term_type)
 {
 	str[end] = '\0';
 
@@ -680,7 +714,7 @@ write_kitty_keys(char *str, const size_t end)
 		keycode = xatoi(str);
 	}
 
-	const char *k = keycode != -1 ? get_ext_key_symbol(keycode) : NULL;
+	const char *k = keycode != -1 ? get_ext_key_symbol(keycode, term_type) : NULL;
 	const char *m = mod_key != 0 ? get_mod_symbol(mod_key) : NULL;
 
 	if (!k)
@@ -696,11 +730,11 @@ write_kitty_keys(char *str, const size_t end)
 }
 
 /* An Xterm MOK (modifyOtherKeys) sequence is "CSI 27;mod;key~"
- * Note that, if formatOtherKeys is set to 2, "CSI u" sequences are used
+ * Note that, if formatOtherKeys is set to 1, "CSI u" sequences are used
  * instead, in which case they are covered by the kitty functions.
  * See https://xterm.dev/manpage-xterm/#VT100-Widget-Resources:modifyOtherKeys */
 static char *
-write_xterm_mok_seq(char *str, const size_t end)
+write_xterm_mok_seq(char *str, const size_t end, const int term_type)
 {
 	str[end] = '\0';
 	str += 3; /* Skip "27;" */
@@ -711,7 +745,8 @@ write_xterm_mok_seq(char *str, const size_t end)
 	*s = '\0';
 	const int mod_key = xatoi(str) - 1;
 	const int keycode = xatoi(s + 1);
-	const char *k = get_ext_key_symbol(keycode);
+
+	const char *k = get_ext_key_symbol(keycode, term_type);
 	const char *m = (mod_key >= 0 && mod_key <= 255)
 		? get_mod_symbol((int)mod_key) : NULL;
 
@@ -842,10 +877,10 @@ translate_key(char *seq, const int term_type)
 		return write_legacy_keys(seq, end, term_type);
 
 	if (IS_KITTY_END_CHAR(end_char) && csi_seq == 1)
-		return write_kitty_keys(seq, end);
+		return write_kitty_keys(seq, end, term_type);
 
 	if (IS_XTERM_MOK_SEQ(seq, end_char) && csi_seq == 1)
-		return write_xterm_mok_seq(seq, end);
+		return write_xterm_mok_seq(seq, end, term_type);
 
 	else if (IS_MODKEY_END_CHAR(end_char))
 		set_end_char_is_mod_key(seq, end, &keycode, &mod_key);

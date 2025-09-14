@@ -47,6 +47,19 @@ switch_to_alternate_buffer(void)
 		SET_KITTY_KEYS((g_options.kitty_keys > 1));
 	} else if (g_options.xterm_mok > 0) {
 		SET_XTERM_MOK(g_options.xterm_mok > 1);
+		if (g_options.xterm_mok > 1) {
+			SET_XTERM_MOD_CUR_KEYS;
+			SET_XTERM_MOD_FUNC_KEYS;
+			SET_XTERM_MOD_KP_KEYS;
+			SET_XTERM_MOD_SPECIAL_KEYS;
+		}
+		if (g_options.xterm_csi_u == 1) {
+			XTERM_CSI_U_CUR_KEYS(1);
+			XTERM_CSI_U_FUNC_KEYS(1);
+			XTERM_CSI_U_KP_KEYS(1);
+			XTERM_CSI_U_OTHER_KEYS(1);
+			XTERM_CSI_U_SPECIAL_KEYS(1);
+		}
 	}
 
 	if (g_options.app_cursor_keys == 1)
@@ -60,6 +73,19 @@ switch_to_normal_buffer(void)
 		UNSET_KITTY_KEYS((g_options.kitty_keys > 1));
 	} else if (g_options.xterm_mok > 0) {
 		UNSET_XTERM_MOK;
+		if (g_options.xterm_mok > 1) {
+			UNSET_XTERM_MOD_CUR_KEYS;
+			UNSET_XTERM_MOD_FUNC_KEYS;
+			UNSET_XTERM_MOD_KP_KEYS;
+			UNSET_XTERM_MOD_SPECIAL_KEYS;
+		}
+		if (g_options.xterm_csi_u == 1) {
+			XTERM_CSI_U_CUR_KEYS(0);
+			XTERM_CSI_U_FUNC_KEYS(0);
+			XTERM_CSI_U_KP_KEYS(0);
+			XTERM_CSI_U_OTHER_KEYS(0);
+			XTERM_CSI_U_SPECIAL_KEYS(0);
+		}
 	}
 
 	if (g_options.app_cursor_keys == 1)

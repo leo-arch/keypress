@@ -56,6 +56,7 @@ struct opts_t {
 	int sco_keys;
 	int show_terminfo_cap;
 	int show_translation;
+	int xterm_csi_u;
 	int xterm_mok;
 };
 extern struct opts_t g_options;
