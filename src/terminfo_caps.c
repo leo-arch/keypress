@@ -107,7 +107,8 @@ static struct ticaps_t ticaps[] = {
 };
 
 const char *
-build_terminfo_cap(const char *str, const int term_type)
+build_terminfo_cap(const char *str, const int is_canonical_seq,
+	const int term_type)
 {
 	const int is_rxvt = term_type == TK_TERM_RXVT;
 
@@ -140,8 +141,10 @@ build_terminfo_cap(const char *str, const int term_type)
 
 	if (found != -1) {
 		static char buf[32];
-		snprintf(buf, sizeof(buf), "%s (%s)",
-			COLOR_RESET, ticaps[found - diff].ticap);
+		snprintf(buf, sizeof(buf), "%s (%s%s)",
+			COLOR_RESET,
+			is_canonical_seq == 1 ? "" : "-",
+			ticaps[found - diff].ticap);
 		return buf;
 	}
 

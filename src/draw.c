@@ -278,15 +278,30 @@ print_header(const char *term_name)
 	fputs(header_buf, stdout);
 }
 
+/* Return 0 if the escape sequence SEQ is a non-canonical sequence (i.e.
+ * CSI-u or XTerm's CSI-27), or 1 otherwise. */
+static int
+is_cananonical_sequence(const char *seq)
+{
+	const size_t seq_len = strlen(seq); /* flawfinder: ignore */
+	if (seq_len > 0 && *seq == 0x1b && seq[1] == CSI_INTRODUCER &&
+	(seq[seq_len - 1] == 'u' || (seq[seq_len - 1] == '~' && seq[2] == '2'
+	&& seq[3] == '7' && seq[4] == ';' && seq[5])))
+		return 0;
+
+	return 1;
+}
+
 void
 print_footer(char *buf, const int is_utf8, const int clear_screen,
 	const int term_type)
 {
 	static int edge = TABLE_WIDTH + 5;
 
+	const int is_canon_seq = is_cananonical_sequence(buf);
 	char *str = translate_key(buf, term_type);
 	const char *terminfo_cap = (str && g_options.show_terminfo_cap == 1)
-		? build_terminfo_cap(str, term_type) : "";
+		? build_terminfo_cap(str, is_canon_seq, term_type) : "";
 
 	const int wlen = (str && is_utf8 == 1) ? (int)wc_xstrlen(str) : 0;
 	int overlong = 0;

@@ -32,7 +32,8 @@
 extern "C" {
 #endif
 
-const char *build_terminfo_cap(const char *str, const int is_rxvt);
+const char *build_terminfo_cap(const char *str, const int is_canonical_seq,
+	const int is_rxvt);
 
 #ifdef __cplusplus
 }
