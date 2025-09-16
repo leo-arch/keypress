@@ -92,8 +92,8 @@
 #define MOD_SHIFT 1
 #define MOD_ALT   2
 #define MOD_CTRL  4
-#define MOD_SUPER 8
 /* Unused
+#define MOD_SUPER 8
 #define MOD_HYPER 16
 #define MOD_META  32 */
 
@@ -231,88 +231,89 @@ static const char *key_map_generic[256] = {
 };
 
 struct ext_keymap_t {
-	int code;
 	const char *name;
+	int code;
 };
 
 /* An extended list of key symbols and their corresponding key codes.
  * This includes control characters, just as XTerm, Kitty, and Foot
  * extended keys. */
 static const struct ext_keymap_t ext_keymap[] = {
-	{0, "NULL"}, {1, "SOH"}, {2, "STX"}, {3, "ETX"}, {4, "EOT"},
-	{5, "ENQ"}, {6, "ACK"}, {7, "BELL"}, {8, "Backspace"}, {9, "Tab"},
-	{10, "LF"}, {11, "VT"}, {12, "FF"}, {13, "Return"}, {14, "SO"},
-	{15, "SI"}, {16, "DLE"}, {17, "DC1"}, {18, "DC2"}, {19, "DC3"},
-	{20, "DC4"}, {21, "NAK"}, {22, "SYN"}, {23, "ETB"}, {24, "CAN"},
-	{25, "EM"}, {26, "SUB"}, {27, "Escape"}, {28, "FS"}, {29, "GS"},
-	{30, "RS"}, {31, "US"}, {32, "Space"}, {127, "Delete"},
-	{160, "NBSP"}, {173, "SHY"},
+    {"NULL", 0}, {"SOH", 1}, {"STX", 2}, {"ETX", 3}, {"EOT", 4},
+    {"ENQ", 5}, {"ACK", 6}, {"BELL", 7}, {"Backspace", 8}, {"Tab", 9},
+    {"LF", 10}, {"VT", 11}, {"FF", 12}, {"Return", 13}, {"SO", 14},
+    {"SI", 15}, {"DLE", 16}, {"DC1", 17}, {"DC2", 18}, {"DC3", 19},
+    {"DC4", 20}, {"NAK", 21}, {"SYN", 22}, {"ETB", 23}, {"CAN", 24},
+    {"EM", 25}, {"SUB", 26}, {"Escape", 27}, {"FS", 28}, {"GS", 29},
+    {"RS", 30}, {"US", 31}, {"Space", 32}, {"Delete", 127},
+    {"NBSP", 160}, {"SHY", 173},
 
-	/* Xterm special keys */
-	{24849, "AudioLowerVolume"}, {24851, "AudioRaiseVolume"},
-	{24850, "AudioMute"}, {24853, "AudioStop"}, {24854, "AudioPrev"},
-	{24852, "AudioPlay"}, {24855, "AudioNext"},
-	{24961, "Tools"}, {24857, "Mail"}, {24856, "HomePage"},
-	{24859, "Search"}, {24861, "Calculator"},
+    /* Xterm special keys */
+    {"AudioLowerVolume", 24849}, {"AudioRaiseVolume", 24851},
+    {"AudioMute", 24850}, {"AudioStop", 24853}, {"AudioPrev", 24854},
+    {"AudioPlay", 24852}, {"AudioNext", 24855},
+    {"Tools", 24961}, {"Mail", 24857}, {"HomePage", 24856},
+    {"Search", 24859}, {"Calculator", 24861},
 
-	{57632, "Tab"},
-	{57937, "Left"}, {57938, "Up"}, {57939, "Right"}, {57940, "Down"},
-	{57955, "Insert"}, {57936, "Home"}, {57943, "End"}, {57941, "PageUp"},
-	{57942, "PageDown"}, {57959, "Menu"}, {57953, "PrintScreen"},
+    {"Tab", 57632},
+    {"Left", 57937}, {"Up", 57938}, {"Right", 57939}, {"Down", 57940},
+    {"Insert", 57955}, {"Home", 57936}, {"End", 57943}, {"PageUp", 57941},
+    {"PageDown", 57942}, {"Menu", 57959}, {"PrintScreen", 57953},
 
-	{57997, "KP_Enter"},
-	{58014, "KP_0"}, {58015, "KP_Decimal"}, {58012, "KP_1"}, {58009, "KP_2"},
-	{58011, "KP_3"}, {58006, "KP_4"}, {58013, "KP_5"}, {58008, "KP_6"},
-	{58005, "KP_7"}, {58007, "KP_8"}, {58010, "KP_9"},
+    {"KP_Enter", 57997},
+    {"KP_0", 58014}, {"KP_Decimal", 58015}, {"KP_1", 58012}, {"KP_2", 58009},
+    {"KP_3", 58011}, {"KP_4", 58006}, {"KP_5", 58013}, {"KP_6", 58008},
+    {"KP_7", 58005}, {"KP_8", 58007}, {"KP_9", 58010},
 
-	{58032, "KP_Insert"}, {58030, "KP_Delete"}, {58033, "KP_End"},
-	{58033, "KP_End"}, {58034, "KP_Down"}, {58035, "KP_PageDown"},
-	{58036, "KP_Left"}, {58037, "KP_Begin"}, {58038, "KP_Right"},
-	{58039, "KP_Home"}, {58040, "KP_Up"}, {58041, "KP_PageUp"},
-	{58031, "KP_Divide"}, {58026, "KP_Multiply"}, {58029, "KP_Subtract"},
-	{58027, "KP_Add"}, {58033, "KP_End"},
+    {"KP_Insert", 58032}, {"KP_Delete", 58030}, {"KP_End", 58033},
+    {"KP_Down", 58034}, {"KP_PageDown", 58035},
+    {"KP_Left", 58036}, {"KP_Begin", 58037}, {"KP_Right", 58038},
+    {"KP_Home", 58039}, {"KP_Up", 58040}, {"KP_PageUp", 58041},
+    {"KP_Divide", 58031}, {"KP_Multiply", 58026}, {"KP_Subtract", 58029},
+    {"KP_Add", 58027},
 
-	{58046, "F1"}, {58047, "F2"}, {58048, "F3"}, {58049, "F4"},
-	{58050, "F5"}, {58051, "F6"}, {58052, "F7"}, {58053, "F8"},
-	{58054, "F9"}, {58055, "F10"}, {58056, "F11"}, {58057, "F12"},
+    {"F1", 58046}, {"F2", 58047}, {"F3", 58048}, {"F4", 58049},
+    {"F5", 58050}, {"F6", 58051}, {"F7", 58052}, {"F8", 58053},
+    {"F9", 58054}, {"F10", 58055}, {"F11", 58056}, {"F12", 58057},
 
-	/* Kitty CSI u extended keys */
-	{57358, "CapsLock"}, {57359, "ScrollLock"}, {57360, "NumLock"},
-	{57361, "PrintScreen"}, {57362, "Pause"}, {57363, "Menu"},
-	{57376, "F13"}, {57377, "F14"}, {57378, "F15"}, {57379, "F16"},
-	{57380, "F17"}, {57381, "F18"}, {57382, "F19"}, {57383, "F20"},
-	{57384, "F21"}, {57385, "F22"}, {57386, "F23"}, {57387, "F24"},
-	{57388, "F25"}, {57389, "F26"}, {57390, "F27"}, {57391, "F28"},
-	{57392, "F29"}, {57393, "F30"}, {57394, "F31"}, {57395, "F32"},
-	{57396, "F33"}, {57397, "F34"}, {57398, "F35"}, {57399, "KP_0"},
-	{57400, "KP_1"}, {57401, "KP_2"}, {57402, "KP_3"}, {57403, "KP_4"},
-	{57404, "KP_5"}, {57405, "KP_6"}, {57406, "KP_7"}, {57407, "KP_8"},
-	{57408, "KP_9"}, {57409, "KP_Decimal"}, {57410, "KP_Divide"},
-	{57411, "KP_Multiply"}, {57412, "KP_Subtract"}, {57413, "KP_Add"},
-	{57414, "KP_Enter"}, {57415, "KP_Equal"}, {57416, "KP_Separator"},
-	{57417, "KP_Left"}, {57418, "KP_Right"}, {57419, "KP_Up"},
-	{57420, "KP_Down"}, {57421, "KP_PageUp"}, {57422, "KP_PageDown"},
-	{57423, "KP_Home"}, {57424, "KP_End"}, {57425, "KP_Insert"},
-	{57426, "KP_Delete"}, {57427, "KP_Begin"}, {57428, "AudioPlay"},
-	{57429, "MediaPause"}, {57430, "MediaPlayPause"}, {57431, "MediaReverse"},
-	{57432, "AudioStop"}, {57433, "MediaFastForward"}, {57434, "MediaRewind"},
-	{57435, "AudioNext"}, {57436, "AudioPrev"}, {57437, "MediaRecord"},
-	{57438, "AudioLowerVolume"}, {57439, "AudioRaiseVolume"},
-	{57440, "AudioMute"}, {57441, "LShift"}, {57442, "LControl"},
-	{57443, "LAlt"}, {57444, "LSuper"}, {57445, "LHyper"}, {57446, "LMeta"},
-	{57447, "RShift"}, {57448, "RControl"}, {57449, "RAlt"},
-	{57450, "RSuper"}, {57451, "RHyper"}, {57452, "RMeta"},
-	{57453, "ISO_Level3_Shift"}, {57454, "ISO_Level5_Shift"},
+    /* Kitty CSI u extended keys */
+    {"CapsLock", 57358}, {"ScrollLock", 57359}, {"NumLock", 57360},
+    {"PrintScreen", 57361}, {"Pause", 57362}, {"Menu", 57363},
+    {"F13", 57376}, {"F14", 57377}, {"F15", 57378}, {"F16", 57379},
+    {"F17", 57380}, {"F18", 57381}, {"F19", 57382}, {"F20", 57383},
+    {"F21", 57384}, {"F22", 57385}, {"F23", 57386}, {"F24", 57387},
+    {"F25", 57388}, {"F26", 57389}, {"F27", 57390}, {"F28", 57391},
+    {"F29", 57392}, {"F30", 57393}, {"F31", 57394}, {"F32", 57395},
+    {"F33", 57396}, {"F34", 57397}, {"F35", 57398},
+    {"KP_0", 57399}, {"KP_1", 57400}, {"KP_2", 57401}, {"KP_3", 57402},
+    {"KP_4", 57403}, {"KP_5", 57404}, {"KP_6", 57405}, {"KP_7", 57406},
+    {"KP_8", 57407}, {"KP_9", 57408}, {"KP_Decimal", 57409},
+    {"KP_Divide", 57410}, {"KP_Multiply", 57411}, {"KP_Subtract", 57412},
+    {"KP_Add", 57413}, {"KP_Enter", 57414}, {"KP_Equal", 57415},
+    {"KP_Separator", 57416}, {"KP_Left", 57417}, {"KP_Right", 57418},
+    {"KP_Up", 57419}, {"KP_Down", 57420}, {"KP_PageUp", 57421},
+    {"KP_PageDown", 57422}, {"KP_Home", 57423}, {"KP_End", 57424},
+    {"KP_Insert", 57425}, {"KP_Delete", 57426}, {"KP_Begin", 57427},
+    {"AudioPlay", 57428}, {"MediaPause", 57429}, {"MediaPlayPause", 57430},
+    {"MediaReverse", 57431}, {"AudioStop", 57432}, {"MediaFastForward", 57433},
+    {"MediaRewind", 57434}, {"AudioNext", 57435}, {"AudioPrev", 57436},
+    {"MediaRecord", 57437}, {"AudioLowerVolume", 57438},
+    {"AudioRaiseVolume", 57439}, {"AudioMute", 57440},
+    {"LShift", 57441}, {"LControl", 57442}, {"LAlt", 57443},
+    {"LSuper", 57444}, {"LHyper", 57445}, {"LMeta", 57446},
+    {"RShift", 57447}, {"RControl", 57448}, {"RAlt", 57449},
+    {"RSuper", 57450}, {"RHyper", 57451}, {"RMeta", 57452},
+    {"ISO_Level3_Shift", 57453}, {"ISO_Level5_Shift", 57454},
 
 	/* Foot (modifyOtherKeys extensions) */
-	{65421, "KP_Enter"}, {65450, "KP_Multiply"}, {65451, "KP_Add"},
-	{65452, "KP_Separator"}, {65453, "KP_Subtract"},
-	{65454, "KP_Delete"}, {65455, "KP_Divide"}, {65456, "KP_Insert"},
-	{65457, "KP_End"}, {65458, "KP_Down"}, {65459, "KP_PageDown"},
-	{65460, "KP_Left"}, {65461, "KP_Begin"}, {65462, "KP_Right"},
-	{65463, "KP_Home"}, {65464, "KP_Up"}, {65465, "KP_PageUp"},
+	{"KP_Enter", 65421}, {"KP_Multiply", 65450}, {"KP_Add", 65451},
+	{"KP_Separator", 65452}, {"KP_Subtract", 65453},
+	{"KP_Delete", 65454}, {"KP_Divide", 65455}, {"KP_Insert", 65456},
+	{"KP_End", 65457}, {"KP_Down", 65458}, {"KP_PageDown", 65459},
+	{"KP_Left", 65460}, {"KP_Begin", 65461}, {"KP_Right", 65462},
+	{"KP_Home", 65463}, {"KP_Up", 65464}, {"KP_PageUp", 65465},
 
-	{0, NULL}
+	{NULL, 0}
 };
 
 struct exceptions_t {
@@ -421,7 +422,7 @@ is_sco_seq(const int csi_seq, const char *seq, const size_t end)
 }
 
 static int
-is_hp_seq(const char c)
+is_hp_seq(const unsigned char c)
 {
 	return ((c == 'h' || (c >= 'p' && c <= 'w')
 	|| (c >= 'A' && c <= 'D') || c == 'F' || c == 'J' || c == 'P' || c == 'Q'
