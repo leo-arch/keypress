@@ -1,3 +1,16 @@
+0.3.6 (Sep 21, 2025)
+
+BUGS:
+* Alt+UTF-8 character not working.
+* Translations for Shift+Fn keys are wrong in the Linux console.
+
+IMPROVEMENTS:
+* Use -p to run in HP keyboard mode.
+* Use -a to enable Application Cursor Keys (DECCKM) mode.
+* Display terminfo names next to function key translations (disable with -I).
+* Use -X to run with XTMODKEYS in full mode (XTerm only).
+* Use -u to make XTerm emit CSI-u sequences (requires either -x or -X).
+
 0.3.5 (Sep 5, 2025)
 
 BUGS:
