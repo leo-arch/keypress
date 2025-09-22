@@ -36,7 +36,7 @@ extern "C" {
 
 #define CLEAR_SCREEN          fputs("\x1b[H\x1b[2J", stdout)
 #define SET_KITTY_KEYS(n)     fprintf(stdout, "\x1b[>%du", (n) == 1 ? 8 : 1)
-#define UNSET_KITTY_KEYS(n)   fprintf(stdout, "\x1b[<%du", (n) == 1 ? 8 : 1)
+#define UNSET_KITTY_KEYS      fputs("\x1b[<u", stdout)
 #define HIDE_CURSOR           fputs("\x1b[?25l", stdout)
 #define UNHIDE_CURSOR         fputs("\x1b[?25h", stdout)
 #define SET_ALT_SCREEN        fputs("\x1b[?1049h", stdout)

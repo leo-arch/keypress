@@ -70,7 +70,7 @@ static void
 switch_to_normal_buffer(void)
 {
 	if (g_options.kitty_keys > 0) {
-		UNSET_KITTY_KEYS((g_options.kitty_keys > 1));
+		UNSET_KITTY_KEYS;
 	} else if (g_options.xterm_mok > 0) {
 		UNSET_XTERM_MOK;
 		if (g_options.xterm_mok > 1) {
