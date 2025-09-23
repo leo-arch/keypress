@@ -153,6 +153,12 @@ set_xterm_terminal(char **term)
 
 	else if (getenv("TERMINATOR_UUID"))
 		*term = "xterm (terminator)";
+
+	else if (getenv("VTE_VERSION"))
+		*term = "xterm (VTE)";
+
+	else if (getenv("ALACRITTY_WINDOW_ID"))
+		*term = "xterm (alacritty)";
 }
 
 int
