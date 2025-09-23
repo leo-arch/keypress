@@ -137,28 +137,24 @@ static void
 set_xterm_terminal(char **term)
 {
 	if (getenv("XTERM_VERSION"))
-		return; /*  Plain xterm */
+		return; /* Plain xterm */
 
 	if (getenv("KONSOLE_VERSION"))
 		*term = "xterm (konsole)";
-
 	else if (getenv("GNOME_TERMINAL_SCREEN"))
 		*term = "xterm (gnome-terminal)";
-
 	else if (getenv("WEZTERM_EXECUTABLE"))
 		*term = "xterm (wezterm)";
-
 	else if (getenv("TERMINOLOGY"))
 		*term = "xterm (terminology)";
-
 	else if (getenv("TERMINATOR_UUID"))
 		*term = "xterm (terminator)";
-
 	else if (getenv("VTE_VERSION"))
 		*term = "xterm (VTE)";
-
 	else if (getenv("ALACRITTY_WINDOW_ID"))
-		*term = "xterm (alacritty)";
+		*term = "xterm (alacritty)"; /* cosmic-terminal */
+	else if (getenv("MLTERM"))
+		*term = "xterm (mlterm)";
 }
 
 int
