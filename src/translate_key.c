@@ -834,10 +834,8 @@ write_legacy_keys(char *seq, const size_t end, const int term_type)
  * The returned value, if not NULL, is dinamically allocated and must be
  * free'd by the caller.
  *
- * For the time being, TERM_TYPE is either TK_TERM_GENERIC, TK_TERM_KITTY,
- * or TK_TERM_LEGACY_SCO.
- * In the latter case, keycodes are translated using a different table
- * with SCO mappings.
+ * TERM_TYPE is one of the TK_TERM values (defined in translate_key.h).
+ * It defines how SEQ will be translated.
  *
  * NOTE: This function assumes STR comes directly from the terminal, i.e. by
  * reading terminal input in raw mode. User suplied input, therefore, will
