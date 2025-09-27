@@ -137,24 +137,31 @@ static void
 set_xterm_terminal(char **term)
 {
 	if (getenv("XTERM_VERSION"))
-		return; /* Plain xterm */
+		return; /* Actual XTerm */
 
-	if (getenv("KONSOLE_VERSION"))
-		*term = "xterm (konsole)";
-	else if (getenv("GNOME_TERMINAL_SCREEN"))
-		*term = "xterm (gnome-terminal)";
-	else if (getenv("WEZTERM_EXECUTABLE"))
-		*term = "xterm (wezterm)";
-	else if (getenv("TERMINOLOGY"))
-		*term = "xterm (terminology)";
-	else if (getenv("TERMINATOR_UUID"))
-		*term = "xterm (terminator)";
-	else if (getenv("VTE_VERSION"))
-		*term = "xterm (VTE)";
-	else if (getenv("ALACRITTY_WINDOW_ID"))
-		*term = "xterm (alacritty)"; /* cosmic-terminal */
-	else if (getenv("MLTERM"))
-		*term = "xterm (mlterm)";
+	const char *vte = getenv("VTE_VERSION");
+	char *name = NULL;
+
+	if (getenv("KONSOLE_VERSION")) name = "konsole";
+	else if (getenv("GNOME_TERMINAL_SCREEN")) name = "gnome";
+	else if (getenv("WEZTERM_EXECUTABLE")) name = "wezterm";
+	else if (getenv("TERMINOLOGY")) name = "terminology";
+	else if (getenv("TERMINATOR_UUID")) name = "terminator";
+	else if (getenv("ROXTERM_ID")) name = "roxterm";
+	else if (getenv("TILIX_ID")) name = "tilix";
+	else if (getenv("ALACRITTY_WINDOW_ID")) name = "alacritty"; /* cosmic-term */
+	else if (getenv("MLTERM")) name = "mlterm";
+	else if (getenv("LC_EXTRATERM_COOKIE")) name = "extraterm";
+	else if (getenv("TABBY_CONFIG_DIRECTORY")) name = "tabby";
+	else if (getenv("WAVETERM_VERSION")) name = "waveterm";
+
+	static char buf[64] = "xterm";
+	if (vte || name) {
+		snprintf(buf + 5, sizeof(buf) - 5, " (%s%s%s)", name ? name : "",
+			(vte && name) ? "/" : "", vte ? "VTE" : "");
+	}
+
+	*term = buf;
 }
 
 int
