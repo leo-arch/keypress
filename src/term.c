@@ -164,6 +164,19 @@ set_xterm_terminal(char **term)
 	*term = buf;
 }
 
+static int
+set_term_type(const int term_type)
+{
+	if (g_options.sco_keys == 1)
+		return TK_TERM_LEGACY_SCO;
+	if (g_options.hp_keys == 1)
+		return TK_TERM_LEGACY_HP;
+	if (g_options.kitty_keys > 0)
+		return TK_TERM_KITTY;
+
+	return term_type;
+}
+
 int
 get_term_type(char **term_str)
 {
@@ -172,40 +185,33 @@ get_term_type(char **term_str)
 	*term_str = (term && *term) ? term :
 		((term_program && *term_program) ? term_program : "Unknown");
 
-	if (g_options.sco_keys == 1)
-		return TK_TERM_LEGACY_SCO;
-	if (g_options.hp_keys == 1)
-		return TK_TERM_LEGACY_HP;
-	if (g_options.kitty_keys > 0)
-		return TK_TERM_KITTY;
-
 	char *colorterm = getenv("COLORTERM");
 
 	if (colorterm) {
 		if (strstr(colorterm, "rxvt")) {
 			if (!term || !strstr(term, "rxvt"))
 				*term_str = "rxvt";
-			return TK_TERM_RXVT;
+			return set_term_type(TK_TERM_RXVT);
 		} else if (strstr(colorterm, "Eterm"))
-			return TK_TERM_RXVT;
+			return set_term_type(TK_TERM_RXVT);
 	}
 
 	if (!term || !*term)
-		return TK_TERM_GENERIC;
+		return set_term_type(TK_TERM_GENERIC);
 
 	if (strstr(term, "xterm")) {
 		set_xterm_terminal(term_str);
-		return TK_TERM_XTERM;
+		return set_term_type(TK_TERM_XTERM);
 	}
 
 	if (strstr(term, "rxvt") || strstr(term, "Eterm")
 	|| strstr(term, "dvtm"))
-		return TK_TERM_RXVT;
+		return set_term_type(TK_TERM_RXVT);
 	if (strstr(term, "linux") || strstr(term, "cygwin")
 	|| strstr(term, "yaft") || strstr(term, "fbterm"))
-		return TK_TERM_LINUX;
+		return set_term_type(TK_TERM_LINUX);
 	if (strstr(term, "st-") || strstr(term, "stterm"))
-		return TK_TERM_ST;
+		return set_term_type(TK_TERM_ST);
 
-	return TK_TERM_GENERIC;
+	return set_term_type(TK_TERM_GENERIC);
 }
