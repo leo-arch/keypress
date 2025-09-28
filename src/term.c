@@ -167,13 +167,9 @@ set_xterm_terminal(char **term)
 static int
 set_term_type(const int term_type)
 {
-	if (g_options.sco_keys == 1)
-		return TK_TERM_LEGACY_SCO;
-	if (g_options.hp_keys == 1)
-		return TK_TERM_LEGACY_HP;
-	if (g_options.kitty_keys > 0)
-		return TK_TERM_KITTY;
-
+	if (g_options.sco_keys == 1) return TK_TERM_LEGACY_SCO;
+	if (g_options.hp_keys == 1) return TK_TERM_LEGACY_HP;
+	if (g_options.kitty_keys > 0) return TK_TERM_KITTY;
 	return term_type;
 }
 
