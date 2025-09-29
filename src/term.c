@@ -134,15 +134,16 @@ init_term(void)
 }
 
 static void
-set_xterm_terminal(char **term)
+set_xterm_terminal(char **term, const char *term_program)
 {
 	if (getenv("XTERM_VERSION"))
 		return; /* Actual XTerm */
 
 	const char *vte = getenv("VTE_VERSION");
-	char *name = NULL;
+	const char *name = NULL;
 
-	if (getenv("KONSOLE_VERSION")) name = "konsole";
+	if (term_program && *term_program) name = term_program;
+	else if (getenv("KONSOLE_VERSION")) name = "konsole";
 	else if (getenv("GNOME_TERMINAL_SCREEN")) name = "gnome";
 	else if (getenv("WEZTERM_EXECUTABLE")) name = "wezterm";
 	else if (getenv("TERMINOLOGY")) name = "terminology";
@@ -154,6 +155,7 @@ set_xterm_terminal(char **term)
 	else if (getenv("LC_EXTRATERM_COOKIE")) name = "extraterm";
 	else if (getenv("TABBY_CONFIG_DIRECTORY")) name = "tabby";
 	else if (getenv("WAVETERM_VERSION")) name = "waveterm";
+	else if (getenv("PANTHEON_TERMINAL_ID")) name = "pantheon";
 
 	static char buf[64] = "xterm";
 	if (vte || name) {
@@ -196,8 +198,7 @@ get_term_type(char **term_str)
 		return set_term_type(TK_TERM_GENERIC);
 
 	if (strstr(term, "xterm")) {
-		if (!term_program)
-			set_xterm_terminal(term_str);
+		set_xterm_terminal(term_str, term_program);
 		return set_term_type(TK_TERM_XTERM);
 	}
 
