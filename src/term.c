@@ -176,10 +176,10 @@ set_term_type(const int term_type)
 int
 get_term_type(char **term_str)
 {
+	char *term_program = getenv("TERM_PROGRAM");
 	char *term = getenv("TERM");
-	char *term_program = !term ? getenv("TERM_PROGRAM") : NULL;
-	*term_str = (term && *term) ? term :
-		((term_program && *term_program) ? term_program : "Unknown");
+	*term_str = (term_program && *term_program) ? term_program :
+		((term && *term) ? term : "Unknown");
 
 	char *colorterm = getenv("COLORTERM");
 
@@ -196,7 +196,8 @@ get_term_type(char **term_str)
 		return set_term_type(TK_TERM_GENERIC);
 
 	if (strstr(term, "xterm")) {
-		set_xterm_terminal(term_str);
+		if (!term_program)
+			set_xterm_terminal(term_str);
 		return set_term_type(TK_TERM_XTERM);
 	}
 
