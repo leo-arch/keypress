@@ -136,8 +136,14 @@ init_term(void)
 static void
 set_xterm_terminal(char **term, const char *term_program)
 {
-	if (getenv("XTERM_VERSION"))
-		return; /* Actual XTerm */
+	static char buf[64] = "xterm";
+
+	const char *ver = getenv("XTERM_VERSION");
+	if (ver) { /* Actual XTerm */
+		snprintf(buf, sizeof(buf), "%s", ver);
+		*term = buf;
+		return;
+	}
 
 	const char *vte = getenv("VTE_VERSION");
 	const char *name = NULL;
@@ -157,7 +163,6 @@ set_xterm_terminal(char **term, const char *term_program)
 	else if (getenv("WAVETERM_VERSION")) name = "waveterm";
 	else if (getenv("PANTHEON_TERMINAL_ID")) name = "pantheon";
 
-	static char buf[64] = "xterm";
 	if (vte || name) {
 		snprintf(buf + 5, sizeof(buf) - 5, " (%s%s%s)", name ? name : "",
 			(vte && name) ? "/" : "", vte ? "VTE" : "");
