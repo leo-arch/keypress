@@ -1,29 +1,9 @@
-/* translate_key.c */
-
 /*
- * Copyright (C) 2025, Leo Abramovich <leo.clifm@outlook.com>
- * All rights reserved.
-
-* The MIT License (MIT)
-
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-* THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
+ * SPDX-FileCopyrightText: 2025-2026 L. Abramovich <leo.clifm@outlook.com>
 */
+
+/* translate_key.c -- Translate keyboard escape sequences into text form */
 
 #include <stdlib.h> /* malloc, free, strtol */
 #include <stdio.h>  /* snprintf */
@@ -828,17 +808,35 @@ write_legacy_keys(char *seq, const size_t end, const int term_type)
 	return write_translation(seq[end], mod_key, term_type);
 }
 
-/* Translate the escape sequence STR into the corresponding symbolic value.
+/* Translate the escape sequence SEQ into the corresponding symbolic value.
  * E.g. "\x1b[1;7D" will return "Ctrl+Alt+Left". If no symbolic value is
  * found, NULL is returned.
  * The returned value, if not NULL, is dinamically allocated and must be
  * free'd by the caller.
  *
  * TERM_TYPE is one of the TK_TERM values (defined in translate_key.h).
- * It defines how SEQ will be translated.
+ * It defines how SEQ will be translated. Unless running on a legacy terminal,
+ * or using a legacy keyboard type (like SCO or HP), you most likely want to
+ * set this value to TK_TERM_GENERIC. For more info consult the -kt option in
+ * the XTerm manpage.
  *
- * NOTE: This function assumes STR comes directly from the terminal, i.e. by
- * reading terminal input in raw mode. User suplied input, therefore, will
+ * The following encoding schemes are supported:
+ * 1. SCO (legacy): set term_type to TK_TERM_LEGACY_SCO
+ * 2. HP (legacy): set term_type to TK_TERM_LEGACY_HP
+ *
+ * The following encondings are automatically handled by this function
+ * (set term_type to TK_TERM_GENERIC):
+ *
+ * 3. Sun (CSI-z)
+ * 4. Xterm
+ * 5. Xterm (modifyOtherKeys)
+ * 6. Rxvt
+ * 7. Fixterms (CSI-u)
+ * 8. Kitty (extended CSI-u)
+ * 9. Foot (extended CSI-u)
+ *
+ * NOTE: This function assumes SEQ comes directly from the terminal, i.e. by
+ * reading terminal input in raw mode. User suplied input, therefore, may
  * return false positives. */
 char *
 translate_key(char *seq, const int term_type)
