@@ -495,7 +495,7 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 	}
 
 	*keycode = str[end];
-	char *s = strchr(str, ';');
+	const char *s = strchr(str, ';');
 
 	if (*str == ESC_KEY && !s) { /* Rxvt */
 		*mod_key += MOD_ALT;
@@ -505,18 +505,20 @@ set_end_char_is_keycode(char *str, size_t end, int *keycode, int *mod_key)
 
 	if (s) {
 		str[end] = '\0';
-		*mod_key += (s && s[1]) ? xatoi(s + 1) - 1 : 0;
+		*mod_key += (*s && s[1]) ? xatoi(s + 1) - 1 : 0;
 	} else if (IS_LOWER_ARROW_CHAR(str[end])) { /* Rxvt */
 		if (*str == SS3_INTRODUCER)
 			*mod_key += MOD_CTRL;
 		else
 			*mod_key += MOD_SHIFT;
-	} else if (IS_UPPER_ARROW_CHAR(str[end])) {
-		str[end] = '\0';
-		if (*str == SS3_INTRODUCER)
-			str++;
-		if (IS_DIGIT(*str))
-			*mod_key += xatoi(str) - 1;
+	} else {
+		if (IS_UPPER_ARROW_CHAR(str[end])) {
+			str[end] = '\0';
+			if (*str == SS3_INTRODUCER)
+				str++;
+			if (IS_DIGIT(*str))
+				*mod_key += xatoi(str) - 1;
+		}
 	}
 }
 
@@ -583,7 +585,7 @@ print_non_esc_seq(const char *str)
 }
 
 static char *
-check_single_key(char *str, const int csi_seq, const int term_type)
+check_single_key(const char *str, const int csi_seq, const int term_type)
 {
 	char *buf = malloc(MAX_BUF * sizeof(char));
 	if (!buf)
@@ -615,7 +617,7 @@ check_single_key(char *str, const int csi_seq, const int term_type)
 	}
 
 	if (csi_seq == 0) {
-		unsigned char *s = (unsigned char *)str;
+		const unsigned char *s = (const unsigned char *)str;
 		if (ctrl_keys[*s]) /* Backspace, Tab, Return, Space, Del */
 			snprintf(buf, MAX_BUF, "%s%s", SYM(MOD_ALT), ctrl_keys[*s]);
 		else if (*s < 0x20)
@@ -800,9 +802,9 @@ normalize_seq(char **seq, const int term_type)
 
 /* Legacy mode: either SCO or HP keyboard mode. */
 static char *
-write_legacy_keys(char *seq, const size_t end, const int term_type)
+write_legacy_keys(const char *seq, const size_t end, const int term_type)
 {
-	char *s = strchr(seq, ';');
+	const char *s = strchr(seq, ';');
 	const int mod_key = (s && s[1]) ? xatoi(s + 1) - 1 : 0;
 
 	return write_translation(seq[end], mod_key, term_type);
