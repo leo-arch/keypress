@@ -185,7 +185,8 @@ print_byte_info(struct state_t *state, const int c)
 		return;
 	}
 
-	if (isprint(c) && c != SPACE_KEY) { /* ASCII printable characters */
+	/* ASCII printable characters */
+	if (c >= 0 && c <= 255 && isprint(c) && c != SPACE_KEY) {
 		const char s[2] = {(char)c, 0};
 		print_row(c, s);
 		return;
